@@ -1,0 +1,82 @@
+<div class="auth-page">
+  <section class="auth-hero">
+    <div class="badge">Plataforma universitaria</div>
+    <h1>MEDICSYS</h1>
+    <p>
+      Historias clinicas digitales para estudiantes de salud. Captura rigurosa, revision
+      docente y trazabilidad completa.
+    </p>
+    <div class="hero-grid">
+      <div class="hero-card">
+        <h3>Formulario integral</h3>
+        <p>Secciones completas, validaciones y guardado seguro.</p>
+      </div>
+      <div class="hero-card">
+        <h3>Revision docente</h3>
+        <p>Flujo de aprobacion o rechazo con observaciones claras.</p>
+      </div>
+      <div class="hero-card">
+        <h3>Auditoria</h3>
+        <p>Estado, fechas y evidencia para cada historia clinica.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="card auth-card">
+      <div class="tabs">
+        <button
+          type="button"
+          class="tab"
+          [class.active]="mode() === 'login'"
+          (click)="switchMode('login')"
+        >
+          Iniciar sesion
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="mode() === 'register'"
+          (click)="switchMode('register')"
+        >
+          Registro alumno
+        </button>
+      </div>
+
+      <form *ngIf="mode() === 'login'" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+        <label class="field">
+          Correo institucional
+          <input class="input" type="email" formControlName="email" placeholder="nombre@universidad.edu" />
+        </label>
+        <label class="field">
+          Contrasena
+          <input class="input" type="password" formControlName="password" placeholder="********" />
+        </label>
+        <button class="btn btn-primary" type="submit" [disabled]="loading()">Entrar</button>
+      </form>
+
+      <form *ngIf="mode() === 'register'" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+        <label class="field">
+          Nombre completo
+          <input class="input" type="text" formControlName="fullName" placeholder="Nombre y apellido" />
+        </label>
+        <label class="field">
+          Codigo universitario
+          <input class="input" type="text" formControlName="universityId" placeholder="2026-001" />
+        </label>
+        <label class="field">
+          Correo institucional
+          <input class="input" type="email" formControlName="email" placeholder="nombre@universidad.edu" />
+        </label>
+        <label class="field">
+          Contrasena
+          <input class="input" type="password" formControlName="password" placeholder="Minimo 8 caracteres" />
+        </label>
+        <button class="btn btn-primary" type="submit" [disabled]="loading()">Crear cuenta</button>
+      </form>
+
+      <p class="error" *ngIf="error()">{{ error() }}</p>
+      <p class="hint">Profesores: usa tu correo asignado o solicita acceso.</p>
+    </div>
+  </section>
+</div>

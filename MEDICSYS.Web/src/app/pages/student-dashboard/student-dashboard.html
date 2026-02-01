@@ -1,0 +1,51 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel alumno</p>
+      <h2>Gestion de historias clinicas</h2>
+      <p class="subtitle">Completa todos los campos y envia para revision docente.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="newHistory()">Nueva historia clinica</button>
+  </header>
+
+  <div class="metrics">
+    <div class="card metric">
+      <span class="label">Registradas</span>
+      <strong>{{ histories().length }}</strong>
+    </div>
+    <div class="card metric">
+      <span class="label">Borradores</span>
+      <strong>{{ draftCount() }}</strong>
+    </div>
+    <div class="card metric">
+      <span class="label">En revision</span>
+      <strong>{{ submittedCount() }}</strong>
+    </div>
+  </div>
+
+  <div class="card list-card">
+    <div class="list-header">
+      <h3>Historias registradas</h3>
+      <button class="btn btn-ghost" type="button" (click)="load()">Actualizar</button>
+    </div>
+
+    <div *ngIf="loading()" class="empty">Cargando datos...</div>
+
+    <div *ngIf="!loading() && histories().length === 0" class="empty">
+      Aun no has creado historias clinicas. Comienza con una nueva.
+    </div>
+
+    <div class="history-list" *ngIf="!loading() && histories().length > 0">
+      <article class="history-item" *ngFor="let history of histories()">
+        <div>
+          <span class="status" [attr.data-status]="history.status">{{ history.status }}</span>
+          <h4>Historia clinica</h4>
+          <p>Actualizada: {{ history.updatedAt | date: 'medium' }}</p>
+        </div>
+        <a class="btn btn-outline" [routerLink]="['/student/histories', history.id]">Abrir</a>
+      </article>
+    </div>
+  </div>
+</section>

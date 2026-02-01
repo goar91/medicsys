@@ -1,0 +1,4 @@
+Necesito realizar una app web moderna en base a este video, con el forntend en Angular(última Versión), Backend en C# y la base de datos en postgresql (última versión).
+Quiero que la aplicación se enfoque a una universidad en la que los alumnos van a llenar todos los campos de las Historias clínicas y los profesores revisan y validan la información
+Quiero que la app tenga un inicio de sesión para profesores con acceso a toda la información y uno para alumnos
+instala todas las dependencias y extensiones que se necesiten para que el sistema funcione con normalidad

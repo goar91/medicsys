@@ -1,0 +1,236 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Historia clinica</p>
+      <h2>Formulario del estudiante</h2>
+      <p class="subtitle">Completa cada seccion con precision y envia para revision.</p>
+    </div>
+    <div class="actions">
+      <span *ngIf="history() as h" class="status" [attr.data-status]="h.status">{{ h.status }}</span>
+      <button class="btn btn-outline" type="button" (click)="saveDraft()" [disabled]="readonly() || saving()">
+        Guardar borrador
+      </button>
+      <button class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
+        Enviar a revision
+      </button>
+    </div>
+  </header>
+
+  <div class="card note" *ngIf="history()?.reviewNotes">
+    <strong>Observaciones del profesor</strong>
+    <p>{{ history()?.reviewNotes }}</p>
+  </div>
+
+  <div *ngIf="loading()" class="empty">Cargando historia clinica...</div>
+
+  <div *ngIf="!loading()" class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'personal'" (click)="setTab('personal')">Datos personales</button>
+    <button class="tab" [class.active]="activeTab() === 'consulta'" (click)="setTab('consulta')">Datos de consulta</button>
+    <button class="tab" [class.active]="activeTab() === 'odontograma'" (click)="setTab('odontograma')">Odontograma</button>
+    <button class="tab" [class.active]="activeTab() === 'indicadores'" (click)="setTab('indicadores')">Indicadores</button>
+    <button class="tab" [class.active]="activeTab() === 'tratamientos'" (click)="setTab('tratamientos')">Tratamientos</button>
+    <button class="tab" [class.active]="activeTab() === 'medios'" (click)="setTab('medios')">Medios</button>
+  </div>
+
+  <form *ngIf="!loading()" class="form" [formGroup]="form">
+    <section class="form-section" *ngIf="activeTab() === 'personal'">
+      <h3>Datos personales</h3>
+      <div class="grid" formGroupName="personal">
+        <label class="field">
+          Apellidos
+          <input class="input" formControlName="lastName" />
+        </label>
+        <label class="field">
+          Nombres
+          <input class="input" formControlName="firstName" />
+        </label>
+        <label class="field">
+          C.I.
+          <input class="input" formControlName="idNumber" />
+        </label>
+        <label class="field">
+          Genero
+          <select class="input" formControlName="gender">
+            <option value="">Selecciona</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </label>
+        <label class="field">
+          Edad
+          <input class="input" formControlName="age" />
+        </label>
+        <label class="field">
+          Rango de edad
+          <input class="input" formControlName="ageRange" />
+        </label>
+        <label class="field">
+          N° historia clinica
+          <input class="input" formControlName="clinicalHistoryNumber" />
+        </label>
+        <label class="field">
+          Direccion
+          <input class="input" formControlName="address" />
+        </label>
+        <label class="field">
+          Telefono
+          <input class="input" formControlName="phone" />
+        </label>
+        <label class="field">
+          Fecha
+          <input class="input" type="date" formControlName="date" />
+        </label>
+      </div>
+    </section>
+
+    <section class="form-section" *ngIf="activeTab() === 'consulta'" formGroupName="consultation">
+      <h3>Datos de consulta</h3>
+      <div class="stack">
+        <label class="field">
+          Motivo de consulta
+          <textarea class="input" rows="2" formControlName="reason"></textarea>
+        </label>
+        <label class="field">
+          Enfermedad o problema actual
+          <textarea class="input" rows="3" formControlName="currentIssue"></textarea>
+        </label>
+      </div>
+
+      <div class="form-divider">Antecedentes personales y familiares</div>
+      <div class="check-grid" formGroupName="antecedentes">
+        <label><input type="checkbox" formControlName="alergiaAntibiotico" /> Alergia antibiótico</label>
+        <label><input type="checkbox" formControlName="alergiaAnestesia" /> Alergia anestesia</label>
+        <label><input type="checkbox" formControlName="hemorragias" /> Hemorragias</label>
+        <label><input type="checkbox" formControlName="vih" /> VIH/SIDA</label>
+        <label><input type="checkbox" formControlName="tuberculosis" /> Tuberculosis</label>
+        <label><input type="checkbox" formControlName="asma" /> Asma</label>
+        <label><input type="checkbox" formControlName="diabetes" /> Diabetes</label>
+        <label><input type="checkbox" formControlName="hipertension" /> Hipertension</label>
+        <label><input type="checkbox" formControlName="cardiaca" /> Enf. cardiaca</label>
+        <label><input type="checkbox" formControlName="otros" /> Otros</label>
+      </div>
+
+      <div class="form-divider">Signos vitales</div>
+      <div class="grid" formGroupName="vitalSigns">
+        <label class="field">
+          Presion arterial
+          <input class="input" formControlName="bloodPressure" />
+        </label>
+        <label class="field">
+          Frecuencia cardiaca
+          <input class="input" formControlName="heartRate" />
+        </label>
+        <label class="field">
+          Temperatura °C
+          <input class="input" formControlName="temperature" />
+        </label>
+        <label class="field">
+          Frecuencia respiratoria
+          <input class="input" formControlName="respiratoryRate" />
+        </label>
+      </div>
+
+      <div class="form-divider">Examen del sistema estomatognatico</div>
+      <div class="check-grid" formGroupName="estomatognatico">
+        <label><input type="checkbox" formControlName="labios" /> Labios</label>
+        <label><input type="checkbox" formControlName="mejillas" /> Mejillas</label>
+        <label><input type="checkbox" formControlName="maxilarSuperior" /> Maxilar superior</label>
+        <label><input type="checkbox" formControlName="maxilarInferior" /> Maxilar inferior</label>
+        <label><input type="checkbox" formControlName="lengua" /> Lengua</label>
+        <label><input type="checkbox" formControlName="paladar" /> Paladar</label>
+        <label><input type="checkbox" formControlName="piso" /> Piso</label>
+        <label><input type="checkbox" formControlName="carrillos" /> Carrillos</label>
+        <label><input type="checkbox" formControlName="glandulasSalivales" /> Glandulas salivales</label>
+        <label><input type="checkbox" formControlName="orofaringe" /> Oro faringe</label>
+        <label><input type="checkbox" formControlName="atm" /> A.T.M.</label>
+        <label><input type="checkbox" formControlName="ganglios" /> Ganglios</label>
+      </div>
+
+      <label class="field">
+        Observaciones
+        <textarea class="input" rows="3" formControlName="notes"></textarea>
+      </label>
+    </section>
+
+    <section class="form-section" *ngIf="activeTab() === 'odontograma'">
+      <h3>Odontograma interactivo</h3>
+      <p class="subtitle">Selecciona una marca y haz clic en las piezas dentales.</p>
+
+      <div class="marker-row">
+        <button type="button" class="marker" [class.active]="marker() === 'caries'" (click)="selectMarker('caries')">Caries</button>
+        <button type="button" class="marker" [class.active]="marker() === 'filled'" (click)="selectMarker('filled')">Restauracion</button>
+        <button type="button" class="marker" [class.active]="marker() === 'missing'" (click)="selectMarker('missing')">Ausente</button>
+        <button type="button" class="marker" [class.active]="marker() === 'extracted'" (click)="selectMarker('extracted')">Extraida</button>
+        <button type="button" class="marker" [class.active]="marker() === 'needs-treatment'" (click)="selectMarker('needs-treatment')">Tratamiento</button>
+      </div>
+
+      <div class="odontogram">
+        <div
+          class="tooth"
+          *ngFor="let tooth of odontogram().teeth"
+          [attr.data-marker]="tooth.marker"
+          (click)="toggleTooth(tooth.code)"
+        >
+          <span>{{ tooth.code }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section" *ngIf="activeTab() === 'indicadores'" formGroupName="indicators">
+      <h3>Indicadores de salud bucal</h3>
+      <div class="grid">
+        <label class="field">
+          Higiene oral simplificada
+          <input class="input" formControlName="higieneOral" />
+        </label>
+        <label class="field">
+          Enfermedad periodontal
+          <input class="input" formControlName="enfermedadPeriodontal" />
+        </label>
+        <label class="field">
+          Mal oclusion
+          <input class="input" formControlName="maloclusion" />
+        </label>
+        <label class="field">
+          Fluorosis
+          <input class="input" formControlName="fluorosis" />
+        </label>
+        <label class="field">
+          Indice CPO-ceo
+          <input class="input" formControlName="indiceCpo" />
+        </label>
+      </div>
+    </section>
+
+    <section class="form-section" *ngIf="activeTab() === 'tratamientos'" formGroupName="treatments">
+      <h3>Tratamientos</h3>
+      <div class="grid">
+        <label class="field">
+          Plan de tratamiento
+          <textarea class="input" rows="3" formControlName="plan"></textarea>
+        </label>
+        <label class="field">
+          Procedimientos
+          <textarea class="input" rows="3" formControlName="procedures"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section class="form-section" *ngIf="activeTab() === 'medios'" formGroupName="medios">
+      <h3>Medios de apoyo</h3>
+      <div class="grid">
+        <label class="field">
+          Imagenes / archivos
+          <textarea class="input" rows="3" formControlName="imagenes"></textarea>
+        </label>
+        <label class="field">
+          Notas
+          <textarea class="input" rows="3" formControlName="notas"></textarea>
+        </label>
+      </div>
+    </section>
+  </form>
+</section>

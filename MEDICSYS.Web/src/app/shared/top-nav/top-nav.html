@@ -1,0 +1,10 @@
+<nav class="top-nav">
+  <a class="brand" [routerLink]="homeLink()">MEDICSYS</a>
+  <div class="nav-meta" *ngIf="user() as u">
+    <div class="user">
+      <span class="name">{{ u.fullName }}</span>
+      <span class="role">{{ u.role }}</span>
+    </div>
+    <button class="btn btn-ghost" type="button" (click)="logout()">Salir</button>
+  </div>
+</nav>

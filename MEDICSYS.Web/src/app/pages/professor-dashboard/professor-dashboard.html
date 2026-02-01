@@ -1,0 +1,40 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel profesor</p>
+      <h2>Revision de historias clinicas</h2>
+      <p class="subtitle">Valida la informacion enviada por los alumnos.</p>
+    </div>
+    <button class="btn btn-ghost" type="button" (click)="load()">Refrescar</button>
+  </header>
+
+  <div class="filters">
+    <button class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">Todas</button>
+    <button class="chip" [class.active]="filter() === 'Submitted'" (click)="setFilter('Submitted')">En revision</button>
+    <button class="chip" [class.active]="filter() === 'Approved'" (click)="setFilter('Approved')">Aprobadas</button>
+    <button class="chip" [class.active]="filter() === 'Rejected'" (click)="setFilter('Rejected')">Rechazadas</button>
+  </div>
+
+  <div class="card list-card">
+    <div *ngIf="loading()" class="empty">Cargando historias...</div>
+
+    <div *ngIf="!loading() && filtered().length === 0" class="empty">
+      No hay historias clinicas para este filtro.
+    </div>
+
+    <div class="history-list" *ngIf="!loading() && filtered().length > 0">
+      <article class="history-item" *ngFor="let history of filtered()">
+        <div>
+          <span class="status" [attr.data-status]="history.status">{{ history.status }}</span>
+          <h4>{{ history.studentName }}</h4>
+          <p>Enviada: {{ history.submittedAt ? (history.submittedAt | date: 'medium') : 'Sin enviar' }}</p>
+        </div>
+        <a class="btn btn-outline" [routerLink]="['/professor/histories', history.id]">
+          Revisar
+        </a>
+      </article>
+    </div>
+  </div>
+</section>

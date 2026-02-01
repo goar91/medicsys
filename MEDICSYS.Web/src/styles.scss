@@ -1,0 +1,125 @@
+:root {
+  --font-body: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --ink: #12131a;
+  --muted: #5f6673;
+  --accent: #f97316;
+  --surface: #f4f1ea;
+  --badge-bg: rgba(18, 19, 26, 0.08);
+  --badge-text: #2b313b;
+  --stroke: rgba(15, 23, 42, 0.12);
+  --shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --danger: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: radial-gradient(circle at top left, #f6efe4 0%, #eef6f3 45%, #fefcf7 100%);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.65), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(160, 229, 215, 0.25), transparent 45%),
+    radial-gradient(circle at 70% 80%, rgba(249, 115, 22, 0.12), transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page {
+  animation: rise 0.6s ease;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  border: none;
+  padding: 0.65rem 1.2rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: white;
+  box-shadow: 0 12px 24px rgba(18, 19, 26, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--stroke);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(18, 19, 26, 0.1);
+}
+
+p {
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

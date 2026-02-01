@@ -1,0 +1,48 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Revision docente</p>
+      <h2>Historia clinica del alumno</h2>
+      <p class="subtitle">Verifica cada dato antes de aprobar.</p>
+    </div>
+    <span *ngIf="history() as h" class="status" [attr.data-status]="h.status">{{ h.status }}</span>
+  </header>
+
+  <div *ngIf="loading()" class="empty">Cargando historia clinica...</div>
+
+  <div class="review-grid" *ngIf="!loading()">
+    <div class="review-content">
+      <div class="card section-card" *ngFor="let section of sections()">
+        <h3>{{ section.title }}</h3>
+        <div class="section-items">
+          <div class="item" *ngFor="let item of section.items">
+            <span class="label">{{ item.label }}</span>
+            <span class="value">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="review-panel">
+      <div class="card">
+        <h3>Decision</h3>
+        <p class="subtitle">Agrega observaciones si es necesario.</p>
+        <label class="field">
+          Observaciones
+          <textarea class="input" rows="4" [formControl]="notes"></textarea>
+        </label>
+        <div class="actions">
+          <button class="btn btn-outline" type="button" (click)="reject()" [disabled]="!canReview() || reviewing()">
+            Rechazar
+          </button>
+          <button class="btn btn-primary" type="button" (click)="approve()" [disabled]="!canReview() || reviewing()">
+            Aprobar
+          </button>
+        </div>
+        <p class="hint" *ngIf="!canReview()">Esta historia ya fue evaluada.</p>
+      </div>
+    </aside>
+  </div>
+</section>
