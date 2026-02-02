@@ -7,7 +7,10 @@
       <h2>Gestion de historias clinicas</h2>
       <p class="subtitle">Completa todos los campos y envia para revision docente.</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="newHistory()">Nueva historia clinica</button>
+    <div class="header-actions">
+      <a class="btn btn-outline" [routerLink]="['/agenda']">Agenda</a>
+      <button class="btn btn-primary" type="button" (click)="newHistory()">Nueva historia clinica</button>
+    </div>
   </header>
 
   <div class="metrics">

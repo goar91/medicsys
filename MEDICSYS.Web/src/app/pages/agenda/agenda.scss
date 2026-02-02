@@ -1,0 +1,155 @@
+.agenda-page {
+  display: grid;
+  gap: 2rem;
+}
+
+.agenda-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
+  gap: 1.5rem;
+}
+
+.calendar {
+  padding: 1.2rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+}
+
+.day {
+  border: 1px solid var(--stroke);
+  background: white;
+  border-radius: 10px;
+  padding: 0.5rem;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.day.is-empty {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.day.is-today {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.availability {
+  padding: 1.2rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.availability-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.panel h4 {
+  margin: 0 0 0.6rem;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 0.4rem;
+}
+
+.slot {
+  border: 1px solid var(--stroke);
+  background: white;
+  border-radius: 8px;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.slot.occupied {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--muted);
+}
+
+.appointments {
+  padding: 1.2rem 1.5rem;
+}
+
+.reminders {
+  padding: 1.2rem 1.5rem;
+}
+
+.appointment-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.appointment {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  background: white;
+}
+
+.appointment p {
+  margin: 0.2rem 0;
+  color: var(--muted);
+}
+
+.appointment .meta {
+  font-size: 0.8rem;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .agenda-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .availability-panels {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment {
+    flex-direction: column;
+  }
+}

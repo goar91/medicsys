@@ -49,4 +49,18 @@ export class ProfessorDashboardComponent implements OnInit {
   setFilter(value: 'all' | ClinicalHistoryStatus) {
     this.filter.set(value);
   }
+
+  delete(id: string) {
+    if (!confirm('¿Seguro que deseas eliminar esta historia clínica?')) {
+      return;
+    }
+    this.service.delete(id).subscribe({
+      next: () => {
+        this.histories.set(this.histories().filter(item => item.id !== id));
+      },
+      error: () => {
+        // noop: could add toast
+      }
+    });
+  }
 }

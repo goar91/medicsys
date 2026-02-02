@@ -3,8 +3,8 @@
   --font-display: 'Fraunces', 'Georgia', serif;
   --ink: #12131a;
   --muted: #5f6673;
-  --accent: #f97316;
-  --surface: #f4f1ea;
+  --accent: #2563eb;
+  --surface: #f5f7fb;
   --badge-bg: rgba(18, 19, 26, 0.08);
   --badge-text: #2b313b;
   --stroke: rgba(15, 23, 42, 0.12);
@@ -21,7 +21,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   color: var(--ink);
-  background: radial-gradient(circle at top left, #f6efe4 0%, #eef6f3 45%, #fefcf7 100%);
+  background: radial-gradient(circle at top left, #eef2ff 0%, #f8fafc 45%, #f5f7fb 100%);
   min-height: 100vh;
 }
 
@@ -29,9 +29,9 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.65), transparent 55%),
-    radial-gradient(circle at 80% 0%, rgba(160, 229, 215, 0.25), transparent 45%),
-    radial-gradient(circle at 70% 80%, rgba(249, 115, 22, 0.12), transparent 50%);
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.7), transparent 55%),
+    radial-gradient(circle at 85% 10%, rgba(37, 99, 235, 0.12), transparent 45%),
+    radial-gradient(circle at 70% 80%, rgba(15, 23, 42, 0.08), transparent 50%);
   pointer-events: none;
   z-index: -1;
 }
@@ -97,6 +97,12 @@ h1, h2, h3, h4 {
 .btn-ghost {
   background: transparent;
   color: var(--ink);
+}
+
+.btn-danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.35);
 }
 
 .input {

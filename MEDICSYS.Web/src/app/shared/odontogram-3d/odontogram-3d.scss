@@ -1,0 +1,401 @@
+.odontogram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 24px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+}
+
+// Toolbar
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toolbar-center {
+  flex: 1;
+  text-align: center;
+}
+
+.instruction {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Odontogram Grid
+.odontogram-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.arch-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.arch-label {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Rows
+.anatomical-row,
+.coronal-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+// Anatomical Tooth View
+.tooth-anatomical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+
+  &.hovered {
+    transform: scale(1.15);
+    z-index: 10;
+  }
+
+  &.selected {
+    filter: drop-shadow(0 0 8px var(--tooth-border, #3b82f6));
+  }
+}
+
+.tooth-crown {
+  width: 32px;
+  height: 40px;
+  background: var(--tooth-bg, white);
+  border: 2px solid var(--tooth-border, #e2e8f0);
+  border-radius: 6px 6px 2px 2px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &.incisor {
+    width: 28px;
+    height: 36px;
+    border-radius: 4px 4px 2px 2px;
+  }
+
+  &.canine {
+    width: 30px;
+    height: 42px;
+    border-radius: 5px 5px 2px 2px;
+    clip-path: polygon(50% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
+  }
+
+  &.premolar {
+    width: 34px;
+    height: 38px;
+    border-radius: 8px 8px 3px 3px;
+  }
+
+  &.molar {
+    width: 38px;
+    height: 40px;
+    border-radius: 8px 8px 4px 4px;
+  }
+}
+
+.tooth-root {
+  width: 12px;
+  height: 28px;
+  background: linear-gradient(to bottom, var(--tooth-bg, white), #f8fafc);
+  border-left: 2px solid var(--tooth-border, #e2e8f0);
+  border-right: 2px solid var(--tooth-border, #e2e8f0);
+  border-bottom: 2px solid var(--tooth-border, #e2e8f0);
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &.lower {
+    height: 28px;
+    border-radius: 6px 6px 0 0;
+    border-top: 2px solid var(--tooth-border, #e2e8f0);
+    border-bottom: none;
+    background: linear-gradient(to top, var(--tooth-bg, white), #f8fafc);
+  }
+}
+
+.status-icon {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--tooth-border, #64748b);
+  animation: fadeIn 0.3s;
+}
+
+// Coronal View
+.tooth-coronal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.hovered {
+    transform: scale(1.1);
+    z-index: 10;
+  }
+
+  &.selected {
+    .coronal-circle {
+      box-shadow: 0 0 0 3px var(--tooth-border, #3b82f6);
+    }
+  }
+}
+
+.coronal-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--tooth-bg, white);
+  border: 3px solid var(--tooth-border, #cbd5e1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.06);
+
+  &:hover {
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.surface {
+  position: absolute;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 2;
+  }
+
+  &.top {
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 1;
+  }
+
+  &.left {
+    width: 16px;
+    height: 32px;
+    top: 50%;
+    left: 2px;
+    transform: translateY(-50%);
+    border-radius: 8px 0 0 8px;
+  }
+
+  &.right {
+    width: 16px;
+    height: 32px;
+    top: 50%;
+    right: 2px;
+    transform: translateY(-50%);
+    border-radius: 0 8px 8px 0;
+  }
+
+  &.front {
+    width: 32px;
+    height: 16px;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 8px 8px 0 0;
+  }
+
+  &.back {
+    width: 32px;
+    height: 16px;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 8px 8px;
+  }
+}
+
+.tooth-number {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.25rem 0.5rem;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 28px;
+  text-align: center;
+}
+
+// Legend
+.legend {
+  padding: 1rem 1.5rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.legend-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #475569;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Responsive
+@media (max-width: 1200px) {
+  .anatomical-row,
+  .coronal-row {
+    gap: 0.3rem;
+  }
+
+  .coronal-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .tooth-crown {
+    width: 28px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .odontogram-container {
+    padding: 1rem;
+  }
+
+  .odontogram-grid {
+    padding: 1rem;
+  }
+
+  .coronal-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tooth-crown {
+    width: 24px;
+    height: 32px;
+
+    &.molar {
+      width: 32px;
+    }
+  }
+
+  .legend-items {
+    gap: 0.5rem;
+  }
+
+  .legend-item {
+    font-size: 0.75rem;
+  }
+}

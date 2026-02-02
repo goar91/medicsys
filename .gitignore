@@ -1,0 +1,53 @@
+# Build outputs
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Build results
+dist/
+build/
+
+# Logs
+*.log
+*.err
+backend.log
+backend.err
+
+# Process files
+.medicsys-pids/
+*.pid
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# SketchUp files
+*.skb
+
+# Package files
+package-lock.json
+
+# Uploads
+**/wwwroot/uploads/

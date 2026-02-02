@@ -7,7 +7,11 @@
       <h2>Revision de historias clinicas</h2>
       <p class="subtitle">Valida la informacion enviada por los alumnos.</p>
     </div>
-    <button class="btn btn-ghost" type="button" (click)="load()">Refrescar</button>
+    <div class="header-actions">
+      <a class="btn btn-outline" [routerLink]="['/professor/histories/new']">Nueva historia</a>
+      <a class="btn btn-outline" [routerLink]="['/agenda']">Agenda</a>
+      <button class="btn btn-ghost" type="button" (click)="load()">Refrescar</button>
+    </div>
   </header>
 
   <div class="filters">
@@ -31,9 +35,17 @@
           <h4>{{ history.studentName }}</h4>
           <p>Enviada: {{ history.submittedAt ? (history.submittedAt | date: 'medium') : 'Sin enviar' }}</p>
         </div>
-        <a class="btn btn-outline" [routerLink]="['/professor/histories', history.id]">
-          Revisar
-        </a>
+        <div class="item-actions">
+          <a class="btn btn-outline" [routerLink]="['/professor/histories', history.id]">
+            Revisar
+          </a>
+          <a class="btn btn-ghost" [routerLink]="['/professor/histories', history.id, 'edit']">
+            Editar
+          </a>
+          <button class="btn btn-danger" type="button" (click)="delete(history.id)">
+            Eliminar
+          </button>
+        </div>
       </article>
     </div>
   </div>

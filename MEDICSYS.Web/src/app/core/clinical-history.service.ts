@@ -32,4 +32,14 @@ export class ClinicalHistoryService {
   review(id: string, payload: ClinicalHistoryReviewRequest) {
     return this.http.post<ClinicalHistory>(`${this.baseUrl}/${id}/review`, payload);
   }
+
+  uploadMedia(id: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<ClinicalHistory>(`${this.baseUrl}/${id}/media`, formData);
+  }
+
+  delete(id: string) {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

@@ -63,6 +63,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddHostedService<ReminderWorker>();
 
 var app = builder.Build();
 
@@ -77,6 +78,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("WebApp");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

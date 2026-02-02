@@ -1,0 +1,123 @@
+<app-top-nav></app-top-nav>
+
+<section class="page agenda-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Agenda médica</p>
+      <h2>Calendario de citas</h2>
+      <p class="subtitle">Consulta horarios disponibles y agenda citas con pacientes.</p>
+    </div>
+  </header>
+
+  <div class="agenda-toolbar">
+    <div class="toolbar-group">
+      <button class="btn btn-ghost" type="button" (click)="previousMonth()">Mes anterior</button>
+      <button class="btn btn-ghost" type="button" (click)="nextMonth()">Mes siguiente</button>
+    </div>
+    <div class="toolbar-group">
+      <label class="field">
+        Profesor
+        <select class="input" [value]="selectedProfessorId()" (change)="setProfessor($any($event.target).value)">
+          <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
+        </select>
+      </label>
+      <label class="field" *ngIf="isProfessor()">
+        Alumno
+        <select class="input" [value]="selectedStudentId()" (change)="setStudent($any($event.target).value)">
+          <option *ngFor="let student of students()" [value]="student.id">{{ student.fullName }}</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="agenda-grid">
+    <div class="calendar card">
+      <div class="calendar-header">
+        <h3>{{ selectedDate() | date:'MMMM yyyy' }}</h3>
+      </div>
+      <div class="calendar-weekdays">
+        <span>Dom</span><span>Lun</span><span>Mar</span><span>Mie</span><span>Jue</span><span>Vie</span><span>Sab</span>
+      </div>
+      <div class="calendar-days">
+        <button
+          class="day"
+          *ngFor="let day of calendarDays()"
+          [class.is-empty]="!day.date"
+          [class.is-today]="day.isToday"
+          (click)="selectDay(day)">
+          {{ day.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="availability card">
+      <h3>Horarios disponibles</h3>
+      <div class="availability-panels">
+        <div class="panel">
+          <h4>Profesor</h4>
+          <div class="slots">
+            <button
+              class="slot"
+              *ngFor="let slot of professorAvailability()?.slots"
+              [class.occupied]="!slot.isAvailable"
+              [disabled]="!slot.isAvailable || creating()"
+              (click)="book(slot)">
+              {{ slot.startAt | date:'shortTime' }}
+            </button>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Alumno</h4>
+          <div class="slots">
+            <span
+              class="slot status"
+              *ngFor="let slot of studentAvailability()?.slots"
+              [class.occupied]="!slot.isAvailable">
+              {{ slot.startAt | date:'shortTime' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card appointments">
+    <div class="list-header">
+      <h3>Citas programadas</h3>
+    </div>
+    <div *ngIf="appointments().length === 0" class="empty">No hay citas registradas.</div>
+    <div class="appointment-list" *ngIf="appointments().length > 0">
+      <article class="appointment" *ngFor="let appt of appointments()">
+        <div>
+          <h4>{{ appt.patientName }}</h4>
+          <p>{{ appt.startAt | date:'medium' }} - {{ appt.endAt | date:'shortTime' }}</p>
+          <p class="meta">Profesor: {{ appt.professorName }} | Alumno: {{ appt.studentName }}</p>
+        </div>
+        <div class="appointment-actions">
+          <button class="btn btn-outline" type="button" (click)="openGoogleCalendar(appt)">Google Calendar</button>
+          <button class="btn btn-outline" type="button" (click)="openOutlookEmail(appt)">Email</button>
+          <button class="btn btn-ghost" type="button" (click)="openWhatsApp(appt)">WhatsApp</button>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="card reminders" *ngIf="reminders().length > 0">
+    <div class="list-header">
+      <h3>Recordatorios pendientes</h3>
+    </div>
+    <div class="appointment-list">
+      <article class="appointment" *ngFor="let reminder of reminders()">
+        <div>
+          <h4>{{ reminder.channel }}</h4>
+          <p>{{ reminder.message }}</p>
+          <p class="meta">Programado: {{ reminder.scheduledAt | date:'medium' }}</p>
+        </div>
+        <div class="appointment-actions">
+          <button class="btn btn-outline" type="button" *ngIf="reminder.channel === 'Email'" (click)="openOutlookEmail({ id: '', studentId: '', studentName: reminder.target, studentEmail: reminder.target, professorId: '', professorName: '', professorEmail: '', patientName: reminder.target, reason: reminder.message, startAt: reminder.scheduledAt, endAt: reminder.scheduledAt, status: '', notes: null })">Email</button>
+          <button class="btn btn-ghost" type="button" *ngIf="reminder.channel === 'WhatsApp'" (click)="openWhatsApp({ id: '', studentId: '', studentName: reminder.target, studentEmail: '', professorId: '', professorName: '', professorEmail: '', patientName: reminder.target, reason: reminder.message, startAt: reminder.scheduledAt, endAt: reminder.scheduledAt, status: '', notes: null })">WhatsApp</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

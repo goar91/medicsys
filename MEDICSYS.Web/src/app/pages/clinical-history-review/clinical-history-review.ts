@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { NgFor, NgIf } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { ClinicalHistoryService } from '../../core/clinical-history.service';
 import { ClinicalHistory } from '../../core/models';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
@@ -51,16 +51,31 @@ interface ClinicalHistoryData {
   medios?: {
     imagenes?: string;
     notas?: string;
+    assets?: {
+      id?: string;
+      fileName?: string;
+      url?: string;
+      contentType?: string;
+      uploadedAt?: string;
+    }[];
   };
   odontogram?: {
     teeth?: { code: number; marker: string }[];
   };
 }
 
+interface MediaAsset {
+  id: string;
+  fileName: string;
+  url: string;
+  contentType: string;
+  uploadedAt: string;
+}
+
 @Component({
   selector: 'app-clinical-history-review',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf, NgFor, TopNavComponent],
+  imports: [ReactiveFormsModule, NgIf, NgFor, DatePipe, RouterLink, TopNavComponent],
   templateUrl: './clinical-history-review.html',
   styleUrl: './clinical-history-review.scss'
 })
@@ -70,6 +85,8 @@ export class ClinicalHistoryReviewComponent implements OnInit {
   readonly reviewing = signal(false);
   readonly sections = signal<SectionCard[]>([]);
   readonly canReview = computed(() => this.history()?.status === 'Submitted');
+  readonly mediaAssets = signal<MediaAsset[]>([]);
+  readonly deleting = signal(false);
 
   readonly notes = new FormControl('');
 
@@ -90,6 +107,7 @@ export class ClinicalHistoryReviewComponent implements OnInit {
       next: history => {
         this.history.set(history);
         this.sections.set(this.buildSections(history.data as ClinicalHistoryData));
+        this.mediaAssets.set(this.extractMediaAssets(history.data as ClinicalHistoryData));
         this.loading.set(false);
       },
       error: () => {
@@ -104,6 +122,27 @@ export class ClinicalHistoryReviewComponent implements OnInit {
 
   reject() {
     this.sendReview(false);
+  }
+
+  delete() {
+    const current = this.history();
+    if (!current || this.deleting()) {
+      return;
+    }
+    if (!confirm('¿Seguro que deseas eliminar esta historia clínica?')) {
+      return;
+    }
+
+    this.deleting.set(true);
+    this.service.delete(current.id).subscribe({
+      next: () => {
+        this.deleting.set(false);
+        this.router.navigate(['/professor']);
+      },
+      error: () => {
+        this.deleting.set(false);
+      }
+    });
   }
 
   private sendReview(approved: boolean) {
@@ -195,5 +234,29 @@ export class ClinicalHistoryReviewComponent implements OnInit {
         ]
       }
     ];
+  }
+
+  private extractMediaAssets(data: ClinicalHistoryData): MediaAsset[] {
+    const assets = data?.medios?.assets;
+    if (!Array.isArray(assets)) {
+      return [];
+    }
+    return assets
+      .filter(item => item?.url)
+      .map(item => ({
+        id: item?.id ?? crypto.randomUUID(),
+        fileName: item?.fileName ?? 'archivo',
+        url: item?.url ?? '',
+        contentType: item?.contentType ?? 'application/octet-stream',
+        uploadedAt: item?.uploadedAt ?? new Date().toISOString()
+      }));
+  }
+
+  isImage(asset: MediaAsset) {
+    return asset.contentType?.startsWith('image/');
+  }
+
+  isVideo(asset: MediaAsset) {
+    return asset.contentType?.startsWith('video/');
   }
 }

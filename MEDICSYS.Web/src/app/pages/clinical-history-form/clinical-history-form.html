@@ -10,9 +10,9 @@
     <div class="actions">
       <span *ngIf="history() as h" class="status" [attr.data-status]="h.status">{{ h.status }}</span>
       <button class="btn btn-outline" type="button" (click)="saveDraft()" [disabled]="readonly() || saving()">
-        Guardar borrador
+        {{ isProfessorEditor() ? 'Guardar cambios' : 'Guardar borrador' }}
       </button>
-      <button class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
+      <button *ngIf="!isProfessorEditor()" class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
         Enviar a revision
       </button>
     </div>
@@ -153,30 +153,56 @@
         Observaciones
         <textarea class="input" rows="3" formControlName="notes"></textarea>
       </label>
+      <button class="btn btn-outline" type="button" (click)="suggestNotes()" [disabled]="suggesting()">
+        {{ suggesting() ? 'Generando sugerencia...' : 'Sugerir notas con IA' }}
+      </button>
     </section>
 
     <section class="form-section" *ngIf="activeTab() === 'odontograma'">
       <h3>Odontograma interactivo</h3>
-      <p class="subtitle">Selecciona una marca y haz clic en las piezas dentales.</p>
+      <p class="subtitle">Selecciona una marca y haz clic en las superficies dentales para registrar hallazgos.</p>
 
       <div class="marker-row">
-        <button type="button" class="marker" [class.active]="marker() === 'caries'" (click)="selectMarker('caries')">Caries</button>
-        <button type="button" class="marker" [class.active]="marker() === 'filled'" (click)="selectMarker('filled')">Restauracion</button>
-        <button type="button" class="marker" [class.active]="marker() === 'missing'" (click)="selectMarker('missing')">Ausente</button>
-        <button type="button" class="marker" [class.active]="marker() === 'extracted'" (click)="selectMarker('extracted')">Extraida</button>
-        <button type="button" class="marker" [class.active]="marker() === 'needs-treatment'" (click)="selectMarker('needs-treatment')">Tratamiento</button>
+        <button type="button" class="marker marker-caries" [class.active]="marker() === 'caries'" (click)="selectMarker('caries')">
+          <span class="marker-icon">●</span>
+          Caries
+        </button>
+        <button type="button" class="marker marker-filled" [class.active]="marker() === 'filled'" (click)="selectMarker('filled')">
+          <span class="marker-icon">■</span>
+          Restauración
+        </button>
+        <button type="button" class="marker marker-missing" [class.active]="marker() === 'missing'" (click)="selectMarker('missing')">
+          <span class="marker-icon">✕</span>
+          Ausente
+        </button>
+        <button type="button" class="marker marker-extracted" [class.active]="marker() === 'extracted'" (click)="selectMarker('extracted')">
+          <span class="marker-icon">⊗</span>
+          Extraído
+        </button>
+        <button type="button" class="marker marker-needs" [class.active]="marker() === 'needs-treatment'" (click)="selectMarker('needs-treatment')">
+          <span class="marker-icon">!</span>
+          Necesita tratamiento
+        </button>
+        <button type="button" class="marker marker-crown" [class.active]="marker() === 'crown'" (click)="selectMarker('crown')">
+          <span class="marker-icon">♔</span>
+          Corona
+        </button>
+        <button type="button" class="marker marker-implant" [class.active]="marker() === 'implant'" (click)="selectMarker('implant')">
+          <span class="marker-icon">⚙</span>
+          Implante
+        </button>
+        <button type="button" class="marker marker-root" [class.active]="marker() === 'root-canal'" (click)="selectMarker('root-canal')">
+          <span class="marker-icon">↓</span>
+          Endodoncia
+        </button>
       </div>
 
-      <div class="odontogram">
-        <div
-          class="tooth"
-          *ngFor="let tooth of odontogram().teeth"
-          [attr.data-marker]="tooth.marker"
-          (click)="toggleTooth(tooth.code)"
-        >
-          <span>{{ tooth.code }}</span>
-        </div>
-      </div>
+      <app-odontogram-3d
+        [state]="odontogram()"
+        [activeMarker]="marker()"
+        [readonly]="readonly()"
+        (stateChange)="updateOdontogram($event)"
+      ></app-odontogram-3d>
     </section>
 
     <section class="form-section" *ngIf="activeTab() === 'indicadores'" formGroupName="indicators">
@@ -223,13 +249,32 @@
       <h3>Medios de apoyo</h3>
       <div class="grid">
         <label class="field">
-          Imagenes / archivos
+          Descripcion general
           <textarea class="input" rows="3" formControlName="imagenes"></textarea>
         </label>
         <label class="field">
           Notas
           <textarea class="input" rows="3" formControlName="notas"></textarea>
         </label>
+      </div>
+
+      <div class="media-upload">
+        <label class="field">
+          Subir imagen o video
+          <input class="input" type="file" accept="image/*,video/*" (change)="onMediaSelected($event)" [disabled]="readonly() || uploadingMedia()" multiple />
+        </label>
+        <p class="hint" *ngIf="uploadingMedia()">Subiendo archivos...</p>
+      </div>
+
+      <div class="media-grid" *ngIf="mediaAssets().length > 0">
+        <div class="media-card" *ngFor="let asset of mediaAssets()">
+          <img *ngIf="isImage(asset)" [src]="asset.url" [alt]="asset.fileName" />
+          <video *ngIf="isVideo(asset)" [src]="asset.url" controls></video>
+          <div class="media-meta">
+            <span class="file-name">{{ asset.fileName }}</span>
+            <span class="file-date">{{ asset.uploadedAt | date:'medium' }}</span>
+          </div>
+        </div>
       </div>
     </section>
   </form>

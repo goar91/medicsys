@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +16,12 @@ namespace MEDICSYS.Api.Controllers;
 public class ClinicalHistoriesController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IWebHostEnvironment _environment;
 
-    public ClinicalHistoriesController(AppDbContext db)
+    public ClinicalHistoriesController(AppDbContext db, IWebHostEnvironment environment)
     {
         _db = db;
+        _environment = environment;
     }
 
     [Authorize]
@@ -64,7 +67,7 @@ public class ClinicalHistoriesController : ControllerBase
         return Ok(Map(history));
     }
 
-    [Authorize(Roles = Roles.Student)]
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<ClinicalHistoryDto>> Create(ClinicalHistoryUpsertRequest request)
     {
@@ -88,7 +91,7 @@ public class ClinicalHistoriesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = history.Id }, Map(history));
     }
 
-    [Authorize(Roles = Roles.Student)]
+    [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ClinicalHistoryDto>> Update(Guid id, ClinicalHistoryUpsertRequest request)
     {
@@ -102,12 +105,13 @@ public class ClinicalHistoriesController : ControllerBase
             return NotFound();
         }
 
-        if (history.StudentId != userId)
+        var isProfessor = IsProfessor();
+        if (!isProfessor && history.StudentId != userId)
         {
             return Forbid();
         }
 
-        if (history.Status == ClinicalHistoryStatus.Submitted || history.Status == ClinicalHistoryStatus.Approved)
+        if (!isProfessor && (history.Status == ClinicalHistoryStatus.Submitted || history.Status == ClinicalHistoryStatus.Approved))
         {
             return BadRequest("Clinical history cannot be edited after submission.");
         }
@@ -115,7 +119,7 @@ public class ClinicalHistoriesController : ControllerBase
         history.Data = JsonSerializer.Serialize(request.Data);
         history.UpdatedAt = DateTime.UtcNow;
 
-        if (history.Status == ClinicalHistoryStatus.Rejected)
+        if (!isProfessor && history.Status == ClinicalHistoryStatus.Rejected)
         {
             history.Status = ClinicalHistoryStatus.Draft;
             history.ReviewedAt = null;
@@ -126,6 +130,36 @@ public class ClinicalHistoriesController : ControllerBase
         await _db.SaveChangesAsync();
 
         return Ok(Map(history));
+    }
+
+    [Authorize(Roles = Roles.Professor)]
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var history = await _db.ClinicalHistories
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (history == null)
+        {
+            return NotFound();
+        }
+
+        _db.ClinicalHistories.Remove(history);
+        await _db.SaveChangesAsync();
+
+        var webRoot = _environment.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRoot))
+        {
+            webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
+        }
+
+        var uploadsRoot = Path.Combine(webRoot, "uploads", id.ToString());
+        if (Directory.Exists(uploadsRoot))
+        {
+            Directory.Delete(uploadsRoot, true);
+        }
+
+        return NoContent();
     }
 
     [Authorize(Roles = Roles.Student)]
@@ -154,6 +188,86 @@ public class ClinicalHistoriesController : ControllerBase
 
         history.Status = ClinicalHistoryStatus.Submitted;
         history.SubmittedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return Ok(Map(history));
+    }
+
+    [Authorize(Roles = Roles.Student)]
+    [HttpPost("{id:guid}/media")]
+    [RequestSizeLimit(50_000_000)]
+    public async Task<ActionResult<ClinicalHistoryDto>> UploadMedia(Guid id, [FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("File is required.");
+        }
+
+        var userId = GetUserId();
+        var history = await _db.ClinicalHistories
+            .Include(x => x.Student)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (history == null)
+        {
+            return NotFound();
+        }
+
+        if (history.StudentId != userId)
+        {
+            return Forbid();
+        }
+
+        if (history.Status == ClinicalHistoryStatus.Submitted || history.Status == ClinicalHistoryStatus.Approved)
+        {
+            return BadRequest("Clinical history cannot be edited after submission.");
+        }
+
+        var contentType = file.ContentType ?? string.Empty;
+        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase) &&
+            !contentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest("Only image or video files are allowed.");
+        }
+
+        var webRoot = _environment.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRoot))
+        {
+            webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
+        }
+
+        var uploadsRoot = Path.Combine(webRoot, "uploads", id.ToString());
+        Directory.CreateDirectory(uploadsRoot);
+
+        var extension = Path.GetExtension(file.FileName);
+        var fileId = Guid.NewGuid();
+        var safeName = $"{fileId}{extension}";
+        var filePath = Path.Combine(uploadsRoot, safeName);
+
+        await using (var stream = System.IO.File.Create(filePath))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var url = $"{Request.Scheme}://{Request.Host}/uploads/{id}/{safeName}";
+        var root = JsonNode.Parse(history.Data) as JsonObject ?? new JsonObject();
+        var medios = root["medios"] as JsonObject ?? new JsonObject();
+        var assets = medios["assets"] as JsonArray ?? new JsonArray();
+
+        assets.Add(new JsonObject
+        {
+            ["id"] = fileId.ToString(),
+            ["fileName"] = file.FileName,
+            ["url"] = url,
+            ["contentType"] = contentType,
+            ["uploadedAt"] = DateTime.UtcNow
+        });
+
+        medios["assets"] = assets;
+        root["medios"] = medios;
+        history.Data = root.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
         history.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();

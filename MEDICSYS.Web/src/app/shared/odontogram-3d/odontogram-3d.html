@@ -1,0 +1,161 @@
+<div class="odontogram-container">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button type="button" class="btn-icon" (click)="toggleNumbers()" [title]="showNumbers() ? 'Ocultar numeración' : 'Mostrar numeración'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <text x="12" y="16" text-anchor="middle" font-size="12" font-weight="bold">123</text>
+        </svg>
+      </button>
+    </div>
+    <div class="toolbar-center">
+      <span class="instruction">Selecciona una marca y haz clic en las superficies del diente</span>
+    </div>
+  </div>
+
+  <!-- Odontogram -->
+  <div class="odontogram-grid">
+    <!-- Upper Arch -->
+    <div class="arch-section upper-arch">
+      <div class="arch-label">Arcada Superior</div>
+      
+      <!-- Anatomical View -->
+      <div class="anatomical-row">
+        <div *ngFor="let tooth of upperTeeth" 
+             class="tooth-anatomical"
+             [class.selected]="selectedTooth() === tooth.code"
+             [class.hovered]="hoveredTooth() === tooth.code"
+             [ngStyle]="getToothStyle(tooth.code)"
+             (click)="onToothClick(tooth)"
+             (mouseenter)="onToothHover(tooth.code)"
+             (mouseleave)="onToothHover(null)">
+          <div class="tooth-crown" [class]="tooth.type">
+            <div class="status-icon" *ngIf="getToothIcon(tooth.code)">{{ getToothIcon(tooth.code) }}</div>
+          </div>
+          <div class="tooth-root"></div>
+        </div>
+      </div>
+
+      <!-- Coronal View -->
+      <div class="coronal-row">
+        <div *ngFor="let tooth of upperTeeth" 
+             class="tooth-coronal"
+             [class.selected]="selectedTooth() === tooth.code"
+             [class.hovered]="hoveredTooth() === tooth.code"
+             [ngStyle]="getToothStyle(tooth.code)"
+             (mouseenter)="onToothHover(tooth.code)"
+             (mouseleave)="onToothHover(null)">
+          <div class="coronal-circle">
+            <div class="surface top" data-surface="occlusal" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'occlusal')"
+                 (click)="toggleSurface(tooth.code, 'occlusal')"></div>
+            <div class="surface left" data-surface="mesial" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'mesial')"
+                 (click)="toggleSurface(tooth.code, 'mesial')"></div>
+            <div class="surface right" data-surface="distal" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'distal')"
+                 (click)="toggleSurface(tooth.code, 'distal')"></div>
+            <div class="surface front" data-surface="vestibular" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'vestibular')"
+                 (click)="toggleSurface(tooth.code, 'vestibular')"></div>
+            <div class="surface back" data-surface="lingual" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'lingual')"
+                 (click)="toggleSurface(tooth.code, 'lingual')"></div>
+          </div>
+          <div class="tooth-number" *ngIf="showNumbers()">{{ tooth.code }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lower Arch -->
+    <div class="arch-section lower-arch">
+      <!-- Coronal View -->
+      <div class="coronal-row">
+        <div *ngFor="let tooth of lowerTeeth" 
+             class="tooth-coronal"
+             [class.selected]="selectedTooth() === tooth.code"
+             [class.hovered]="hoveredTooth() === tooth.code"
+             [ngStyle]="getToothStyle(tooth.code)"
+             (mouseenter)="onToothHover(tooth.code)"
+             (mouseleave)="onToothHover(null)">
+          <div class="tooth-number" *ngIf="showNumbers()">{{ tooth.code }}</div>
+          <div class="coronal-circle">
+            <div class="surface top" data-surface="occlusal" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'occlusal')"
+                 (click)="toggleSurface(tooth.code, 'occlusal')"></div>
+            <div class="surface left" data-surface="mesial" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'mesial')"
+                 (click)="toggleSurface(tooth.code, 'mesial')"></div>
+            <div class="surface right" data-surface="distal" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'distal')"
+                 (click)="toggleSurface(tooth.code, 'distal')"></div>
+            <div class="surface front" data-surface="vestibular" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'vestibular')"
+                 (click)="toggleSurface(tooth.code, 'vestibular')"></div>
+            <div class="surface back" data-surface="lingual" 
+                 [ngStyle]="getSurfaceStyle(tooth.code, 'lingual')"
+                 (click)="toggleSurface(tooth.code, 'lingual')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anatomical View -->
+      <div class="anatomical-row">
+        <div *ngFor="let tooth of lowerTeeth" 
+             class="tooth-anatomical"
+             [class.selected]="selectedTooth() === tooth.code"
+             [class.hovered]="hoveredTooth() === tooth.code"
+             [ngStyle]="getToothStyle(tooth.code)"
+             (click)="onToothClick(tooth)"
+             (mouseenter)="onToothHover(tooth.code)"
+             (mouseleave)="onToothHover(null)">
+          <div class="tooth-root lower"></div>
+          <div class="tooth-crown" [class]="tooth.type">
+            <div class="status-icon" *ngIf="getToothIcon(tooth.code)">{{ getToothIcon(tooth.code) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-label">Arcada Inferior</div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-title">Leyenda:</div>
+    <div class="legend-items">
+      <div class="legend-item">
+        <span class="legend-color" style="background: #fee2e2; border-color: #ef4444;"></span>
+        <span>Caries</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #dbeafe; border-color: #3b82f6;"></span>
+        <span>Restauración</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #f3f4f6; border-color: #9ca3af;"></span>
+        <span>Ausente</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #ffedd5; border-color: #f97316;"></span>
+        <span>Extraído</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #fef9c3; border-color: #eab308;"></span>
+        <span>Necesita tratamiento</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #e0e7ff; border-color: #6366f1;"></span>
+        <span>Corona</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #f3e8ff; border-color: #a855f7;"></span>
+        <span>Implante</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background: #fce7f3; border-color: #ec4899;"></span>
+        <span>Endodoncia</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -23,6 +23,20 @@
           </div>
         </div>
       </div>
+
+      <div class="card section-card" *ngIf="mediaAssets().length > 0">
+        <h3>Archivos multimedia</h3>
+        <div class="media-grid">
+          <div class="media-card" *ngFor="let asset of mediaAssets()">
+            <img *ngIf="isImage(asset)" [src]="asset.url" [alt]="asset.fileName" />
+            <video *ngIf="isVideo(asset)" [src]="asset.url" controls></video>
+            <div class="media-meta">
+              <span class="file-name">{{ asset.fileName }}</span>
+              <span class="file-date">{{ asset.uploadedAt | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <aside class="review-panel">
@@ -39,6 +53,14 @@
           </button>
           <button class="btn btn-primary" type="button" (click)="approve()" [disabled]="!canReview() || reviewing()">
             Aprobar
+          </button>
+        </div>
+        <div class="actions secondary">
+          <a class="btn btn-ghost" [routerLink]="['/professor/histories', history()?.id, 'edit']">
+            Editar historia
+          </a>
+          <button class="btn btn-danger" type="button" (click)="delete()" [disabled]="deleting()">
+            Eliminar
           </button>
         </div>
         <p class="hint" *ngIf="!canReview()">Esta historia ya fue evaluada.</p>

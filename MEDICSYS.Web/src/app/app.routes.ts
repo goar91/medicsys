@@ -6,6 +6,7 @@ import { StudentDashboardComponent } from './pages/student-dashboard/student-das
 import { ProfessorDashboardComponent } from './pages/professor-dashboard/professor-dashboard';
 import { ClinicalHistoryFormComponent } from './pages/clinical-history-form/clinical-history-form';
 import { ClinicalHistoryReviewComponent } from './pages/clinical-history-review/clinical-history-review';
+import { AgendaComponent } from './pages/agenda/agenda';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -15,6 +16,11 @@ export const routes: Routes = [
     component: StudentDashboardComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Alumno'] }
+  },
+  {
+    path: 'agenda',
+    component: AgendaComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'student/histories/new',
@@ -33,6 +39,18 @@ export const routes: Routes = [
     component: ProfessorDashboardComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Profesor'] }
+  },
+  {
+    path: 'professor/histories/new',
+    component: ClinicalHistoryFormComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor'], editor: 'professor' }
+  },
+  {
+    path: 'professor/histories/:id/edit',
+    component: ClinicalHistoryFormComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor'], editor: 'professor' }
   },
   {
     path: 'professor/histories/:id',

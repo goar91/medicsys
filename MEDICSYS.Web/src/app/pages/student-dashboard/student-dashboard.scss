@@ -11,6 +11,13 @@
   gap: 1.5rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.15em;
