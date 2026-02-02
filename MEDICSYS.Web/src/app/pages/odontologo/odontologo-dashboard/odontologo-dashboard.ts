@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NgFor, NgIf, DatePipe, CurrencyPipe } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 
 interface DashboardMetric {
@@ -21,7 +21,7 @@ interface QuickAction {
 @Component({
   selector: 'app-odontologo-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, CurrencyPipe, RouterLink, TopNavComponent],
+  imports: [NgFor, NgIf, RouterLink, TopNavComponent],
   templateUrl: './odontologo-dashboard.html',
   styleUrl: './odontologo-dashboard.scss'
 })
@@ -61,7 +61,7 @@ export class OdontologoDashboardComponent {
 
   readonly quickActions = signal<QuickAction[]>([
     { label: 'Nueva Cita', route: '/odontologo/agenda', icon: 'calendar-plus', color: 'primary' },
-    { label: 'Registrar Paciente', route: '/odontologo/pacientes/new', icon: 'user-plus', color: 'success' },
+    { label: 'Registrar Paciente', route: '/odontologo/pacientes', icon: 'user-plus', color: 'success' },
     { label: 'Nueva Factura', route: '/odontologo/facturacion/new', icon: 'receipt', color: 'warning' },
     { label: 'Ver Inventario', route: '/odontologo/inventario', icon: 'package', color: 'info' }
   ]);

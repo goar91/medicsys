@@ -253,7 +253,10 @@ export class ClinicalHistoryFormComponent implements OnInit {
       this.estomatognaticoSelected.set(field);
     } else {
       // Limpiar el detalle cuando se desmarca
-      this.form.get(`consultation.estomatognaticoDetails.${field}`)?.setValue('');
+      const detailsGroup = this.form.get('consultation.estomatognaticoDetails') as any;
+      if (detailsGroup) {
+        detailsGroup.patchValue({ [field]: '' });
+      }
       this.updateObservationsFromEstomatognatico();
     }
   }
@@ -266,8 +269,14 @@ export class ClinicalHistoryFormComponent implements OnInit {
   cancelEstomatognaticoDetail() {
     const field = this.estomatognaticoSelected();
     if (field) {
-      this.form.get(`consultation.estomatognatico.${field}`)?.setValue(false);
-      this.form.get(`consultation.estomatognaticoDetails.${field}`)?.setValue('');
+      const checkboxGroup = this.form.get('consultation.estomatognatico') as any;
+      if (checkboxGroup) {
+        checkboxGroup.patchValue({ [field]: false });
+      }
+      const detailsGroup = this.form.get('consultation.estomatognaticoDetails') as any;
+      if (detailsGroup) {
+        detailsGroup.patchValue({ [field]: '' });
+      }
     }
     this.estomatognaticoSelected.set(null);
   }

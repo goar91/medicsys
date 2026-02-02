@@ -19,7 +19,7 @@ interface Paciente {
 @Component({
   selector: 'app-odontologo-pacientes',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, RouterLink, ReactiveFormsModule, TopNavComponent],
+  imports: [NgFor, NgIf, DatePipe, ReactiveFormsModule, TopNavComponent],
   templateUrl: './odontologo-pacientes.html',
   styleUrl: './odontologo-pacientes.scss'
 })

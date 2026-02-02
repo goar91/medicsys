@@ -23,7 +23,7 @@ interface Factura {
 @Component({
   selector: 'app-odontologo-facturacion',
   standalone: true,
-  imports: [NgFor, NgIf, DatePipe, CurrencyPipe, RouterLink, TopNavComponent],
+  imports: [NgFor, NgIf, DatePipe, CurrencyPipe, TopNavComponent],
   templateUrl: './odontologo-facturacion.html',
   styleUrl: './odontologo-facturacion.scss'
 })
