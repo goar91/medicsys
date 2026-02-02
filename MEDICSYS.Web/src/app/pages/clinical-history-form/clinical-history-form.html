@@ -10,28 +10,54 @@
     <div class="actions">
       <span *ngIf="history() as h" class="status" [attr.data-status]="h.status">{{ h.status }}</span>
       <button class="btn btn-outline" type="button" (click)="saveDraft()" [disabled]="readonly() || saving()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         {{ isProfessorEditor() ? 'Guardar cambios' : 'Guardar borrador' }}
       </button>
       <button *ngIf="!isProfessorEditor()" class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Enviar a revision
       </button>
     </div>
   </header>
 
   <div class="card note" *ngIf="history()?.reviewNotes">
-    <strong>Observaciones del profesor</strong>
-    <p>{{ history()?.reviewNotes }}</p>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div>
+      <strong>Observaciones del profesor</strong>
+      <p>{{ history()?.reviewNotes }}</p>
+    </div>
   </div>
 
-  <div *ngIf="loading()" class="empty">Cargando historia clinica...</div>
+  <div *ngIf="loading()" class="empty">
+    <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    Cargando historia clinica...
+  </div>
 
   <div *ngIf="!loading()" class="tabs">
-    <button class="tab" [class.active]="activeTab() === 'personal'" (click)="setTab('personal')">Datos personales</button>
-    <button class="tab" [class.active]="activeTab() === 'consulta'" (click)="setTab('consulta')">Datos de consulta</button>
-    <button class="tab" [class.active]="activeTab() === 'odontograma'" (click)="setTab('odontograma')">Odontograma</button>
-    <button class="tab" [class.active]="activeTab() === 'indicadores'" (click)="setTab('indicadores')">Indicadores</button>
-    <button class="tab" [class.active]="activeTab() === 'tratamientos'" (click)="setTab('tratamientos')">Tratamientos</button>
-    <button class="tab" [class.active]="activeTab() === 'medios'" (click)="setTab('medios')">Medios</button>
+    <button class="tab" [class.active]="activeTab() === 'personal'" (click)="setTab('personal')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Datos personales
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'consulta'" (click)="setTab('consulta')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Datos de consulta
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'odontograma'" (click)="setTab('odontograma')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Odontograma
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'indicadores'" (click)="setTab('indicadores')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Indicadores
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'tratamientos'" (click)="setTab('tratamientos')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/></svg>
+      Tratamientos
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'medios'" (click)="setTab('medios')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Medios
+    </button>
   </div>
 
   <form *ngIf="!loading()" class="form" [formGroup]="form">

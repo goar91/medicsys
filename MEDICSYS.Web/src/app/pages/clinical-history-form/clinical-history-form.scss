@@ -42,19 +42,38 @@
 }
 
 .tab {
-  border: 1px solid var(--stroke);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid var(--stroke);
   background: white;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  
+  svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+}
+
+.tab:hover {
+  border-color: var(--accent);
+  background: var(--canvas);
 }
 
 .tab.active {
-  background: var(--ink);
+  background: linear-gradient(135deg, var(--ink) 0%, #1e293b 100%);
   color: white;
   border-color: var(--ink);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  
+  svg {
+    opacity: 1;
+  }
 }
 
 .stack {
@@ -254,13 +273,28 @@
 }
 
 .note {
-  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
   border-left: 4px solid var(--accent);
   background: rgba(249, 115, 22, 0.08);
+  border-radius: 12px;
+  
+  > svg {
+    flex-shrink: 0;
+    color: var(--accent);
+    margin-top: 0.2rem;
+  }
+  
+  > div {
+    flex: 1;
+  }
 }
 
 .note p {
   margin-bottom: 0;
+  color: var(--muted);
 }
 
 .status {
