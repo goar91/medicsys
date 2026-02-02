@@ -141,3 +141,5 @@ H:\Programación\MEDICSYS\MEDICSYS.Api\obj\Debug\net9.0\refint\MEDICSYS.Api.dll
 H:\Programación\MEDICSYS\MEDICSYS.Api\obj\Debug\net9.0\MEDICSYS.Api.pdb
 H:\Programación\MEDICSYS\MEDICSYS.Api\obj\Debug\net9.0\MEDICSYS.Api.genruntimeconfig.cache
 H:\Programación\MEDICSYS\MEDICSYS.Api\obj\Debug\net9.0\ref\MEDICSYS.Api.dll
+H:\Programación\MEDICSYS\MEDICSYS.Api\obj\Debug\net9.0\MEDICSYS.Api.sourcelink.json
+h:\Programación\MEDICSYS\MEDICSYS.Api\bin\Debug\net9.0\MEDICSYS.Api.staticwebassets.runtime.json
