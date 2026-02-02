@@ -1,0 +1,263 @@
+<app-top-nav></app-top-nav>
+
+<section class="page factura-form-page">
+  <header class="page-header">
+    <div>
+      <a routerLink="/odontologo/facturacion" class="back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver a Facturación
+      </a>
+      <h2>Nueva Factura Electrónica</h2>
+      <p class="subtitle">Completa la información y se enviará automáticamente al SRI</p>
+    </div>
+  </header>
+
+  <form [formGroup]="facturaForm" (ngSubmit)="guardarFactura()">
+    <!-- Sección Cliente -->
+    <div class="card form-section">
+      <div class="section-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Datos del Cliente
+        </h3>
+      </div>
+
+      <!-- Opciones rápidas de cliente -->
+      <div class="cliente-opciones">
+        <button type="button" class="btn-opcion consumidor-final" (click)="seleccionarConsumidorFinal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          <div>
+            <strong>Consumidor Final</strong>
+            <span>Factura sin identificación</span>
+          </div>
+        </button>
+
+        <button type="button" class="btn-opcion nuevo-cliente" (click)="nuevoCliente()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <div>
+            <strong>Nuevo Cliente</strong>
+            <span>Ingresar datos manualmente</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Clientes frecuentes -->
+      <div class="clientes-frecuentes">
+        <p class="frecuentes-label">Clientes Frecuentes:</p>
+        <div class="frecuentes-grid">
+          <button 
+            type="button" 
+            class="cliente-card" 
+            *ngFor="let cliente of clientesFrecuentes()"
+            (click)="seleccionarClienteFrecuente(cliente)">
+            <div class="cliente-avatar">{{ cliente.nombre.charAt(0) }}</div>
+            <div class="cliente-info">
+              <strong>{{ cliente.nombre }}</strong>
+              <span>{{ cliente.identificacion }}</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulario de cliente -->
+      <div class="cliente-form" *ngIf="showClienteForm()" formGroupName="cliente">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Identificación</label>
+            <select class="form-control" formControlName="tipoIdentificacion">
+              <option value="04">RUC</option>
+              <option value="05">Cédula</option>
+              <option value="06">Pasaporte</option>
+              <option value="07">Consumidor Final</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Identificación *</label>
+            <input type="text" class="form-control" formControlName="identificacion" placeholder="0999999999">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre / Razón Social *</label>
+          <input type="text" class="form-control" formControlName="nombre" placeholder="Nombre completo del cliente">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" class="form-control" formControlName="direccion" placeholder="Dirección del cliente">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" class="form-control" formControlName="telefono" placeholder="0999999999">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" class="form-control" formControlName="email" placeholder="cliente@email.com">
+          <small class="hint">Se enviará la factura electrónica a este correo</small>
+        </div>
+      </div>
+
+      <!-- Vista del cliente seleccionado -->
+      <div class="cliente-seleccionado" *ngIf="!showClienteForm() && cliente.get('identificacion')?.value">
+        <div class="seleccionado-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <strong>Cliente Seleccionado:</strong>
+        </div>
+        <div class="seleccionado-info">
+          <p><strong>{{ cliente.get('nombre')?.value }}</strong></p>
+          <p>{{ cliente.get('identificacion')?.value }}</p>
+          <p *ngIf="cliente.get('email')?.value">{{ cliente.get('email')?.value }}</p>
+        </div>
+        <button type="button" class="btn-cambiar" (click)="nuevoCliente()">Cambiar</button>
+      </div>
+    </div>
+
+    <!-- Sección Items/Servicios -->
+    <div class="card form-section">
+      <div class="section-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Detalle de Servicios/Productos
+        </h3>
+        <button type="button" class="btn btn-sm btn-outline" (click)="agregarItem()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Agregar Item
+        </button>
+      </div>
+
+      <div class="items-container" formArrayName="items">
+        <div class="item-row" *ngFor="let item of items.controls; let i = index" [formGroupName]="i">
+          <div class="item-number">{{ i + 1 }}</div>
+          
+          <div class="item-fields">
+            <div class="form-row">
+              <div class="form-group flex-3">
+                <label>Descripción *</label>
+                <input type="text" class="form-control" formControlName="descripcion" placeholder="Ej: Consulta General">
+                <div class="servicios-predefinidos">
+                  <button 
+                    type="button" 
+                    class="servicio-tag" 
+                    *ngFor="let servicio of serviciosPredefinidos()"
+                    (click)="agregarServicioPredefinido(servicio, i)">
+                    {{ servicio.descripcion }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Cantidad *</label>
+                <input type="number" class="form-control" formControlName="cantidad" min="1" step="1">
+              </div>
+
+              <div class="form-group">
+                <label>Precio Unit. *</label>
+                <input type="number" class="form-control" formControlName="precioUnitario" min="0" step="0.01" placeholder="0.00">
+              </div>
+
+              <div class="form-group">
+                <label>Desc. %</label>
+                <input type="number" class="form-control" formControlName="descuento" min="0" max="100" step="1" placeholder="0">
+              </div>
+
+              <div class="form-group">
+                <label>Subtotal</label>
+                <div class="subtotal-display">{{ item.get('subtotal')?.value | currency:'USD':'symbol':'1.2-2' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            class="btn-delete" 
+            (click)="eliminarItem(i)" 
+            [disabled]="items.length === 1"
+            title="Eliminar item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección Totales y Pago -->
+    <div class="form-row">
+      <div class="card form-section">
+        <div class="section-header">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Forma de Pago
+          </h3>
+        </div>
+
+        <div class="forma-pago-opciones">
+          <label class="radio-card">
+            <input type="radio" formControlName="formaPago" value="efectivo">
+            <div class="radio-content">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <strong>Efectivo</strong>
+            </div>
+          </label>
+
+          <label class="radio-card">
+            <input type="radio" formControlName="formaPago" value="tarjeta">
+            <div class="radio-content">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <strong>Tarjeta</strong>
+            </div>
+          </label>
+
+          <label class="radio-card">
+            <input type="radio" formControlName="formaPago" value="transferencia">
+            <div class="radio-content">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <strong>Transferencia</strong>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones</label>
+          <textarea class="form-control" formControlName="observaciones" rows="3" placeholder="Notas adicionales de la factura (opcional)"></textarea>
+        </div>
+      </div>
+
+      <div class="card totales-card">
+        <h3>Resumen</h3>
+        
+        <div class="totales-list">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>{{ subtotal | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-row">
+            <span>IVA 15%:</span>
+            <span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-row total-final">
+            <span>TOTAL:</span>
+            <span>{{ total | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="totales-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <p>Esta factura se enviará automáticamente al SRI para su autorización electrónica</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones del formulario -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-outline" (click)="cancelar()" [disabled]="loading()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {{ loading() ? 'Guardando y enviando al SRI...' : 'Guardar y Enviar al SRI' }}
+      </button>
+    </div>
+  </form>
+</section>

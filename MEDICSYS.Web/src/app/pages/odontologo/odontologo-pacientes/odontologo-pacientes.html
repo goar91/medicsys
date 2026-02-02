@@ -1,0 +1,164 @@
+<app-top-nav></app-top-nav>
+
+<section class="page odontologo-pacientes">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Gestión de Pacientes</p>
+      <h2>Control de Pacientes</h2>
+      <p class="subtitle">Administra la información de tus pacientes y sus alertas</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" type="button" (click)="toggleNewPatient()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Nuevo Paciente
+      </button>
+    </div>
+  </header>
+
+  <!-- Búsqueda -->
+  <div class="search-bar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input 
+      type="text" 
+      class="input search-input" 
+      placeholder="Buscar por nombre, cédula o email..." 
+      (input)="filterPacientes($event)" />
+  </div>
+
+  <!-- Modal Nuevo Paciente -->
+  <div class="modal-overlay" *ngIf="showNewPatient()" (click)="toggleNewPatient()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Registrar Nuevo Paciente
+        </h3>
+        <button class="btn-close" type="button" (click)="toggleNewPatient()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      
+      <form [formGroup]="patientForm" class="modal-body">
+        <div class="form-section-title">Datos Personales</div>
+        <div class="grid">
+          <label class="field">
+            Nombre completo
+            <input class="input" formControlName="nombre" placeholder="Ej: Juan Pérez" />
+          </label>
+          <label class="field">
+            Cédula
+            <input class="input" formControlName="cedula" placeholder="0102345678" maxlength="10" />
+          </label>
+          <label class="field">
+            Teléfono
+            <input class="input" formControlName="telefono" placeholder="0987654321" />
+          </label>
+          <label class="field">
+            Email
+            <input class="input" type="email" formControlName="email" placeholder="paciente@email.com" />
+          </label>
+          <label class="field">
+            Fecha de nacimiento
+            <input class="input" type="date" formControlName="fechaNacimiento" />
+          </label>
+          <label class="field full-width">
+            Dirección
+            <input class="input" formControlName="direccion" placeholder="Av. Principal 123" />
+          </label>
+        </div>
+
+        <div class="form-section-title">Contacto de Emergencia</div>
+        <div class="grid">
+          <label class="field">
+            Nombre contacto emergencia
+            <input class="input" formControlName="contactoEmergencia" />
+          </label>
+          <label class="field">
+            Teléfono emergencia
+            <input class="input" formControlName="telefonoEmergencia" />
+          </label>
+        </div>
+
+        <div class="form-section-title">Información Médica</div>
+        <label class="field">
+          Alergias conocidas
+          <textarea class="input" rows="2" formControlName="alergias" placeholder="Ej: Penicilina, látex"></textarea>
+        </label>
+        <label class="field">
+          Medicamentos actuales
+          <textarea class="input" rows="2" formControlName="medicamentos" placeholder="Ej: Ibuprofeno 400mg"></textarea>
+        </label>
+        <label class="field">
+          Enfermedades o condiciones
+          <textarea class="input" rows="2" formControlName="enfermedades" placeholder="Ej: Diabetes tipo 2, hipertensión"></textarea>
+        </label>
+      </form>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" type="button" (click)="toggleNewPatient()">Cancelar</button>
+        <button class="btn btn-primary" type="button" (click)="savePatient()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Registrar Paciente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de Pacientes -->
+  <div class="patients-grid">
+    <div class="patient-card" *ngFor="let paciente of filteredPacientes()">
+      <div class="patient-header">
+        <div class="patient-avatar">
+          {{ paciente.nombre.split(' ')[0][0] }}{{ paciente.nombre.split(' ')[1]?.[0] || '' }}
+        </div>
+        <div class="patient-info">
+          <h3>{{ paciente.nombre }}</h3>
+          <p>CI: {{ paciente.cedula }}</p>
+        </div>
+        <span class="alert-badge" *ngIf="paciente.alertas > 0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          {{ paciente.alertas }}
+        </span>
+      </div>
+
+      <div class="patient-details">
+        <div class="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>{{ paciente.telefono }}</span>
+        </div>
+        <div class="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span>{{ paciente.email }}</span>
+        </div>
+        <div class="detail-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Última visita: {{ paciente.ultimaVisita | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="detail-item" *ngIf="paciente.proximaCita">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Próxima cita: {{ paciente.proximaCita | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <div class="patient-actions">
+        <button class="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Historia
+        </button>
+        <button class="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Cita
+        </button>
+        <button class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="filteredPacientes().length === 0">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <p>No se encontraron pacientes</p>
+  </div>
+</section>

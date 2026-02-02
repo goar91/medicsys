@@ -43,6 +43,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
   readonly isProfessorEditor = signal(false);
   readonly activeTab = signal<'personal' | 'consulta' | 'odontograma' | 'indicadores' | 'tratamientos' | 'medios'>('personal');
   readonly marker = signal<OdontogramMarker>('caries');
+  readonly estomatognaticoSelected = signal<string | null>(null);
   readonly readonly = computed(() => {
     if (this.isProfessorEditor()) {
       return false;
@@ -108,6 +109,20 @@ export class ClinicalHistoryFormComponent implements OnInit {
         orofaringe: false,
         atm: false,
         ganglios: false
+      }),
+      estomatognaticoDetails: this.fb.nonNullable.group({
+        labios: '',
+        mejillas: '',
+        maxilarSuperior: '',
+        maxilarInferior: '',
+        lengua: '',
+        paladar: '',
+        piso: '',
+        carrillos: '',
+        glandulasSalivales: '',
+        orofaringe: '',
+        atm: '',
+        ganglios: ''
       }),
       notes: ['', [Validators.required]]
     }),
@@ -230,6 +245,71 @@ export class ClinicalHistoryFormComponent implements OnInit {
 
   updateOdontogram(state: Odontogram3DState) {
     this.odontogram.set(state);
+  }
+
+  onEstomatognaticoChange(field: string, event: Event) {
+    const checkbox = event.target as HTMLInputElement;
+    if (checkbox.checked) {
+      this.estomatognaticoSelected.set(field);
+    } else {
+      // Limpiar el detalle cuando se desmarca
+      this.form.get(`consultation.estomatognaticoDetails.${field}`)?.setValue('');
+      this.updateObservationsFromEstomatognatico();
+    }
+  }
+
+  saveEstomatognaticoDetail() {
+    this.updateObservationsFromEstomatognatico();
+    this.estomatognaticoSelected.set(null);
+  }
+
+  cancelEstomatognaticoDetail() {
+    const field = this.estomatognaticoSelected();
+    if (field) {
+      this.form.get(`consultation.estomatognatico.${field}`)?.setValue(false);
+      this.form.get(`consultation.estomatognaticoDetails.${field}`)?.setValue('');
+    }
+    this.estomatognaticoSelected.set(null);
+  }
+
+  private updateObservationsFromEstomatognatico() {
+    const estomatognatico = this.form.get('consultation.estomatognatico')?.value as any;
+    const details = this.form.get('consultation.estomatognaticoDetails')?.value as any;
+    
+    const labels: Record<string, string> = {
+      labios: 'Labios',
+      mejillas: 'Mejillas',
+      maxilarSuperior: 'Maxilar superior',
+      maxilarInferior: 'Maxilar inferior',
+      lengua: 'Lengua',
+      paladar: 'Paladar',
+      piso: 'Piso',
+      carrillos: 'Carrillos',
+      glandulasSalivales: 'Glándulas salivales',
+      orofaringe: 'Oro faringe',
+      atm: 'A.T.M.',
+      ganglios: 'Ganglios'
+    };
+
+    const observations: string[] = [];
+    Object.keys(estomatognatico).forEach(key => {
+      if (estomatognatico[key] && details[key]) {
+        observations.push(`${labels[key]}: ${details[key]}`);
+      }
+    });
+
+    const currentNotes = this.form.get('consultation.notes')?.value || '';
+    const notesLines = currentNotes.split('\n').filter((line: string) => {
+      // Filtrar líneas que no sean de estomatognático
+      return !Object.values(labels).some(label => line.startsWith(`${label}:`));
+    });
+
+    if (observations.length > 0) {
+      const newNotes = [...notesLines, '', '--- Examen estomatognático ---', ...observations].join('\n');
+      this.form.get('consultation.notes')?.setValue(newNotes);
+    } else {
+      this.form.get('consultation.notes')?.setValue(notesLines.join('\n'));
+    }
   }
 
   suggestNotes() {

@@ -7,6 +7,10 @@ import { ProfessorDashboardComponent } from './pages/professor-dashboard/profess
 import { ClinicalHistoryFormComponent } from './pages/clinical-history-form/clinical-history-form';
 import { ClinicalHistoryReviewComponent } from './pages/clinical-history-review/clinical-history-review';
 import { AgendaComponent } from './pages/agenda/agenda';
+import { OdontologoDashboardComponent } from './pages/odontologo/odontologo-dashboard/odontologo-dashboard';
+import { OdontologoPacientesComponent } from './pages/odontologo/odontologo-pacientes/odontologo-pacientes';
+import { OdontologoFacturacionComponent } from './pages/odontologo/odontologo-facturacion/odontologo-facturacion.component';
+import { OdontologoFacturaFormComponent } from './pages/odontologo/odontologo-factura-form/odontologo-factura-form';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -21,6 +25,32 @@ export const routes: Routes = [
     path: 'agenda',
     component: AgendaComponent,
     canActivate: [authGuard],
+  },
+  // Rutas Odontólogo
+  {
+    path: 'odontologo/dashboard',
+    component: OdontologoDashboardComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/pacientes',
+    component: OdontologoPacientesComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/agenda',
+    component: AgendaComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/facturacion',
+    component: OdontologoFacturacionComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/facturacion/new',
+    component: OdontologoFacturaFormComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'student/histories/new',

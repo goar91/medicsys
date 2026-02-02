@@ -1,0 +1,294 @@
+.facturacion-page {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+
+    .eyebrow {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      color: var(--text);
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+
+    .metric-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .metric-content {
+      flex: 1;
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin: 0 0 0.5rem 0;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1;
+    }
+
+    &.success {
+      .metric-icon {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+      }
+      .metric-value {
+        color: #22c55e;
+      }
+    }
+
+    &.warning {
+      .metric-icon {
+        background: rgba(251, 146, 60, 0.1);
+        color: #fb923c;
+      }
+      .metric-value {
+        color: #fb923c;
+      }
+    }
+
+    &.primary {
+      .metric-icon {
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--primary);
+      }
+      .metric-value {
+        color: var(--primary);
+      }
+    }
+  }
+
+  .facturas-table {
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+
+      h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text);
+      }
+
+      .table-filters {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      .input-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary);
+        }
+      }
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background: var(--bg-secondary);
+        
+        th {
+          padding: 1rem 1.5rem;
+          text-align: left;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--text-light);
+          text-transform: uppercase;
+          letter-spacing: 0.025em;
+          border-bottom: 1px solid var(--border);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid var(--border);
+          transition: background-color 0.15s;
+
+          &:hover {
+            background: var(--bg-secondary);
+          }
+
+          td {
+            padding: 1rem 1.5rem;
+            font-size: 0.9375rem;
+
+            &.font-mono {
+              font-family: 'Courier New', monospace;
+              font-size: 0.875rem;
+              color: var(--primary);
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+
+    .cliente-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      strong {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .text-muted {
+        font-size: 0.875rem;
+        color: var(--text-light);
+      }
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      &[data-status="autorizada"] {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+      }
+
+      &[data-status="pendiente"] {
+        background: rgba(251, 146, 60, 0.1);
+        color: #fb923c;
+      }
+
+      &[data-status="rechazada"] {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+
+      &.badge-payment {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: var(--bg-secondary);
+        color: var(--primary);
+      }
+    }
+  }
+}
+
+.btn {
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.15s;
+
+  &.btn-primary {
+    background: var(--primary);
+    color: white;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  &.btn-outline {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+
+    &:hover {
+      background: var(--bg-secondary);
+    }
+  }
+}

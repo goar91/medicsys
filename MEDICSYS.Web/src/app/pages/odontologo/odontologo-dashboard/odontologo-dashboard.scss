@@ -1,0 +1,369 @@
+.odontologo-dashboard {
+  padding: 0 2.5rem 3rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-card {
+  background: white;
+  border: 2px solid var(--stroke);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: start;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.metric-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon[data-icon="calendar"] {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.metric-icon[data-icon="users"] {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.metric-icon[data-icon="dollar"] {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.metric-icon[data-icon="alert"] {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.metric-content {
+  flex: 1;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+}
+
+.metric-change {
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.metric-change[data-trend="up"] {
+  color: #10b981;
+}
+
+.metric-change[data-trend="down"] {
+  color: #ef4444;
+}
+
+.metric-change[data-trend="neutral"] {
+  color: var(--muted);
+}
+
+.quick-actions-card {
+  padding: 1.5rem;
+  
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+    
+    svg {
+      color: var(--accent);
+    }
+  }
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  border: 2px solid var(--stroke);
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--ink);
+  
+  svg {
+    width: 32px;
+    height: 32px;
+    padding: 0.5rem;
+    border-radius: 10px;
+  }
+  
+  span {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+.quick-action[data-color="primary"] svg {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.quick-action[data-color="success"] svg {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.quick-action[data-color="warning"] svg {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.quick-action[data-color="info"] svg {
+  background: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+}
+
+.quick-action:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    
+    svg {
+      color: var(--accent);
+    }
+  }
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.appointments-card {
+  padding: 1.5rem;
+}
+
+.appointments-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.appointment-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid var(--stroke);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.appointment-item:hover {
+  border-color: var(--accent);
+  background: var(--canvas);
+}
+
+.appointment-time {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+  min-width: 60px;
+}
+
+.appointment-details {
+  h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.9375rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+}
+
+.appointment-status {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.appointment-status[data-status="confirmed"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.appointment-status[data-status="pending"] {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.alerts-card {
+  padding: 1.5rem;
+}
+
+.alerts-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.alert-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  
+  svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+}
+
+.alert-item[data-type="urgente"] {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #dc2626;
+  
+  svg {
+    color: #dc2626;
+  }
+}
+
+.alert-item[data-type="warning"] {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid #d97706;
+  
+  svg {
+    color: #d97706;
+  }
+}
+
+.alert-item[data-type="info"] {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #2563eb;
+  
+  svg {
+    color: #2563eb;
+  }
+}
+
+.alert-content {
+  flex: 1;
+  
+  p {
+    margin: 0 0 0.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+.alert-time {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .odontologo-dashboard {
+    padding: 0 1.5rem 2rem;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,161 @@
+.odontologo-pacientes {
+  padding: 0 2.5rem 3rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.search-bar {
+  position: relative;
+  max-width: 600px;
+  
+  svg {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+  }
+}
+
+.search-input {
+  padding-left: 3rem;
+  width: 100%;
+}
+
+.patients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.patient-card {
+  background: white;
+  border: 2px solid var(--stroke);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.patient-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+.patient-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.patient-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.patient-info {
+  flex: 1;
+  
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.0625rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+}
+
+.alert-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.patient-details {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  
+  svg {
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+}
+
+.patient-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--stroke);
+}
+
+.modal-content.large {
+  max-width: 700px;
+}
+
+.form-section-title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.form-section-title:first-child {
+  margin-top: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.field.full-width {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .odontologo-pacientes {
+    padding: 0 1.5rem 2rem;
+  }
+  
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,3 @@
+# Esta carpeta está destinada para almacenar certificados de firma digital
+# Los archivos .p12 deben colocarse aquí
+# Este archivo solo existe para que Git rastree la carpeta vacía

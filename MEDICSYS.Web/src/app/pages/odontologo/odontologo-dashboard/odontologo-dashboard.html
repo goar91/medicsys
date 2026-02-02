@@ -1,0 +1,103 @@
+<app-top-nav></app-top-nav>
+
+<section class="page odontologo-dashboard">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel Odontólogo</p>
+      <h2>Dashboard General</h2>
+      <p class="subtitle">Vista general de tu consultorio odontológico</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn btn-primary" [routerLink]="['/odontologo/agenda']">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva Cita
+      </button>
+    </div>
+  </header>
+
+  <!-- Métricas principales -->
+  <div class="metrics-grid">
+    <div class="metric-card" *ngFor="let metric of metrics()">
+      <div class="metric-icon" [attr.data-icon]="metric.icon">
+        <svg *ngIf="metric.icon === 'calendar'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg *ngIf="metric.icon === 'users'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <svg *ngIf="metric.icon === 'dollar'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <svg *ngIf="metric.icon === 'alert'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      </div>
+      <div class="metric-content">
+        <p class="metric-label">{{ metric.label }}</p>
+        <h3 class="metric-value">{{ metric.value }}</h3>
+        <p class="metric-change" [attr.data-trend]="metric.trend">{{ metric.change }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones rápidas -->
+  <div class="card quick-actions-card">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Acciones Rápidas
+    </h3>
+    <div class="quick-actions-grid">
+      <a [routerLink]="action.route" class="quick-action" [attr.data-color]="action.color" *ngFor="let action of quickActions()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path *ngIf="action.icon === 'calendar-plus'" d="M21 10.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5M16 2v4M8 2v4M3 10h18M19 15h6m-3-3v6"/>
+          <path *ngIf="action.icon === 'user-plus'" d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M12.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/>
+          <path *ngIf="action.icon === 'receipt'" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline *ngIf="action.icon === 'receipt'" points="14 2 14 8 20 8"/><line *ngIf="action.icon === 'receipt'" x1="16" y1="13" x2="8" y2="13"/><line *ngIf="action.icon === 'receipt'" x1="16" y1="17" x2="8" y2="17"/>
+          <path *ngIf="action.icon === 'package'" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline *ngIf="action.icon === 'package'" points="3.27 6.96 12 12.01 20.73 6.96"/><line *ngIf="action.icon === 'package'" x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <span>{{ action.label }}</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Citas de hoy -->
+    <div class="card appointments-card">
+      <div class="card-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Citas de Hoy
+        </h3>
+        <a [routerLink]="['/odontologo/agenda']" class="btn btn-ghost btn-sm">Ver todas</a>
+      </div>
+      <div class="appointments-list">
+        <div class="appointment-item" *ngFor="let appt of todayAppointments()">
+          <div class="appointment-time">{{ appt.time }}</div>
+          <div class="appointment-details">
+            <h4>{{ appt.patient }}</h4>
+            <p>{{ appt.treatment }}</p>
+          </div>
+          <span class="appointment-status" [attr.data-status]="appt.status">
+            {{ appt.status === 'confirmed' ? 'Confirmada' : 'Pendiente' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas recientes -->
+    <div class="card alerts-card">
+      <div class="card-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          Alertas Recientes
+        </h3>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let alert of recentAlerts()" [attr.data-type]="alert.type">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div class="alert-content">
+            <p>{{ alert.message }}</p>
+            <span class="alert-time">Hace {{ alert.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,15 @@
+# ⚠️ SEGURIDAD: Nunca subir certificados digitales al repositorio
+# Los certificados .p12 contienen claves privadas y deben mantenerse seguros
+
+# Ignorar todos los archivos de certificados
+*.p12
+*.pfx
+*.key
+*.pem
+
+# Ignorar archivos de configuración con contraseñas
+sri-config.json
+
+# Permitir solo archivos de ejemplo
+!*.example.*
+!README.md

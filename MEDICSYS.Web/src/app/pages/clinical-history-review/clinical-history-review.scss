@@ -86,7 +86,20 @@
     }
   }
 }
-display: flex;
+
+.actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.actions.secondary {
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+
+.hint {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
@@ -100,19 +113,6 @@ display: flex;
     flex-shrink: 0;
     color: var(--accent);
   }
-  gap: 0.8rem;
-  margin-top: 1rem;
-}
-
-.actions.secondary {
-  flex-wrap: wrap;
-  margin-top: 0.8rem;
-}
-
-.hint {
-  margin-top: 0.8rem;
-  color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .status {

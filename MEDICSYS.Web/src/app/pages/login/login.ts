@@ -21,6 +21,7 @@ export class LoginComponent {
   readonly loading = signal(false);
 
   readonly loginForm = this.fb.nonNullable.group({
+    userType: ['Estudiante', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
@@ -46,12 +47,13 @@ export class LoginComponent {
     this.error.set(null);
     this.loading.set(true);
 
-    const { email, password } = this.loginForm.getRawValue();
+    const { userType, email, password } = this.loginForm.getRawValue();
     this.auth.login(email!, password!).subscribe({
       next: response => {
         this.auth.setSession(response);
         this.loading.set(false);
-        this.redirectByRole(response.user.role);
+        // Redirigir según el tipo de usuario seleccionado
+        this.redirectByUserType(userType!);
       },
       error: () => {
         this.loading.set(false);
@@ -83,11 +85,18 @@ export class LoginComponent {
     });
   }
 
-  private redirectByRole(role: string) {
-    if (role === 'Profesor') {
-      this.router.navigate(['/professor']);
-    } else {
-      this.router.navigate(['/student']);
+  private redirectByUserType(userType: string) {
+    switch(userType) {
+      case 'Odontologo':
+        this.router.navigate(['/odontologo/dashboard']);
+        break;
+      case 'Profesor':
+        this.router.navigate(['/professor']);
+        break;
+      case 'Estudiante':
+      default:
+        this.router.navigate(['/student']);
+        break;
     }
   }
 }

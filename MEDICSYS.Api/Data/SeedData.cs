@@ -15,6 +15,30 @@ public static class SeedData
 
         await EnsureRoleAsync(roleManager, Roles.Professor);
         await EnsureRoleAsync(roleManager, Roles.Student);
+        await EnsureRoleAsync(roleManager, "Odontologo");
+
+        // Crear usuario Odontólogo
+        var odontologoEmail = "odontologo@medicsys.com";
+        var odontologoPassword = "Odontologo123!";
+        var odontologoExisting = await userManager.FindByEmailAsync(odontologoEmail);
+        
+        if (odontologoExisting == null)
+        {
+            var odontologo = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = odontologoEmail,
+                Email = odontologoEmail,
+                FullName = "Dr. Carlos Mendoza",
+                EmailConfirmed = true
+            };
+
+            var createdOdontologo = await userManager.CreateAsync(odontologo, odontologoPassword);
+            if (createdOdontologo.Succeeded)
+            {
+                await userManager.AddToRoleAsync(odontologo, "Odontologo");
+            }
+        }
 
         var email = config["Seed:DefaultProfessorEmail"];
         var password = config["Seed:DefaultProfessorPassword"];
