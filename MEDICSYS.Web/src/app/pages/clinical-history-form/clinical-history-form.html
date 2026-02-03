@@ -231,39 +231,90 @@
       <h3>Odontograma interactivo</h3>
       <p class="subtitle">Selecciona una marca y haz clic en las superficies dentales para registrar hallazgos.</p>
 
-      <div class="marker-row">
-        <button type="button" class="marker marker-caries" [class.active]="marker() === 'caries'" (click)="selectMarker('caries')">
-          <span class="marker-icon">●</span>
-          Caries
-        </button>
-        <button type="button" class="marker marker-filled" [class.active]="marker() === 'filled'" (click)="selectMarker('filled')">
-          <span class="marker-icon">■</span>
-          Restauración
-        </button>
-        <button type="button" class="marker marker-missing" [class.active]="marker() === 'missing'" (click)="selectMarker('missing')">
-          <span class="marker-icon">✕</span>
-          Ausente
-        </button>
-        <button type="button" class="marker marker-extracted" [class.active]="marker() === 'extracted'" (click)="selectMarker('extracted')">
-          <span class="marker-icon">⊗</span>
-          Extraído
-        </button>
-        <button type="button" class="marker marker-needs" [class.active]="marker() === 'needs-treatment'" (click)="selectMarker('needs-treatment')">
-          <span class="marker-icon">!</span>
-          Necesita tratamiento
-        </button>
-        <button type="button" class="marker marker-crown" [class.active]="marker() === 'crown'" (click)="selectMarker('crown')">
-          <span class="marker-icon">♔</span>
-          Corona
-        </button>
-        <button type="button" class="marker marker-implant" [class.active]="marker() === 'implant'" (click)="selectMarker('implant')">
-          <span class="marker-icon">⚙</span>
-          Implante
-        </button>
-        <button type="button" class="marker marker-root" [class.active]="marker() === 'root-canal'" (click)="selectMarker('root-canal')">
-          <span class="marker-icon">↓</span>
-          Endodoncia
-        </button>
+      <div class="marker-sections">
+        <div class="marker-section">
+          <h4 class="marker-section-title done">Tratamientos Realizados</h4>
+          <div class="marker-row">
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'caries-done'" (click)="selectMarker('caries-done')">
+              <span class="marker-surface"></span>
+              Caries
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'extraction-caries-done'" (click)="selectMarker('extraction-caries-done')">
+              <span class="marker-icon">✕</span>
+              Extracción caries
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'extraction-other-done'" (click)="selectMarker('extraction-other-done')">
+              <span class="marker-icon">⊗</span>
+              Extracción otro
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'endodontics-caries-done'" (click)="selectMarker('endodontics-caries-done')">
+              <span class="marker-icon">▲</span>
+              Endodoncia caries
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'endodontics-other-done'" (click)="selectMarker('endodontics-other-done')">
+              <span class="marker-icon">△</span>
+              Endodoncia otro
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'crown-done'" (click)="selectMarker('crown-done')">
+              <span class="marker-icon">■</span>
+              Corona
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'fixed-prosthesis-done'" (click)="selectMarker('fixed-prosthesis-done')">
+              <span class="marker-icon">●━</span>
+              Prótesis fija
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'ppr-done'" (click)="selectMarker('ppr-done')">
+              <span class="marker-icon">⟮⋯⟯</span>
+              PPR
+            </button>
+            <button type="button" class="marker marker-done" [class.active]="marker() === 'total-prosthesis-done'" (click)="selectMarker('total-prosthesis-done')">
+              <span class="marker-icon">━━━</span>
+              Prótesis total
+            </button>
+          </div>
+        </div>
+
+        <div class="marker-section">
+          <h4 class="marker-section-title planned">Tratamientos Por Realizar</h4>
+          <div class="marker-row">
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'caries-planned'" (click)="selectMarker('caries-planned')">
+              <span class="marker-surface"></span>
+              Caries
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'extraction-caries-planned'" (click)="selectMarker('extraction-caries-planned')">
+              <span class="marker-icon">✕</span>
+              Extracción caries
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'extraction-other-planned'" (click)="selectMarker('extraction-other-planned')">
+              <span class="marker-icon">⊗</span>
+              Extracción otro
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'endodontics-caries-planned'" (click)="selectMarker('endodontics-caries-planned')">
+              <span class="marker-icon">▲</span>
+              Endodoncia caries
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'endodontics-other-planned'" (click)="selectMarker('endodontics-other-planned')">
+              <span class="marker-icon">△</span>
+              Endodoncia otro
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'crown-planned'" (click)="selectMarker('crown-planned')">
+              <span class="marker-icon">■</span>
+              Corona
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'fixed-prosthesis-planned'" (click)="selectMarker('fixed-prosthesis-planned')">
+              <span class="marker-icon">●━</span>
+              Prótesis fija
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'ppr-planned'" (click)="selectMarker('ppr-planned')">
+              <span class="marker-icon">⟮⋯⟯</span>
+              PPR
+            </button>
+            <button type="button" class="marker marker-planned" [class.active]="marker() === 'total-prosthesis-planned'" (click)="selectMarker('total-prosthesis-planned')">
+              <span class="marker-icon">━━━</span>
+              Prótesis total
+            </button>
+          </div>
+        </div>
       </div>
 
       <app-odontogram-3d

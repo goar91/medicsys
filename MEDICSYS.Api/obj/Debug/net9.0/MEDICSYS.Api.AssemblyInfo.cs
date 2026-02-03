@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MEDICSYS.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5e980eaa0ef54ac81c94c655d706b75f0b043ec9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb0e4d15129413001cfab707d49cb6d111a555ae")]
 [assembly: System.Reflection.AssemblyProductAttribute("MEDICSYS.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MEDICSYS.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

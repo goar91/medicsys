@@ -51,3 +51,5 @@ package-lock.json
 
 # Uploads
 **/wwwroot/uploads/
+
+.fake

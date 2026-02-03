@@ -4,6 +4,8 @@ import { NgFor, NgIf, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 
+declare const ngDevMode: boolean;
+
 interface FacturaItem {
   cantidad: number;
   descripcion: string;
@@ -201,7 +203,9 @@ export class OdontologoFacturaFormComponent {
         fecha: new Date()
       };
 
-      console.log('Factura a guardar:', facturaData);
+      if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+        console.debug('Factura a guardar (solo dev):', facturaData);
+      }
 
       // Simular envío al SRI
       await new Promise(resolve => setTimeout(resolve, 2000));

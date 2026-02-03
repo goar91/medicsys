@@ -1,0 +1,10 @@
+1. Usuario Odontólogo
+Email: odontologo@medicsys.com
+Contraseña: Odontologo123!
+Nombre: Dr. Carlos Mendoza
+Rol: Odontologo
+2. Usuario Profesor/Admin
+Email: profesor@medicsys.local
+Contraseña: Medicsys#2026
+Nombre: Profesor Admin
+Rol: Professor

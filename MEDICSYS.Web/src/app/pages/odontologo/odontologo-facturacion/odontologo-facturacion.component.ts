@@ -3,6 +3,8 @@ import { Router, RouterLink } from '@angular/router';
 import { NgFor, NgIf, DatePipe, CurrencyPipe } from '@angular/common';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 
+declare const ngDevMode: boolean;
+
 interface Factura {
   id: string;
   numero: string;
@@ -98,14 +100,20 @@ export class OdontologoFacturacionComponent {
   }
 
   verDetalle(facturaId: string) {
-    console.log('Ver detalle factura:', facturaId);
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.debug('[DEV] Ver detalle factura:', facturaId);
+    }
   }
 
   reenviarSRI(facturaId: string) {
-    console.log('Reenviar al SRI:', facturaId);
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.debug('[DEV] Reenviar al SRI:', facturaId);
+    }
   }
 
   descargarPDF(facturaId: string) {
-    console.log('Descargar PDF:', facturaId);
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.debug('[DEV] Descargar PDF:', facturaId);
+    }
   }
 }

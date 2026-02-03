@@ -34,6 +34,7 @@ public class ReminderWorker : BackgroundService
                         reminder.Status = "Due";
                     }
                     await db.SaveChangesAsync(stoppingToken);
+                    _logger.LogInformation("ReminderWorker marcó {Count} recordatorios como 'Due' a las {UtcNow}", due.Count, now);
                 }
             }
             catch (Exception ex)

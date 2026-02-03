@@ -42,7 +42,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
   readonly suggesting = signal(false);
   readonly isProfessorEditor = signal(false);
   readonly activeTab = signal<'personal' | 'consulta' | 'odontograma' | 'indicadores' | 'tratamientos' | 'medios'>('personal');
-  readonly marker = signal<OdontogramMarker>('caries');
+  readonly marker = signal<OdontogramMarker>('caries-planned');
   readonly estomatognaticoSelected = signal<string | null>(null);
   readonly readonly = computed(() => {
     if (this.isProfessorEditor()) {

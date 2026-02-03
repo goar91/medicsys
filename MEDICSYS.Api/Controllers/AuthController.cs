@@ -16,15 +16,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly TokenService _tokenService;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        TokenService tokenService)
+        TokenService tokenService,
+        ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
+        _logger = logger;
     }
 
     [HttpPost("register-student")]
@@ -33,6 +36,7 @@ public class AuthController : ControllerBase
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing != null)
         {
+            _logger.LogWarning("Intento de registro de alumno con email ya existente: {Email}", request.Email);
             return BadRequest("Email already registered.");
         }
 
@@ -48,12 +52,14 @@ public class AuthController : ControllerBase
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
+            _logger.LogWarning("Registro de alumno falló para {Email}: {Errors}", request.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
             return BadRequest(result.Errors.Select(e => e.Description));
         }
 
         await _userManager.AddToRoleAsync(user, Roles.Student);
 
         var response = await BuildAuthResponseAsync(user);
+        _logger.LogInformation("Alumno registrado {UserId} ({Email})", user.Id, user.Email);
         return Ok(response);
     }
 
@@ -64,6 +70,7 @@ public class AuthController : ControllerBase
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing != null)
         {
+            _logger.LogWarning("Intento de registro de profesor con email ya existente: {Email}", request.Email);
             return BadRequest("Email already registered.");
         }
 
@@ -79,31 +86,38 @@ public class AuthController : ControllerBase
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
+            _logger.LogWarning("Registro de profesor falló para {Email}: {Errors}", request.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
             return BadRequest(result.Errors.Select(e => e.Description));
         }
 
         await _userManager.AddToRoleAsync(user, Roles.Professor);
 
         var response = await BuildAuthResponseAsync(user);
+        _logger.LogInformation("Profesor registrado {UserId} ({Email})", user.Id, user.Email);
         return Ok(response);
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(AuthLoginRequest request)
     {
+        _logger.LogInformation("Intento de login para {Email}", request.Email);
+
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
+            _logger.LogWarning("Login rechazado para {Email}: usuario no encontrado", request.Email);
             return Unauthorized("Invalid credentials.");
         }
 
         var valid = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
         if (!valid.Succeeded)
         {
+            _logger.LogWarning("Login rechazado para {Email}: contraseña inválida", request.Email);
             return Unauthorized("Invalid credentials.");
         }
 
         var response = await BuildAuthResponseAsync(user);
+        _logger.LogInformation("Usuario {UserId} inició sesión como {Role}", user.Id, response.User.Role);
         return Ok(response);
     }
 

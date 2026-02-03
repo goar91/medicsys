@@ -1,14 +1,24 @@
 .odontogram-container {
+  // Variables CSS para temas
+  --odonto-done: #3b82f6;
+  --odonto-done-light: #dbeafe;
+  --odonto-planned: #ef4444;
+  --odonto-planned-light: #fee2e2;
+  --odonto-bg: var(--surface-card, #ffffff);
+  --odonto-border: var(--surface-border, #cbd5e1);
+  --odonto-text: var(--text-color, #1e293b);
+  --odonto-text-secondary: var(--text-color-secondary, #64748b);
+  --odonto-hover-bg: var(--surface-hover, #f1f5f9);
+
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: var(--odonto-bg);
   border-radius: 24px;
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 // Toolbar
@@ -17,7 +27,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: white;
+  background: var(--odonto-bg);
+  border: 1px solid var(--odonto-border);
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -34,27 +45,115 @@
 
 .instruction {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--odonto-text-secondary);
   font-weight: 500;
 }
 
 .btn-icon {
   width: 40px;
   height: 40px;
-  border: none;
-  background: #f1f5f9;
+  border: 1px solid var(--odonto-border);
+  background: var(--odonto-bg);
   border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
+  color: var(--odonto-text-secondary);
   transition: all 0.2s;
 
   &:hover {
-    background: #e2e8f0;
-    color: #1e293b;
+    background: var(--odonto-hover-bg);
+    color: var(--odonto-text);
     transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+// Botones especiales del toolbar
+.btn-arch-selector,
+.btn-range-selector {
+  &.active {
+    background: var(--odonto-done);
+    color: white;
+  }
+}
+
+.btn-cancel {
+  background: var(--odonto-planned-light);
+  color: var(--odonto-planned);
+  
+  &:hover {
+    background: var(--odonto-planned);
+    color: white;
+  }
+}
+
+// Instrucciones especiales
+.instruction-range {
+  color: var(--odonto-planned);
+  font-weight: 600;
+}
+
+.instruction-arch {
+  color: var(--odonto-done);
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// Selector de maxilar
+.arch-selector {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--odonto-bg);
+  border: 1px solid var(--odonto-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.arch-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid var(--odonto-border);
+  background: var(--odonto-bg);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+  color: var(--odonto-text);
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  &:hover {
+    background: var(--odonto-hover-bg);
+    border-color: var(--odonto-done);
+    color: var(--odonto-done);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   &:active {
@@ -68,7 +167,8 @@
   flex-direction: column;
   gap: 2rem;
   padding: 2rem;
-  background: white;
+  background: var(--odonto-bg);
+  border: 1px solid var(--odonto-border);
   border-radius: 20px;
   box-shadow: 
     0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -85,7 +185,7 @@
   text-align: center;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--odonto-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -119,14 +219,32 @@
   &.selected {
     filter: drop-shadow(0 0 8px var(--tooth-border, #3b82f6));
   }
+
+  &.range-start {
+    outline: 3px dashed var(--odonto-planned);
+    outline-offset: 4px;
+    animation: pulse 1s infinite;
+  }
+
+  &.range-end {
+    outline: 3px dashed var(--odonto-done);
+    outline-offset: 4px;
+    animation: pulse 1s infinite;
+  }
+
+  &.in-range {
+    background: rgba(59, 130, 246, 0.1);
+    outline: 2px solid var(--odonto-done-light);
+    outline-offset: 2px;
+  }
 }
 
 .tooth-crown {
-  width: 32px;
-  height: 40px;
-  background: var(--tooth-bg, white);
-  border: 2px solid var(--tooth-border, #e2e8f0);
-  border-radius: 6px 6px 2px 2px;
+  width: 48px;
+  height: 56px;
+  background: var(--tooth-bg, var(--odonto-bg));
+  border: 3px solid var(--tooth-border, var(--odonto-border));
+  border-radius: 8px 8px 3px 3px;
   position: relative;
   display: flex;
   align-items: center;
@@ -135,54 +253,54 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &.incisor {
-    width: 28px;
-    height: 36px;
-    border-radius: 4px 4px 2px 2px;
+    width: 42px;
+    height: 52px;
+    border-radius: 6px 6px 3px 3px;
   }
 
   &.canine {
-    width: 30px;
-    height: 42px;
-    border-radius: 5px 5px 2px 2px;
+    width: 45px;
+    height: 60px;
+    border-radius: 7px 7px 3px 3px;
     clip-path: polygon(50% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
   }
 
   &.premolar {
-    width: 34px;
-    height: 38px;
-    border-radius: 8px 8px 3px 3px;
+    width: 50px;
+    height: 54px;
+    border-radius: 10px 10px 4px 4px;
   }
 
   &.molar {
-    width: 38px;
-    height: 40px;
-    border-radius: 8px 8px 4px 4px;
+    width: 54px;
+    height: 56px;
+    border-radius: 10px 10px 5px 5px;
   }
 }
 
 .tooth-root {
-  width: 12px;
-  height: 28px;
-  background: linear-gradient(to bottom, var(--tooth-bg, white), #f8fafc);
-  border-left: 2px solid var(--tooth-border, #e2e8f0);
-  border-right: 2px solid var(--tooth-border, #e2e8f0);
-  border-bottom: 2px solid var(--tooth-border, #e2e8f0);
-  border-radius: 0 0 6px 6px;
+  width: 18px;
+  height: 38px;
+  background: linear-gradient(to bottom, var(--tooth-bg, var(--odonto-bg)), var(--odonto-hover-bg, #f8fafc));
+  border-left: 3px solid var(--tooth-border, var(--odonto-border));
+  border-right: 3px solid var(--tooth-border, var(--odonto-border));
+  border-bottom: 3px solid var(--tooth-border, var(--odonto-border));
+  border-radius: 0 0 8px 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   &.lower {
-    height: 28px;
-    border-radius: 6px 6px 0 0;
-    border-top: 2px solid var(--tooth-border, #e2e8f0);
+    height: 38px;
+    border-radius: 8px 8px 0 0;
+    border-top: 3px solid var(--tooth-border, var(--odonto-border));
     border-bottom: none;
-    background: linear-gradient(to top, var(--tooth-bg, white), #f8fafc);
+    background: linear-gradient(to top, var(--tooth-bg, var(--odonto-bg)), var(--odonto-hover-bg, #f8fafc));
   }
 }
 
 .status-icon {
   font-size: 18px;
   font-weight: bold;
-  color: var(--tooth-border, #64748b);
+  color: var(--tooth-border, var(--odonto-text));
   animation: fadeIn 0.3s;
 }
 
@@ -208,11 +326,11 @@
 }
 
 .coronal-circle {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: var(--tooth-bg, white);
-  border: 3px solid var(--tooth-border, #cbd5e1);
+  background: var(--tooth-bg, var(--odonto-bg));
+  border: 3px solid var(--tooth-border, var(--odonto-border));
   position: relative;
   display: flex;
   align-items: center;
@@ -243,8 +361,8 @@
   }
 
   &.top {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -253,48 +371,49 @@
   }
 
   &.left {
-    width: 16px;
-    height: 32px;
+    width: 22px;
+    height: 44px;
     top: 50%;
     left: 2px;
     transform: translateY(-50%);
-    border-radius: 8px 0 0 8px;
+    border-radius: 10px 0 0 10px;
   }
 
   &.right {
-    width: 16px;
-    height: 32px;
+    width: 22px;
+    height: 44px;
     top: 50%;
     right: 2px;
     transform: translateY(-50%);
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 10px 10px 0;
   }
 
   &.front {
-    width: 32px;
-    height: 16px;
+    width: 44px;
+    height: 22px;
     top: 2px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 8px 8px 0 0;
+    border-radius: 10px 10px 0 0;
   }
 
   &.back {
-    width: 32px;
-    height: 16px;
+    width: 44px;
+    height: 22px;
     bottom: 2px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 10px 10px;
   }
 }
 
 .tooth-number {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--odonto-text-secondary);
   padding: 0.25rem 0.5rem;
-  background: white;
+  background: var(--odonto-bg);
+  border: 1px solid var(--odonto-border);
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-width: 28px;
@@ -303,17 +422,27 @@
 
 // Legend
 .legend {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   padding: 1rem 1.5rem;
-  background: white;
+  background: var(--odonto-bg);
+  border: 1px solid var(--odonto-border);
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .legend-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #334155;
-  margin-bottom: 0.75rem;
+  color: var(--odonto-text);
+  margin-bottom: 0.25rem;
 }
 
 .legend-items {
@@ -327,7 +456,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8125rem;
-  color: #475569;
+  color: var(--odonto-text-secondary);
 }
 
 .legend-color {
@@ -336,6 +465,37 @@
   border-radius: 6px;
   border: 2px solid;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  &.done {
+    background: var(--odonto-done-light);
+    border-color: var(--odonto-done);
+  }
+  
+  &.planned {
+    background: var(--odonto-planned-light);
+    border-color: var(--odonto-planned);
+  }
+}
+
+.legend-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  
+  &.done {
+    color: var(--odonto-done);
+    background: var(--odonto-done-light);
+  }
+  
+  &.planned {
+    color: var(--odonto-planned);
+    background: var(--odonto-planned-light);
+  }
 }
 
 // Animations

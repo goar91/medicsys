@@ -143,7 +143,7 @@ namespace MEDICSYS.Api.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", (string)null);
                 });
 
             modelBuilder.Entity("MEDICSYS.Api.Models.ClinicalHistory", b =>
@@ -191,7 +191,7 @@ namespace MEDICSYS.Api.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("ClinicalHistories");
+                    b.ToTable("ClinicalHistories", (string)null);
                 });
 
             modelBuilder.Entity("MEDICSYS.Api.Models.Reminder", b =>
@@ -234,7 +234,7 @@ namespace MEDICSYS.Api.Migrations
 
                     b.HasIndex("AppointmentId");
 
-                    b.ToTable("Reminders");
+                    b.ToTable("Reminders", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
