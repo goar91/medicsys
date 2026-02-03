@@ -1,0 +1,155 @@
+<app-top-nav *ngIf="!printMode()"></app-top-nav>
+
+<section class="page factura-detalle">
+  <header class="detalle-header" *ngIf="!printMode()">
+    <button class="btn btn-outline" type="button" (click)="back()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Facturación
+    </button>
+    <div class="header-actions">
+      <button class="btn btn-outline" type="button" (click)="print()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="btn btn-primary" type="button" *ngIf="invoice()?.status === 'Pending'" (click)="sendToSri()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Enviar al SRI
+      </button>
+    </div>
+  </header>
+
+  <div class="factura-shell" *ngIf="invoice() as factura">
+    <div class="factura-top">
+      <div class="card company-card">
+        <div class="company-header">
+          <div class="logo">MD</div>
+          <div>
+            <h2>MEDICSYS Dental</h2>
+            <p>CONSULTORIO DENTAL DR. CARLOS MENDOZA</p>
+            <p>RUC: 0999999999001</p>
+            <p>Av. Principal 123 y Secundaria, Cuenca - Ecuador</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card invoice-card">
+        <div class="invoice-number">
+          <span>Factura</span>
+          <h3>{{ factura.number }}</h3>
+          <span class="status" [attr.data-status]="factura.status">{{ formatStatus(factura.status) }}</span>
+        </div>
+        <div class="invoice-meta">
+          <div>
+            <span>Fecha de emisión</span>
+            <strong>{{ factura.issuedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+          <div>
+            <span>Forma de pago</span>
+            <strong>{{ formatPayment(factura.paymentMethod) }}</strong>
+          </div>
+          <div *ngIf="factura.cardType">
+            <span>Tarjeta</span>
+            <strong>{{ factura.cardType }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card customer-card">
+      <h4>Datos del Cliente</h4>
+      <div class="customer-grid">
+        <div>
+          <span>Nombre / Razón Social</span>
+          <strong>{{ factura.customer.name }}</strong>
+        </div>
+        <div>
+          <span>Identificación</span>
+          <strong>{{ factura.customer.identification }}</strong>
+        </div>
+        <div>
+          <span>Email</span>
+          <strong>{{ factura.customer.email || 'No registra' }}</strong>
+        </div>
+        <div>
+          <span>Dirección</span>
+          <strong>{{ factura.customer.address || 'No registra' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card items-card">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Desc.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of factura.items">
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td>{{ item.discountPercent }}%</td>
+            <td>{{ item.subtotal | currency:'USD':'symbol':'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals-grid">
+      <div class="card notes-card" *ngIf="factura.observations">
+        <h4>Observaciones</h4>
+        <p>{{ factura.observations }}</p>
+      </div>
+      <div class="card totals-card">
+        <h4>Resumen</h4>
+        <div class="total-row">
+          <span>Subtotal</span>
+          <strong>{{ factura.subtotal | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="total-row">
+          <span>IVA</span>
+          <strong>{{ factura.tax | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="total-row" *ngIf="factura.cardFeeAmount">
+          <span>Recargo tarjeta</span>
+          <strong>{{ factura.cardFeeAmount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="total-row total-final">
+          <span>Total a cobrar</span>
+          <strong>{{ factura.totalToCharge | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sri-card">
+      <h4>Estado SRI</h4>
+      <div class="sri-grid">
+        <div>
+          <span>Estado</span>
+          <strong>{{ formatStatus(factura.status) }}</strong>
+        </div>
+        <div *ngIf="factura.sriAuthorizationNumber">
+          <span>Autorización</span>
+          <strong>{{ factura.sriAuthorizationNumber }}</strong>
+        </div>
+        <div *ngIf="factura.sriAccessKey">
+          <span>Clave de acceso</span>
+          <strong>{{ factura.sriAccessKey }}</strong>
+        </div>
+        <div *ngIf="factura.sriAuthorizedAt">
+          <span>Fecha autorización</span>
+          <strong>{{ factura.sriAuthorizedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card loading" *ngIf="loading()">
+    <p>Cargando factura...</p>
+  </div>
+</section>

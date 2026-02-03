@@ -368,6 +368,64 @@
     }
   }
 
+  .card-payment {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: grid;
+    gap: 1rem;
+
+    .card-payment-header {
+      h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-light);
+      }
+    }
+  }
+
+  .card-fee-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .fee-chip {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(79, 70, 229, 0.05);
+    }
+  }
+
+  .switch-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text);
+
+    input {
+      accent-color: var(--primary);
+    }
+  }
+
   .totales-card {
     position: sticky;
     top: 2rem;

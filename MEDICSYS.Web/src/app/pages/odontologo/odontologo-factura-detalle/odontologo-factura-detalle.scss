@@ -1,0 +1,219 @@
+.factura-detalle {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.factura-shell {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.factura-top {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(240px, 0.9fr);
+  gap: 1.5rem;
+}
+
+.company-card,
+.invoice-card,
+.customer-card,
+.items-card,
+.totals-card,
+.notes-card,
+.sri-card {
+  padding: 1.5rem;
+}
+
+.company-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+
+  h2 {
+    margin: 0 0 0.25rem 0;
+  }
+
+  p {
+    margin: 0.1rem 0;
+    color: var(--muted);
+  }
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.invoice-number {
+  display: grid;
+  gap: 0.25rem;
+
+  span {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    width: fit-content;
+  }
+
+  .status[data-status="Authorized"] {
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+  }
+
+  .status[data-status="Pending"] {
+    background: rgba(251, 146, 60, 0.12);
+    color: #f97316;
+  }
+
+  .status[data-status="Rejected"] {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+  }
+}
+
+.invoice-meta {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  span {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+  }
+}
+
+.customer-grid,
+.sri-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+
+  span {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  strong {
+    display: block;
+  }
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--stroke);
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  th {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+}
+
+.totals-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 0.8fr);
+  gap: 1.5rem;
+}
+
+.totals-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.total-final {
+  border-top: 2px solid var(--stroke);
+  padding-top: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.notes-card p {
+  margin: 0.5rem 0 0 0;
+  color: var(--muted);
+}
+
+.loading {
+  padding: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .factura-top,
+  .totals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .detalle-header,
+  app-top-nav {
+    display: none;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+
+  .factura-detalle {
+    gap: 1rem;
+  }
+}

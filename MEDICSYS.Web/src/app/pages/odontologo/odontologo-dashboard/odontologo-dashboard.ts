@@ -63,7 +63,8 @@ export class OdontologoDashboardComponent {
     { label: 'Nueva Cita', route: '/odontologo/agenda', icon: 'calendar-plus', color: 'primary' },
     { label: 'Registrar Paciente', route: '/odontologo/pacientes', icon: 'user-plus', color: 'success' },
     { label: 'Nueva Factura', route: '/odontologo/facturacion/new', icon: 'receipt', color: 'warning' },
-    { label: 'Ver Inventario', route: '/odontologo/inventario', icon: 'package', color: 'info' }
+    { label: 'Contabilidad', route: '/odontologo/contabilidad', icon: 'package', color: 'info' },
+    { label: 'Nueva Historia', route: '/odontologo/histories/new', icon: 'receipt', color: 'primary' }
   ]);
 
   readonly todayAppointments = signal([

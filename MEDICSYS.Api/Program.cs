@@ -78,6 +78,8 @@ try
 
     builder.Services.AddScoped<TokenService>();
     builder.Services.AddHostedService<ReminderWorker>();
+    builder.Services.Configure<SriOptions>(builder.Configuration.GetSection("Sri"));
+    builder.Services.AddScoped<ISriService, SriService>();
 
     var app = builder.Build();
 

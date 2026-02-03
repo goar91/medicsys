@@ -194,7 +194,7 @@
 
         <div class="forma-pago-opciones">
           <label class="radio-card">
-            <input type="radio" formControlName="formaPago" value="efectivo">
+            <input type="radio" formControlName="formaPago" value="Cash">
             <div class="radio-content">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               <strong>Efectivo</strong>
@@ -202,7 +202,7 @@
           </label>
 
           <label class="radio-card">
-            <input type="radio" formControlName="formaPago" value="tarjeta">
+            <input type="radio" formControlName="formaPago" value="Card">
             <div class="radio-content">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               <strong>Tarjeta</strong>
@@ -210,7 +210,7 @@
           </label>
 
           <label class="radio-card">
-            <input type="radio" formControlName="formaPago" value="transferencia">
+            <input type="radio" formControlName="formaPago" value="Transfer">
             <div class="radio-content">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <strong>Transferencia</strong>
@@ -218,10 +218,44 @@
           </label>
         </div>
 
+        <div class="card-payment" *ngIf="facturaForm.get('formaPago')?.value === 'Card'">
+          <div class="card-payment-header">
+            <h4>Recargo por tarjeta</h4>
+            <p>Selecciona el porcentaje según el tipo de tarjeta o ingrésalo manualmente.</p>
+          </div>
+          <div class="card-fee-options">
+            <button type="button" class="fee-chip" *ngFor="let fee of cardFees()" (click)="seleccionarTarifaTarjeta(fee)">
+              {{ fee.type }} · {{ fee.percent }}%
+            </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de tarjeta</label>
+              <input type="text" class="form-control" formControlName="cardType" placeholder="Visa, MasterCard, etc.">
+            </div>
+            <div class="form-group">
+              <label>Porcentaje (%)</label>
+              <input type="number" class="form-control" formControlName="cardFeePercent" min="0" step="0.1" placeholder="3.5">
+            </div>
+            <div class="form-group">
+              <label>Cuotas</label>
+              <input type="number" class="form-control" formControlName="cardInstallments" min="1" step="1" placeholder="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Referencia / Voucher</label>
+            <input type="text" class="form-control" formControlName="paymentReference" placeholder="Código o comprobante">
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Observaciones</label>
           <textarea class="form-control" formControlName="observaciones" rows="3" placeholder="Notas adicionales de la factura (opcional)"></textarea>
         </div>
+        <label class="switch-row">
+          <input type="checkbox" formControlName="sendToSri">
+          <span>Enviar automáticamente al SRI</span>
+        </label>
       </div>
 
       <div class="card totales-card">
@@ -236,15 +270,20 @@
             <span>IVA 15%:</span>
             <span>{{ iva | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
+          <div class="total-row" *ngIf="facturaForm.get('formaPago')?.value === 'Card'">
+            <span>Recargo tarjeta:</span>
+            <span>{{ cardFeeAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
           <div class="total-row total-final">
-            <span>TOTAL:</span>
-            <span>{{ total | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span>TOTAL A COBRAR:</span>
+            <span>{{ totalToCharge | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
         </div>
 
         <div class="totales-info">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <p>Esta factura se enviará automáticamente al SRI para su autorización electrónica</p>
+          <p *ngIf="facturaForm.get('sendToSri')?.value">Esta factura se enviará automáticamente al SRI para su autorización electrónica</p>
+          <p *ngIf="!facturaForm.get('sendToSri')?.value">La factura quedará pendiente de envío al SRI</p>
         </div>
       </div>
     </div>
@@ -256,7 +295,7 @@
       </button>
       <button type="submit" class="btn btn-primary" [disabled]="loading()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        {{ loading() ? 'Guardando y enviando al SRI...' : 'Guardar y Enviar al SRI' }}
+        {{ loading() ? 'Guardando...' : (facturaForm.get('sendToSri')?.value ? 'Guardar y Enviar al SRI' : 'Guardar Factura') }}
       </button>
     </div>
   </form>

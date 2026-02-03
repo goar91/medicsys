@@ -25,22 +25,20 @@ public class AgendaController : ControllerBase
     public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAppointments([FromQuery] Guid? studentId, [FromQuery] Guid? professorId)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
 
         var query = _db.Appointments
             .Include(x => x.Student)
             .Include(x => x.Professor)
             .AsNoTracking();
 
-        if (isProfessor)
+        if (isProvider)
         {
+            professorId ??= userId;
+            query = query.Where(x => x.ProfessorId == professorId.Value);
             if (studentId.HasValue)
             {
                 query = query.Where(x => x.StudentId == studentId.Value);
-            }
-            if (professorId.HasValue)
-            {
-                query = query.Where(x => x.ProfessorId == professorId.Value);
             }
         }
         else
@@ -57,11 +55,16 @@ public class AgendaController : ControllerBase
     public async Task<ActionResult<AppointmentDto>> CreateAppointment(AppointmentRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
 
-        if (!isProfessor && request.StudentId != userId)
+        if (!isProvider && request.StudentId != userId)
         {
             return Forbid();
+        }
+
+        if (isProvider)
+        {
+            request.ProfessorId = userId;
         }
 
         var student = await _db.Users.FindAsync(request.StudentId);
@@ -101,11 +104,15 @@ public class AgendaController : ControllerBase
     public async Task<ActionResult<AvailabilityResponse>> GetAvailability([FromQuery] DateTime date, [FromQuery] Guid? professorId, [FromQuery] Guid? studentId)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
 
-        if (!isProfessor)
+        if (!isProvider)
         {
             studentId = userId;
+        }
+        else
+        {
+            professorId ??= userId;
         }
 
         var dayStart = date.Date;

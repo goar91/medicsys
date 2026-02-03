@@ -23,17 +23,29 @@
     <div class="toolbar-group">
       <label class="field">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Profesor
-        <select class="input" [value]="selectedProfessorId()" (change)="setProfessor($any($event.target).value)">
+        {{ isOdontologo() ? 'Odontólogo' : 'Profesor' }}
+        <select class="input" [disabled]="isProvider()" [value]="selectedProfessorId()" (change)="setProfessor($any($event.target).value)">
           <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
         </select>
       </label>
-      <label class="field" *ngIf="isProfessor()">
+      <label class="field" *ngIf="isProvider()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Alumno
+        {{ isOdontologo() ? 'Paciente' : 'Alumno' }}
         <select class="input" [value]="selectedStudentId()" (change)="setStudent($any($event.target).value)">
           <option *ngFor="let student of students()" [value]="student.id">{{ student.fullName }}</option>
         </select>
+      </label>
+    </div>
+    <div class="toolbar-group">
+      <label class="field">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2-2h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z"/></svg>
+        Motivo
+        <input class="input" type="text" [value]="appointmentReason()" (input)="appointmentReason.set($any($event.target).value)" placeholder="Ej: Consulta general">
+      </label>
+      <label class="field" *ngIf="isProvider()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Nombre del paciente
+        <input class="input" type="text" [value]="patientName()" (input)="patientName.set($any($event.target).value)" placeholder="Nombre del paciente">
       </label>
     </div>
   </div>
@@ -115,7 +127,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             {{ appt.startAt | date:'medium' }} - {{ appt.endAt | date:'shortTime' }}
           </p>
-          <p class="meta">Profesor: {{ appt.professorName }} | Alumno: {{ appt.studentName }}</p>
+          <p class="meta">{{ isOdontologo() ? 'Odontólogo' : 'Profesor' }}: {{ appt.professorName }} | {{ isOdontologo() ? 'Paciente' : 'Alumno' }}: {{ appt.studentName }}</p>
         </div>
         <div class="appointment-actions">
           <button class="btn btn-outline" type="button" (click)="openGoogleCalendar(appt)">

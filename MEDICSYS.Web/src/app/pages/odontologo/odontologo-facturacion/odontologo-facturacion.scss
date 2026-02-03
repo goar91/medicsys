@@ -215,17 +215,20 @@
       font-size: 0.875rem;
       font-weight: 500;
 
-      &[data-status="autorizada"] {
+      &[data-status="autorizada"],
+      &[data-status="Authorized"] {
         background: rgba(34, 197, 94, 0.1);
         color: #22c55e;
       }
 
-      &[data-status="pendiente"] {
+      &[data-status="pendiente"],
+      &[data-status="Pending"] {
         background: rgba(251, 146, 60, 0.1);
         color: #fb923c;
       }
 
-      &[data-status="rechazada"] {
+      &[data-status="rechazada"],
+      &[data-status="Rejected"] {
         background: rgba(239, 68, 68, 0.1);
         color: #ef4444;
       }

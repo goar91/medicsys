@@ -3,8 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NgFor, NgIf, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
-
-declare const ngDevMode: boolean;
+import { InvoiceService } from '../../../core/invoice.service';
 
 interface FacturaItem {
   cantidad: number;
@@ -33,6 +32,7 @@ interface Cliente {
 export class OdontologoFacturaFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly invoicesApi = inject(InvoiceService);
 
   readonly loading = signal(false);
   readonly showClienteForm = signal(false);
@@ -48,7 +48,12 @@ export class OdontologoFacturaFormComponent {
       email: ['', [Validators.email]]
     }),
     items: this.fb.array([]),
-    formaPago: ['efectivo', Validators.required],
+    formaPago: ['Cash', Validators.required],
+    cardType: [''],
+    cardFeePercent: [null],
+    cardInstallments: [null],
+    paymentReference: [''],
+    sendToSri: [true],
     observaciones: ['']
   });
 
@@ -88,6 +93,13 @@ export class OdontologoFacturaFormComponent {
     { descripcion: 'Blanqueamiento Dental', precio: 180.00 }
   ]);
 
+  readonly cardFees = signal([
+    { type: 'Débito', percent: 1.5 },
+    { type: 'Crédito', percent: 3.5 },
+    { type: 'American Express', percent: 5.0 },
+    { type: 'Diners', percent: 6.0 }
+  ]);
+
   get items(): FormArray {
     return this.facturaForm.get('items') as FormArray;
   }
@@ -113,8 +125,30 @@ export class OdontologoFacturaFormComponent {
     return this.subtotal + this.iva;
   }
 
+  get cardFeeAmount(): number {
+    if (this.facturaForm.get('formaPago')?.value !== 'Card') {
+      return 0;
+    }
+    const percent = Number(this.facturaForm.get('cardFeePercent')?.value || 0);
+    return this.total * (percent / 100);
+  }
+
+  get totalToCharge(): number {
+    return this.total + this.cardFeeAmount;
+  }
+
   constructor() {
     this.agregarItem(); // Agregar primer item por defecto
+    this.facturaForm.get('formaPago')?.valueChanges.subscribe(value => {
+      if (value !== 'Card') {
+        this.facturaForm.patchValue({
+          cardType: '',
+          cardFeePercent: null,
+          cardInstallments: null,
+          paymentReference: ''
+        });
+      }
+    });
   }
 
   seleccionarConsumidorFinal() {
@@ -192,38 +226,56 @@ export class OdontologoFacturaFormComponent {
     }
 
     this.loading.set(true);
+    const cliente = this.cliente.getRawValue();
+    const payload = {
+      customerIdentificationType: cliente.tipoIdentificacion,
+      customerIdentification: cliente.identificacion,
+      customerName: cliente.nombre,
+      customerAddress: cliente.direccion,
+      customerPhone: cliente.telefono,
+      customerEmail: cliente.email,
+      observations: this.facturaForm.get('observaciones')?.value ?? '',
+      paymentMethod: this.facturaForm.get('formaPago')?.value,
+      cardType: this.facturaForm.get('cardType')?.value || null,
+      cardFeePercent: this.facturaForm.get('cardFeePercent')?.value ?? null,
+      cardInstallments: this.facturaForm.get('cardInstallments')?.value ?? null,
+      paymentReference: this.facturaForm.get('paymentReference')?.value ?? null,
+      sendToSri: this.facturaForm.get('sendToSri')?.value ?? true,
+      items: this.items.controls.map(item => ({
+        description: item.get('descripcion')?.value,
+        quantity: Number(item.get('cantidad')?.value || 0),
+        unitPrice: Number(item.get('precioUnitario')?.value || 0),
+        discountPercent: Number(item.get('descuento')?.value || 0)
+      }))
+    };
 
-    try {
-      // Aquí iría la lógica de guardado y envío al SRI
-      const facturaData = {
-        ...this.facturaForm.value,
-        subtotal: this.subtotal,
-        iva: this.iva,
-        total: this.total,
-        fecha: new Date()
-      };
-
-      if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-        console.debug('Factura a guardar (solo dev):', facturaData);
+    this.invoicesApi.createInvoice(payload).subscribe({
+      next: invoice => {
+        const message = invoice.status === 'Authorized'
+          ? 'Factura creada y autorizada por el SRI.'
+          : 'Factura creada y enviada al SRI.';
+        alert(message);
+        this.router.navigate(['/odontologo/facturacion', invoice.id]);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        alert('Error al guardar la factura');
       }
-
-      // Simular envío al SRI
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      alert('Factura creada y enviada al SRI exitosamente');
-      this.router.navigate(['/odontologo/facturacion']);
-
-    } catch (error) {
-      console.error('Error al guardar factura:', error);
-      alert('Error al guardar la factura');
-    } finally {
-      this.loading.set(false);
-    }
+    });
   }
 
   cancelar() {
     if (confirm('¿Está seguro de cancelar? Se perderán los datos ingresados.')) {
       this.router.navigate(['/odontologo/facturacion']);
     }
+  }
+
+  seleccionarTarifaTarjeta(option: { type: string; percent: number }) {
+    this.facturaForm.patchValue({
+      formaPago: 'Card',
+      cardType: option.type,
+      cardFeePercent: option.percent
+    });
   }
 }

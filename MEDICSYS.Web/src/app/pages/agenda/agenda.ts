@@ -21,13 +21,18 @@ export class AgendaComponent implements OnInit {
   private readonly agenda = inject(AgendaService);
   private readonly auth = inject(AuthService);
 
-  readonly isProfessor = computed(() => this.auth.getRole() === 'Profesor');
+  readonly role = computed(() => this.auth.getRole());
+  readonly isProfessor = computed(() => this.role() === 'Profesor');
+  readonly isOdontologo = computed(() => this.role() === 'Odontologo');
+  readonly isProvider = computed(() => this.isProfessor() || this.isOdontologo());
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
   readonly selectedDate = signal(new Date());
   readonly professors = signal<UserSummary[]>([]);
   readonly students = signal<UserSummary[]>([]);
   readonly selectedProfessorId = signal<string>('');
   readonly selectedStudentId = signal<string>('');
+  readonly appointmentReason = signal('Consulta odontológica');
+  readonly patientName = signal('');
 
   readonly professorAvailability = signal<AvailabilityResponse | null>(null);
   readonly studentAvailability = signal<AvailabilityResponse | null>(null);
@@ -39,9 +44,7 @@ export class AgendaComponent implements OnInit {
 
   ngOnInit() {
     this.loadUsers();
-    this.loadAppointments();
     this.loadReminders();
-    this.refreshAvailability();
   }
 
   previousMonth() {
@@ -69,6 +72,10 @@ export class AgendaComponent implements OnInit {
 
   setStudent(id: string) {
     this.selectedStudentId.set(id);
+    const selected = this.students().find(student => student.id === id);
+    if (selected) {
+      this.patientName.set(selected.fullName);
+    }
     this.refreshAvailability();
   }
 
@@ -78,11 +85,16 @@ export class AgendaComponent implements OnInit {
     if (!professorId || !studentId) return;
 
     this.creating.set(true);
+    const reason = this.appointmentReason().trim() || 'Consulta odontológica';
+    const patientName = this.isProvider()
+      ? (this.patientName().trim() || this.getSelectedStudentName())
+      : (this.auth.user()?.fullName ?? 'Paciente');
+
     this.agenda.createAppointment({
       studentId,
       professorId,
-      patientName: this.isProfessor() ? 'Paciente' : (this.auth.user()?.fullName ?? 'Paciente'),
-      reason: 'Consulta odontologica',
+      patientName,
+      reason,
       startAt: slot.startAt,
       endAt: slot.endAt
     }).subscribe({
@@ -124,34 +136,43 @@ export class AgendaComponent implements OnInit {
   }
 
   private loadUsers() {
+    if (this.isProvider()) {
+      this.selectedProfessorId.set(this.currentUserId());
+      const providerRequest = this.isOdontologo() ? this.agenda.getOdontologos() : this.agenda.getProfessors();
+      providerRequest.subscribe({
+        next: providers => {
+          this.professors.set(providers);
+        }
+      });
+
+      this.agenda.getStudents().subscribe({
+        next: students => {
+          this.students.set(students);
+          if (!this.selectedStudentId() && students.length > 0) {
+            this.selectedStudentId.set(students[0].id);
+            this.patientName.set(students[0].fullName);
+          }
+          this.refreshAvailability();
+        }
+      });
+      return;
+    }
+
     this.agenda.getProfessors().subscribe({
       next: professors => {
         this.professors.set(professors);
         if (!this.selectedProfessorId() && professors.length > 0) {
           this.selectedProfessorId.set(professors[0].id);
         }
+        this.selectedStudentId.set(this.currentUserId());
         this.refreshAvailability();
       }
     });
-
-    if (this.isProfessor()) {
-      this.agenda.getStudents().subscribe({
-        next: students => {
-          this.students.set(students);
-          if (!this.selectedStudentId() && students.length > 0) {
-            this.selectedStudentId.set(students[0].id);
-          }
-          this.refreshAvailability();
-        }
-      });
-    } else {
-      this.selectedStudentId.set(this.currentUserId());
-    }
   }
 
   private loadAppointments() {
     const params: { studentId?: string; professorId?: string } = {};
-    if (this.isProfessor()) {
+    if (this.isProvider()) {
       if (this.selectedStudentId()) params.studentId = this.selectedStudentId();
     } else {
       params.studentId = this.currentUserId();
@@ -170,9 +191,9 @@ export class AgendaComponent implements OnInit {
   }
 
   private refreshAvailability() {
-    const date = this.selectedDate().toISOString();
+    const date = this.formatDateParam(this.selectedDate());
     const professorId = this.selectedProfessorId();
-    const studentId = this.isProfessor() ? this.selectedStudentId() : this.currentUserId();
+    const studentId = this.isProvider() ? this.selectedStudentId() : this.currentUserId();
 
     if (professorId) {
       this.agenda.getAvailability(date, { professorId }).subscribe({
@@ -185,6 +206,16 @@ export class AgendaComponent implements OnInit {
       });
     }
     this.loadAppointments();
+  }
+
+  private getSelectedStudentName() {
+    const student = this.students().find(item => item.id === this.selectedStudentId());
+    return student?.fullName ?? 'Paciente';
+  }
+
+  private formatDateParam(date: Date) {
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   private buildCalendar(baseDate: Date): CalendarDay[] {

@@ -4,8 +4,10 @@
   <header class="page-header">
     <div>
       <p class="eyebrow">Historia clinica</p>
-      <h2>Formulario del estudiante</h2>
-      <p class="subtitle">Completa cada seccion con precision y envia para revision.</p>
+      <h2>{{ isProfessorEditor() ? 'Revisión clínica' : (isStudent() ? 'Formulario del estudiante' : 'Formulario clínico') }}</h2>
+      <p class="subtitle">
+        {{ isStudent() ? 'Completa cada sección con precisión y envía para revisión.' : 'Registra y actualiza la historia clínica del paciente.' }}
+      </p>
     </div>
     <div class="actions">
       <span *ngIf="history() as h" class="status" [attr.data-status]="h.status">{{ h.status }}</span>
@@ -13,7 +15,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         {{ isProfessorEditor() ? 'Guardar cambios' : 'Guardar borrador' }}
       </button>
-      <button *ngIf="!isProfessorEditor()" class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
+      <button *ngIf="isStudent() && !isProfessorEditor()" class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Enviar a revision
       </button>

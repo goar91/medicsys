@@ -17,7 +17,7 @@ public class UsersController : ControllerBase
         _userManager = userManager;
     }
 
-    [Authorize(Roles = Roles.Professor)]
+    [Authorize(Roles = Roles.Professor + "," + Roles.Odontologo)]
     [HttpGet("students")]
     public async Task<ActionResult<IEnumerable<UserSummaryDto>>> GetStudents()
     {
@@ -49,6 +49,28 @@ public class UsersController : ControllerBase
         {
             var roles = await _userManager.GetRolesAsync(user);
             if (roles.Contains(Roles.Professor))
+            {
+                result.Add(new UserSummaryDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email ?? string.Empty
+                });
+            }
+        }
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("odontologos")]
+    public async Task<ActionResult<IEnumerable<UserSummaryDto>>> GetOdontologos()
+    {
+        var users = _userManager.Users.ToList();
+        var result = new List<UserSummaryDto>();
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Contains(Roles.Odontologo))
             {
                 result.Add(new UserSummaryDto
                 {

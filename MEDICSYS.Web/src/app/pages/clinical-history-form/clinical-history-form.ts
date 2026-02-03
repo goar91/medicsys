@@ -41,6 +41,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
   readonly saving = signal(false);
   readonly suggesting = signal(false);
   readonly isProfessorEditor = signal(false);
+  readonly isStudent = computed(() => this.auth.getRole() === 'Alumno');
   readonly activeTab = signal<'personal' | 'consulta' | 'odontograma' | 'indicadores' | 'tratamientos' | 'medios'>('personal');
   readonly marker = signal<OdontogramMarker>('caries-planned');
   readonly estomatognaticoSelected = signal<string | null>(null);
@@ -193,7 +194,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
         this.form.markAsPristine();
         this.saving.set(false);
         if (!existing) {
-          this.router.navigate(['/student/histories', history.id]);
+          this.router.navigate([this.historyBasePath(), history.id]);
         }
       },
       error: () => {
@@ -511,5 +512,16 @@ export class ClinicalHistoryFormComponent implements OnInit {
         return created;
       })
     );
+  }
+
+  private historyBasePath() {
+    const role = this.auth.getRole();
+    if (role === 'Profesor') {
+      return '/professor/histories';
+    }
+    if (role === 'Odontologo') {
+      return '/odontologo/histories';
+    }
+    return '/student/histories';
   }
 }

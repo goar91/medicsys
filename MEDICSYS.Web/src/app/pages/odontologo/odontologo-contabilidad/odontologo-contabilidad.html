@@ -1,0 +1,141 @@
+<app-top-nav></app-top-nav>
+
+<section class="page contabilidad-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Contabilidad</p>
+      <h2>Resumen financiero del consultorio</h2>
+      <p class="subtitle">Controla ingresos, egresos y el flujo de caja con base en tu plan financiero.</p>
+    </div>
+    <div class="filters">
+      <label>
+        Desde
+        <input class="input" type="date" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); applyFilters()">
+      </label>
+      <label>
+        Hasta
+        <input class="input" type="date" [value]="toDate()" (change)="toDate.set($any($event.target).value); applyFilters()">
+      </label>
+      <label>
+        Tipo
+        <select class="input" [value]="filterType()" (change)="filterType.set($any($event.target).value); applyFilters()">
+          <option value="">Todos</option>
+          <option value="Income">Ingresos</option>
+          <option value="Expense">Egresos</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div class="summary-grid" *ngIf="summary() as summary">
+    <div class="card summary-card income">
+      <p>Ingresos</p>
+      <h3>{{ summary.totalIncome | currency:'USD':'symbol':'1.2-2' }}</h3>
+      <span>Periodo seleccionado</span>
+    </div>
+    <div class="card summary-card expense">
+      <p>Egresos</p>
+      <h3>{{ summary.totalExpense | currency:'USD':'symbol':'1.2-2' }}</h3>
+      <span>Control de gastos</span>
+    </div>
+    <div class="card summary-card net">
+      <p>Utilidad</p>
+      <h3>{{ summary.net | currency:'USD':'symbol':'1.2-2' }}</h3>
+      <span>Saldo del periodo</span>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card ledger-card">
+      <div class="card-header">
+        <div>
+          <h3>Libro diario</h3>
+          <p>Registro de movimientos contables</p>
+        </div>
+      </div>
+      <div class="ledger-list" *ngIf="entries().length > 0">
+        <article class="ledger-item" *ngFor="let entry of entries()">
+          <div>
+            <strong>{{ entry.description }}</strong>
+            <span>{{ entry.date | date:'dd/MM/yyyy' }} · {{ entry.categoryGroup }} / {{ entry.categoryName }}</span>
+            <small *ngIf="entry.source === 'Invoice'">Generado desde factura</small>
+          </div>
+          <div class="amount" [attr.data-type]="entry.type">
+            {{ entry.type === 'Income' ? '+' : '-' }}{{ entry.amount | currency:'USD':'symbol':'1.2-2' }}
+          </div>
+        </article>
+      </div>
+      <div class="empty" *ngIf="entries().length === 0">
+        <p>No hay movimientos en este periodo.</p>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card form-card">
+        <h3>Nuevo movimiento</h3>
+        <form [formGroup]="entryForm" (ngSubmit)="createEntry()">
+          <label>
+            Tipo
+            <select class="input" formControlName="type">
+              <option value="Expense">Egreso</option>
+              <option value="Income">Ingreso</option>
+            </select>
+          </label>
+          <label>
+            Categoría
+            <select class="input" formControlName="categoryId">
+              <option value="" disabled>Selecciona una categoría</option>
+              <option *ngFor="let category of categories()" [value]="category.id">
+                {{ category.group }} · {{ category.name }}
+              </option>
+            </select>
+          </label>
+          <label>
+            Fecha
+            <input class="input" type="date" formControlName="date">
+          </label>
+          <label>
+            Descripción
+            <input class="input" type="text" formControlName="description" placeholder="Ej: Pago de arriendo">
+          </label>
+          <label>
+            Monto
+            <input class="input" type="number" formControlName="amount" step="0.01">
+          </label>
+          <label>
+            Forma de pago
+            <select class="input" formControlName="paymentMethod">
+              <option value="Cash">Efectivo</option>
+              <option value="Card">Tarjeta</option>
+              <option value="Transfer">Transferencia</option>
+              <option value="Other">Otro</option>
+            </select>
+          </label>
+          <label>
+            Referencia
+            <input class="input" type="text" formControlName="reference" placeholder="Opcional">
+          </label>
+          <button class="btn btn-primary" type="submit">Registrar movimiento</button>
+        </form>
+      </div>
+
+      <div class="card categories-card">
+        <h3>Plan financiero</h3>
+        <div class="category-list">
+          <div class="category-item" *ngFor="let category of categories()">
+            <div>
+              <strong>{{ category.name }}</strong>
+              <span>{{ category.group }}</span>
+            </div>
+            <div class="category-meta">
+              <span>{{ categoryTotal(category) | currency:'USD':'symbol':'1.2-2' }}</span>
+              <div class="progress">
+                <div class="progress-bar" [style.width.%]="budgetPercent(category)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

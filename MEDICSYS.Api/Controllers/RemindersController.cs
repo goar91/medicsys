@@ -23,13 +23,13 @@ public class RemindersController : ControllerBase
     public async Task<ActionResult<IEnumerable<ReminderDto>>> GetReminders([FromQuery] string? status)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
 
         var query = _db.Reminders
             .Include(r => r.Appointment)
             .AsNoTracking();
 
-        if (!isProfessor)
+        if (!isProvider)
         {
             query = query.Where(r => r.Appointment.StudentId == userId);
         }

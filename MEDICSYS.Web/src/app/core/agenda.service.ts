@@ -90,6 +90,10 @@ export class AgendaService {
     return this.http.get<UserSummary[]>(`${this.baseUrl}/users/professors`);
   }
 
+  getOdontologos() {
+    return this.http.get<UserSummary[]>(`${this.baseUrl}/users/odontologos`);
+  }
+
   getStudents() {
     return this.http.get<UserSummary[]>(`${this.baseUrl}/users/students`);
   }

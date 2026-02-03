@@ -13,9 +13,16 @@ import { AuthService } from '../../core/auth.service';
 export class TopNavComponent {
   private readonly auth = inject(AuthService);
   readonly user = this.auth.user;
-  readonly homeLink = computed(() =>
-    this.auth.getRole() === 'Profesor' ? '/professor' : '/student'
-  );
+  readonly homeLink = computed(() => {
+    const role = this.auth.getRole();
+    if (role === 'Odontologo') {
+      return '/odontologo/dashboard';
+    }
+    if (role === 'Profesor') {
+      return '/professor';
+    }
+    return '/student';
+  });
 
   logout() {
     this.auth.logout();

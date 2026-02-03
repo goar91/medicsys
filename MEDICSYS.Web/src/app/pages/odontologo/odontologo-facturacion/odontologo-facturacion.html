@@ -60,11 +60,11 @@
         Facturas Emitidas
       </h3>
       <div class="table-filters">
-        <select class="input-sm">
+        <select class="input-sm" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
           <option value="">Todos los estados</option>
-          <option value="autorizada">Autorizadas</option>
-          <option value="pendiente">Pendientes</option>
-          <option value="rechazada">Rechazadas</option>
+          <option value="Authorized">Autorizadas</option>
+          <option value="Pending">Pendientes</option>
+          <option value="Rejected">Rechazadas</option>
         </select>
       </div>
     </div>
@@ -85,25 +85,24 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let factura of facturas()">
-            <td class="font-mono">{{ factura.numero }}</td>
-            <td>{{ factura.fecha | date:'dd/MM/yyyy' }}</td>
+          <tr *ngFor="let factura of filteredFacturas()">
+            <td class="font-mono">{{ factura.number }}</td>
+            <td>{{ factura.issuedAt | date:'dd/MM/yyyy' }}</td>
             <td>
               <div class="cliente-cell">
-                <strong>{{ factura.cliente.nombre }}</strong>
-                <span class="text-muted">{{ factura.cliente.identificacion }}</span>
+                <strong>{{ factura.customer.name }}</strong>
+                <span class="text-muted">{{ factura.customer.identification }}</span>
               </div>
             </td>
             <td>{{ factura.subtotal | currency:'USD':'symbol':'1.2-2' }}</td>
-            <td>{{ factura.iva | currency:'USD':'symbol':'1.2-2' }}</td>
-            <td><strong>{{ factura.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+            <td>{{ factura.tax | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td><strong>{{ factura.totalToCharge | currency:'USD':'symbol':'1.2-2' }}</strong></td>
             <td>
-              <span class="badge badge-payment">{{ factura.formaPago }}</span>
+              <span class="badge badge-payment">{{ formatPayment(factura.paymentMethod) }}</span>
             </td>
             <td>
-              <span class="badge" [attr.data-status]="factura.estado">
-                {{ factura.estado === 'autorizada' ? 'Autorizada SRI' : 
-                   factura.estado === 'pendiente' ? 'Pendiente' : 'Rechazada' }}
+              <span class="badge" [attr.data-status]="factura.status">
+                {{ formatStatus(factura.status) }}
               </span>
             </td>
             <td>
@@ -114,7 +113,7 @@
                 <button class="btn-icon" type="button" (click)="descargarPDF(factura.id)" title="Descargar PDF">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
-                <button class="btn-icon" type="button" *ngIf="factura.estado === 'pendiente'" (click)="reenviarSRI(factura.id)" title="Enviar al SRI">
+                <button class="btn-icon" type="button" *ngIf="factura.status === 'Pending'" (click)="reenviarSRI(factura.id)" title="Enviar al SRI">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>

@@ -11,6 +11,8 @@ import { OdontologoDashboardComponent } from './pages/odontologo/odontologo-dash
 import { OdontologoPacientesComponent } from './pages/odontologo/odontologo-pacientes/odontologo-pacientes';
 import { OdontologoFacturacionComponent } from './pages/odontologo/odontologo-facturacion/odontologo-facturacion.component';
 import { OdontologoFacturaFormComponent } from './pages/odontologo/odontologo-factura-form/odontologo-factura-form';
+import { OdontologoFacturaDetalleComponent } from './pages/odontologo/odontologo-factura-detalle/odontologo-factura-detalle';
+import { OdontologoContabilidadComponent } from './pages/odontologo/odontologo-contabilidad/odontologo-contabilidad';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -51,6 +53,28 @@ export const routes: Routes = [
     path: 'odontologo/facturacion/new',
     component: OdontologoFacturaFormComponent,
     canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/facturacion/:id',
+    component: OdontologoFacturaDetalleComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/contabilidad',
+    component: OdontologoContabilidadComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/histories/new',
+    component: ClinicalHistoryFormComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/histories/:id',
+    component: ClinicalHistoryFormComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'student/histories/new',
