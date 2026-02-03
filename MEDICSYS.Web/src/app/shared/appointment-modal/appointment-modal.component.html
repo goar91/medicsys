@@ -1,0 +1,195 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)" *ngIf="data">
+  <div class="modal-content appointment-modal">
+    <div class="modal-header">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        {{ modalTitle }}
+      </h3>
+      <button class="btn-close" type="button" (click)="onClose()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="appointmentForm" class="modal-body" *ngIf="!showNewPatient()">
+      <!-- Selección de Paciente -->
+      <div class="form-section">
+        <label class="field">
+          <span class="field-label required">Paciente</span>
+          <select class="input" formControlName="patientId" (change)="onPatientSelect($event)">
+            <option value="">Seleccionar paciente...</option>
+            <option *ngFor="let patient of patients()" [value]="patient.id">
+              {{ patient.firstName }} {{ patient.lastName }} - CI: {{ patient.idNumber }}
+            </option>
+            <option value="new">➕ Registrar nuevo paciente</option>
+          </select>
+        </label>
+
+        <label class="field" *ngIf="!selectedPatientId()">
+          <span class="field-label required">Nombre del paciente</span>
+          <input class="input" formControlName="patientName" placeholder="Nombre completo" />
+        </label>
+      </div>
+
+      <!-- Asignación -->
+      <div class="form-section">
+        <label class="field">
+          <span class="field-label required">Odontólogo</span>
+          <select class="input" formControlName="professorId" [disabled]="isProvider">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Fecha y Hora -->
+      <div class="form-section">
+        <div class="grid-3">
+          <label class="field">
+            <span class="field-label required">Fecha</span>
+            <input class="input" type="date" formControlName="date" />
+          </label>
+
+          <label class="field">
+            <span class="field-label required">Hora inicio</span>
+            <input class="input" type="time" formControlName="startTime" />
+          </label>
+
+          <label class="field">
+            <span class="field-label required">Hora fin</span>
+            <input class="input" type="time" formControlName="endTime" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Motivo y Estado -->
+      <div class="form-section">
+        <div class="grid-2">
+          <label class="field">
+            <span class="field-label required">Motivo de consulta</span>
+            <input class="input" formControlName="reason" placeholder="Ej: Consulta general, Limpieza dental..." />
+          </label>
+
+          <label class="field">
+            <span class="field-label required">Estado</span>
+            <select class="input" formControlName="status">
+              <option value="Pending">⏳ Pendiente</option>
+              <option value="Confirmed">✅ Confirmada</option>
+              <option value="Completed">✔️ Completada</option>
+              <option value="Cancelled">❌ Cancelada</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="form-section">
+        <label class="field">
+          <span class="field-label">Notas adicionales</span>
+          <textarea class="input" rows="3" formControlName="notes" placeholder="Información adicional..."></textarea>
+        </label>
+      </div>
+    </form>
+
+    <!-- Formulario de Nuevo Paciente -->
+    <form [formGroup]="newPatientForm" class="modal-body" *ngIf="showNewPatient()">
+      <div class="alert-info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>Complete los datos del nuevo paciente</span>
+      </div>
+
+      <div class="grid-2">
+        <label class="field">
+          <span class="field-label required">Nombres</span>
+          <input class="input" formControlName="firstName" placeholder="Juan" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Apellidos</span>
+          <input class="input" formControlName="lastName" placeholder="Pérez" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Cédula</span>
+          <input class="input" formControlName="idNumber" placeholder="0102345678" maxlength="10" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Teléfono</span>
+          <input class="input" formControlName="phone" placeholder="0987654321" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Email</span>
+          <input class="input" type="email" formControlName="email" placeholder="correo@ejemplo.com" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Fecha de nacimiento</span>
+          <input class="input" type="date" formControlName="dateOfBirth" />
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Género</span>
+          <select class="input" formControlName="gender">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="O">Otro</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label required">Dirección</span>
+          <input class="input" formControlName="address" placeholder="Av. Principal 123" />
+        </label>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <div class="footer-left">
+        <button 
+          class="btn btn-danger" 
+          type="button" 
+          (click)="onDelete()"
+          *ngIf="isEditMode">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Eliminar
+        </button>
+      </div>
+
+      <div class="footer-right">
+        <button 
+          class="btn btn-outline" 
+          type="button" 
+          (click)="showNewPatient() ? cancelNewPatient() : onClose()">
+          {{ showNewPatient() ? 'Volver' : 'Cancelar' }}
+        </button>
+
+        <button 
+          class="btn btn-primary" 
+          type="button" 
+          [disabled]="loading()"
+          (click)="showNewPatient() ? saveNewPatient() : onSave()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {{ showNewPatient() ? 'Crear Paciente' : 'Guardar Cita' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

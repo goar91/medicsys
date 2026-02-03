@@ -11,7 +11,7 @@ public class Appointment
     public string Reason { get; set; } = string.Empty;
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
-    public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
+    public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

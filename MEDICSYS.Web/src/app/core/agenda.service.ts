@@ -70,6 +70,7 @@ export class AgendaService {
     reason: string;
     startAt: string;
     endAt: string;
+    status?: string;
     notes?: string | null;
   }) {
     return this.http.post<Appointment>(`${this.baseUrl}/agenda/appointments`, payload);
@@ -104,5 +105,18 @@ export class AgendaService {
       httpParams = httpParams.set('status', status);
     }
     return this.http.get<Reminder[]>(`${this.baseUrl}/reminders`, { params: httpParams });
+  }
+
+  updateAppointment(id: string, payload: {
+    patientName?: string;
+    reason?: string;
+    status?: string;
+    notes?: string | null;
+  }) {
+    return this.http.put<Appointment>(`${this.baseUrl}/agenda/appointments/${id}`, payload);
+  }
+
+  deleteAppointment(id: string) {
+    return this.http.delete<void>(`${this.baseUrl}/agenda/appointments/${id}`);
   }
 }

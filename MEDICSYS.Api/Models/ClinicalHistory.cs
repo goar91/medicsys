@@ -5,6 +5,8 @@ public class ClinicalHistory
     public Guid Id { get; set; }
     public Guid StudentId { get; set; }
     public ApplicationUser Student { get; set; } = null!;
+    public Guid? PatientId { get; set; }
+    public Patient? Patient { get; set; }
     public ClinicalHistoryStatus Status { get; set; } = ClinicalHistoryStatus.Draft;
     public string Data { get; set; } = "{}";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

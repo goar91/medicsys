@@ -2,7 +2,8 @@ namespace MEDICSYS.Api.Models;
 
 public enum AppointmentStatus
 {
-    Scheduled,
+    Pending,
+    Confirmed,
     Completed,
     Cancelled
 }

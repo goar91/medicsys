@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
     public DbSet<AccountingCategory> AccountingCategories => Set<AccountingCategory>();
     public DbSet<AccountingEntry> AccountingEntries => Set<AccountingEntry>();
+    public DbSet<Patient> Patients => Set<Patient>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -33,6 +34,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             entity.HasOne(x => x.Student)
                 .WithMany()
                 .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.Patient)
+                .WithMany(x => x.ClinicalHistories)
+                .HasForeignKey(x => x.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.ReviewedBy)
                 .WithMany()
@@ -119,6 +124,22 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
                 .WithMany()
                 .HasForeignKey(x => x.InvoiceId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<Patient>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+            entity.HasIndex(x => x.IdNumber).IsUnique();
+            entity.HasOne(x => x.Odontologo)
+                .WithMany()
+                .HasForeignKey(x => x.OdontologoId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(x => x.ClinicalHistories)
+                .WithOne(x => x.Patient)
+                .HasForeignKey(x => x.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

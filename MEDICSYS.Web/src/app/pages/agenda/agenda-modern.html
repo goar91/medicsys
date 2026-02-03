@@ -29,6 +29,16 @@
         </label>
       </div>
 
+      <div class="filter-item" *ngIf="isProvider()">
+        <label>
+          <span class="filter-label">{{ isOdontologo() ? '👤 Paciente' : '🎓 Alumno' }}</span>
+          <select class="modern-select" [value]="selectedStudentId()" (change)="setStudent($any($event.target).value)">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let student of students()" [value]="student.id">{{ student.fullName }}</option>
+          </select>
+        </label>
+      </div>
+
       <div class="filter-item">
         <label>
           <span class="filter-label">📋 Motivo de consulta</span>
@@ -38,6 +48,19 @@
             [value]="appointmentReason()"
             (input)="appointmentReason.set($any($event.target).value)"
             placeholder="Ej: Consulta general, Limpieza..."
+          />
+        </label>
+      </div>
+
+      <div class="filter-item" *ngIf="isProvider()">
+        <label>
+          <span class="filter-label">👤 Nombre del paciente</span>
+          <input
+            class="modern-input"
+            type="text"
+            [value]="patientName()"
+            (input)="patientName.set($any($event.target).value)"
+            placeholder="Nombre completo del paciente"
           />
         </label>
       </div>
@@ -74,8 +97,6 @@
           [class.today]="day.isToday"
           [class.selected]="day.date && day.date.toDateString() === selectedDate().toDateString()"
           (click)="selectDay(day)"
-          (dblclick)="onDayDoubleClick(day)"
-          title="Doble click para crear cita"
         >
           <span class="day-number">{{ day.label }}</span>
           <span class="day-indicator" *ngIf="day.date && getAppointmentsForDate(day.date).length > 0">
@@ -105,6 +126,21 @@
             </button>
           </div>
         </div>
+
+        <div class="availability-panel">
+          <h4>{{ isOdontologo() ? 'Paciente' : 'Alumno' }}</h4>
+          <div class="slots-grid">
+            <div
+              *ngFor="let slot of studentAvailability()?.slots"
+              class="time-slot status-only"
+              [class.occupied]="!slot.isAvailable"
+              [class.available]="slot.isAvailable"
+            >
+              <span class="slot-time">{{ slot.startAt | date:'shortTime' }}</span>
+              <span class="slot-status">{{ slot.isAvailable ? 'Libre' : 'Ocupado' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -113,7 +149,7 @@
   <div class="appointments-modern-card" *ngIf="appointmentsForSelectedDate().length > 0">
     <h3>📋 Citas para {{ selectedDate() | date:'d MMMM yyyy' }}</h3>
     <div class="appointments-modern-list">
-      <div *ngFor="let appt of appointmentsForSelectedDate()" class="appointment-modern-item" (click)="onAppointmentClick(appt)" style="cursor: pointer;">
+      <div *ngFor="let appt of appointmentsForSelectedDate()" class="appointment-modern-item">
         <div class="appointment-modern-time">
           <div class="time-badge">
             {{ appt.startAt | date:'shortTime' }}
@@ -123,7 +159,7 @@
           </div>
         </div>
 
-        <div class="appointment-modern-content">
+        <div class="appointment-modern-content" *ngIf="editingAppointmentId() !== appt.id">
           <div class="appointment-modern-header">
             <h4>{{ appt.patientName }}</h4>
             <span class="status-badge confirmed">Confirmada</span>
@@ -136,22 +172,55 @@
           </div>
         </div>
 
-        <div class="appointment-modern-actions" (click)="$event.stopPropagation()">
-          <button class="btn-modern btn-edit" (click)="onAppointmentClick(appt)" title="Editar cita">
-            ✏️
-          </button>
-          <button class="btn-modern btn-calendar" (click)="openGoogleCalendar(appt)" title="Google Calendar">
-            📅
-          </button>
-          <button class="btn-modern btn-email" (click)="openOutlookEmail(appt)" title="Enviar email">
-            📧
-          </button>
-          <button class="btn-modern btn-whatsapp" (click)="openWhatsApp(appt)" title="WhatsApp">
-            💬
-          </button>
-          <button class="btn-modern btn-delete" (click)="deleteAppointment(appt)" title="Eliminar cita">
-            🗑️
-          </button>
+        <!-- Modo edición -->
+        <div class="appointment-edit-form" *ngIf="editingAppointmentId() === appt.id">
+          <div class="edit-field">
+            <label>Nombre del paciente</label>
+            <input
+              class="modern-input"
+              type="text"
+              [value]="editPatientName()"
+              (input)="editPatientName.set($any($event.target).value)"
+            />
+          </div>
+          <div class="edit-field">
+            <label>Motivo</label>
+            <input
+              class="modern-input"
+              type="text"
+              [value]="editReason()"
+              (input)="editReason.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="appointment-modern-actions">
+          <ng-container *ngIf="editingAppointmentId() !== appt.id">
+            <button class="btn-modern btn-edit" (click)="startEditAppointment(appt)" title="Editar cita">
+              ✏️
+            </button>
+            <button class="btn-modern btn-calendar" (click)="openGoogleCalendar(appt)" title="Google Calendar">
+              📅
+            </button>
+            <button class="btn-modern btn-email" (click)="openOutlookEmail(appt)" title="Enviar email">
+              📧
+            </button>
+            <button class="btn-modern btn-whatsapp" (click)="openWhatsApp(appt)" title="WhatsApp">
+              💬
+            </button>
+            <button class="btn-modern btn-delete" (click)="deleteAppointment(appt)" title="Eliminar cita">
+              🗑️
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="editingAppointmentId() === appt.id">
+            <button class="btn-modern btn-save" (click)="saveEdit(appt)">
+              ✅ Guardar
+            </button>
+            <button class="btn-modern btn-cancel" (click)="cancelEdit()">
+              ❌ Cancelar
+            </button>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -161,7 +230,7 @@
   <div class="all-appointments-card">
     <h3>📅 Todas las Citas Programadas</h3>
     <div class="appointments-timeline" *ngIf="appointments().length > 0">
-      <div *ngFor="let appt of appointments()" class="timeline-item" (click)="onAppointmentClick(appt)" style="cursor: pointer;">
+      <div *ngFor="let appt of appointments()" class="timeline-item">
         <div class="timeline-marker"></div>
         <div class="timeline-content">
           <div class="timeline-header">
@@ -176,8 +245,8 @@
           </div>
         </div>
         <div class="timeline-actions">
-          <button class="btn-mini" (click)="onAppointmentClick(appt); $event.stopPropagation()" title="Editar">✏️</button>
-          <button class="btn-mini" (click)="deleteAppointment(appt); $event.stopPropagation()" title="Eliminar">🗑️</button>
+          <button class="btn-mini" (click)="startEditAppointment(appt)">✏️</button>
+          <button class="btn-mini" (click)="deleteAppointment(appt)">🗑️</button>
         </div>
       </div>
     </div>
@@ -188,14 +257,3 @@
     </div>
   </div>
 </section>
-
-<!-- Modal de Cita -->
-<app-appointment-modal
-  *ngIf="modalData()"
-  [data]="modalData()"
-  [isProvider]="isProvider()"
-  [currentUserId]="currentUserId()"
-  (close)="closeModal()"
-  (save)="saveAppointmentFromModal($event)"
-  (delete)="deleteAppointmentFromModal($event)">
-</app-appointment-modal>

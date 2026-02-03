@@ -99,6 +99,7 @@ export class OdontologoContabilidadComponent {
     const payload = this.entryForm.getRawValue();
     this.accounting.createEntry({
       ...payload,
+      type: payload.type as 'Income' | 'Expense',
       paymentMethod: payload.paymentMethod || null,
       reference: payload.reference || null
     }).subscribe({

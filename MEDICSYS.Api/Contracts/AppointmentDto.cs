@@ -13,6 +13,6 @@ public class AppointmentDto
     public string Reason { get; set; } = string.Empty;
     public DateTime StartAt { get; set; }
     public DateTime EndAt { get; set; }
-    public string Status { get; set; } = "Scheduled";
+    public string Status { get; set; } = "Pending";
     public string? Notes { get; set; }
 }

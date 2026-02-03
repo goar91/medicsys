@@ -84,7 +84,7 @@ public class AgendaController : ControllerBase
             StartAt = request.StartAt,
             EndAt = request.EndAt,
             Notes = request.Notes,
-            Status = AppointmentStatus.Scheduled,
+            Status = request.Status ?? AppointmentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -136,6 +136,92 @@ public class AgendaController : ControllerBase
             Date = dayStart,
             Slots = slots
         });
+    }
+
+    [Authorize]
+    [HttpPut("appointments/{id:guid}")]
+    public async Task<ActionResult<AppointmentDto>> UpdateAppointment(Guid id, [FromBody] AppointmentUpdateRequest request)
+    {
+        var userId = GetUserId();
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+
+        var appointment = await _db.Appointments
+            .Include(x => x.Student)
+            .Include(x => x.Professor)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+
+        // Verificar permisos
+        if (!isProvider && appointment.StudentId != userId)
+        {
+            return Forbid();
+        }
+
+        if (isProvider && appointment.ProfessorId != userId)
+        {
+            return Forbid();
+        }
+
+        // Actualizar campos si se proporcionan
+        if (!string.IsNullOrWhiteSpace(request.PatientName))
+        {
+            appointment.PatientName = request.PatientName;
+        }
+        if (!string.IsNullOrWhiteSpace(request.Reason))
+        {
+            appointment.Reason = request.Reason;
+        }
+        if (request.Notes != null)
+        {
+            appointment.Notes = request.Notes;
+        }
+        if (request.Status.HasValue)
+        {
+            appointment.Status = request.Status.Value;
+        }
+
+        appointment.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(Map(appointment));
+    }
+
+    [Authorize]
+    [HttpDelete("appointments/{id:guid}")]
+    public async Task<IActionResult> DeleteAppointment(Guid id)
+    {
+        var userId = GetUserId();
+        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+
+        var appointment = await _db.Appointments.FindAsync(id);
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+
+        // Verificar permisos
+        if (!isProvider && appointment.StudentId != userId)
+        {
+            return Forbid();
+        }
+
+        if (isProvider && appointment.ProfessorId != userId)
+        {
+            return Forbid();
+        }
+
+        // Eliminar recordatorios asociados
+        var reminders = await _db.Reminders.Where(r => r.AppointmentId == id).ToListAsync();
+        _db.Reminders.RemoveRange(reminders);
+
+        _db.Appointments.Remove(appointment);
+        await _db.SaveChangesAsync();
+
+        return NoContent();
     }
 
     private static List<TimeSlotDto> BuildSlots(DateTime dayStart, List<Appointment> appointments)

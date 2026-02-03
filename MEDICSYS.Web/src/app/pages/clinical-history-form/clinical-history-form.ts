@@ -172,11 +172,8 @@ export class ClinicalHistoryFormComponent implements OnInit {
   }
 
   saveDraft() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
+    // Para guardar borrador, no validamos el formulario
+    // Permitimos guardar incluso con campos incompletos
     this.saving.set(true);
     const data = this.buildPayload();
     const existing = this.history();
@@ -197,8 +194,10 @@ export class ClinicalHistoryFormComponent implements OnInit {
           this.router.navigate([this.historyBasePath(), history.id]);
         }
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al guardar borrador:', err);
         this.saving.set(false);
+        alert('Error al guardar. Por favor verifica tu conexión e intenta nuevamente.');
       }
     });
   }
@@ -209,6 +208,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      alert('Por favor completa todos los campos requeridos antes de enviar.');
       return;
     }
 
@@ -229,9 +229,12 @@ export class ClinicalHistoryFormComponent implements OnInit {
         this.history.set(history);
         this.form.disable();
         this.saving.set(false);
+        alert('Historia clínica enviada exitosamente para revisión.');
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error al enviar:', err);
         this.saving.set(false);
+        alert('Error al enviar. Por favor verifica tu conexión e intenta nuevamente.');
       }
     });
   }

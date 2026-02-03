@@ -3,6 +3,7 @@ import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AgendaService, Appointment, AvailabilityResponse, TimeSlot, UserSummary } from '../../core/agenda.service';
 import { AuthService } from '../../core/auth.service';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
+import { AppointmentModalComponent, AppointmentModalData } from '../../shared/appointment-modal/appointment-modal.component';
 
 interface CalendarDay {
   date: Date | null;
@@ -13,7 +14,7 @@ interface CalendarDay {
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [NgIf, NgFor, DatePipe, TopNavComponent],
+  imports: [NgIf, NgFor, DatePipe, TopNavComponent, AppointmentModalComponent],
   templateUrl: './agenda.html',
   styleUrl: './agenda.scss'
 })
@@ -28,23 +29,129 @@ export class AgendaComponent implements OnInit {
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
   readonly selectedDate = signal(new Date());
   readonly professors = signal<UserSummary[]>([]);
-  readonly students = signal<UserSummary[]>([]);
   readonly selectedProfessorId = signal<string>('');
-  readonly selectedStudentId = signal<string>('');
   readonly appointmentReason = signal('Consulta odontológica');
-  readonly patientName = signal('');
 
   readonly professorAvailability = signal<AvailabilityResponse | null>(null);
-  readonly studentAvailability = signal<AvailabilityResponse | null>(null);
   readonly appointments = signal<Appointment[]>([]);
   readonly reminders = signal<{ id: string; message: string; channel: string; status: string; target: string; scheduledAt: string }[]>([]);
   readonly creating = signal(false);
+  readonly editingAppointmentId = signal<string | null>(null);
+  readonly editReason = signal('');
+  readonly editPatientName = signal('');
+  readonly modalData = signal<AppointmentModalData | null>(null);
+  readonly selectedAppointmentForModal = signal<Appointment | null>(null);
 
   readonly calendarDays = computed(() => this.buildCalendar(this.selectedDate()));
+  readonly appointmentsForSelectedDate = computed(() => {
+    const selected = this.selectedDate();
+    return this.appointments().filter(appt => {
+      const apptDate = new Date(appt.startAt);
+      return apptDate.toDateString() === selected.toDateString();
+    });
+  });
 
   ngOnInit() {
     this.loadUsers();
     this.loadReminders();
+    this.startAutoCleanup();
+  }
+
+  startAutoCleanup() {
+    // Limpiar citas pasadas cada minuto
+    setInterval(() => {
+      this.cleanupPastAppointments();
+    }, 60000); // 60 segundos
+    // Ejecutar inmediatamente también
+    this.cleanupPastAppointments();
+  }
+
+  cleanupPastAppointments() {
+    const now = new Date();
+    const currentAppts = this.appointments();
+    const pastAppts = currentAppts.filter(appt => new Date(appt.endAt) < now);
+    
+    // Eliminar citas pasadas del servidor
+    pastAppts.forEach(appt => {
+      this.agenda.deleteAppointment(appt.id).subscribe({
+        next: () => {
+          console.log(`Cita pasada eliminada: ${appt.id}`);
+        },
+        error: (err) => {
+          console.error('Error al eliminar cita pasada:', err);
+        }
+      });
+    });
+
+    // Actualizar la lista local
+    if (pastAppts.length > 0) {
+      const updated = currentAppts.filter(appt => new Date(appt.endAt) >= now);
+      this.appointments.set(updated);
+    }
+  }
+
+  startEditAppointment(appt: Appointment) {
+    this.editingAppointmentId.set(appt.id);
+    this.editReason.set(appt.reason);
+    this.editPatientName.set(appt.patientName);
+  }
+
+  cancelEdit() {
+    this.editingAppointmentId.set(null);
+    this.editReason.set('');
+    this.editPatientName.set('');
+  }
+
+  saveEdit(appt: Appointment) {
+    const newReason = this.editReason();
+    const newPatientName = this.editPatientName();
+    
+    this.agenda.updateAppointment(appt.id, {
+      reason: newReason,
+      patientName: newPatientName
+    }).subscribe({
+      next: () => {
+        this.cancelEdit();
+        this.loadAppointments();
+        this.refreshAvailability();
+      },
+      error: (err) => {
+        console.error('Error al actualizar cita:', err);
+        const message = err?.error?.message || err?.error || 'Error al actualizar la cita. Por favor intenta nuevamente.';
+        alert(message);
+      }
+    });
+  }
+
+  deleteAppointment(appt: Appointment) {
+    if (!confirm(`¿Estás seguro de eliminar la cita con ${appt.patientName}?`)) {
+      return;
+    }
+
+    this.agenda.deleteAppointment(appt.id).subscribe({
+      next: () => {
+        this.loadAppointments();
+        this.refreshAvailability();
+      },
+      error: (err) => {
+        console.error('Error al eliminar cita:', err);
+        const message = err?.error?.message || err?.error || 'Error al eliminar la cita. Por favor intenta nuevamente.';
+        alert(message);
+      }
+    });
+  }
+
+  getAppointmentsForDate(date: Date): Appointment[] {
+    return this.appointments().filter(appt => {
+      const apptDate = new Date(appt.startAt);
+      return apptDate.toDateString() === date.toDateString();
+    });
+  }
+
+  calculateDuration(appt: Appointment): number {
+    const start = new Date(appt.startAt);
+    const end = new Date(appt.endAt);
+    return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
   }
 
   previousMonth() {
@@ -65,48 +172,126 @@ export class AgendaComponent implements OnInit {
     this.refreshAvailability();
   }
 
+  onDayDoubleClick(day: CalendarDay) {
+    if (!day.date) return;
+    console.log('🖱️ Doble click en día:', day.date);
+    this.openAppointmentModal(day.date);
+  }
+
+  openAppointmentModal(date: Date, appointment?: Appointment) {
+    console.log('📋 Abriendo modal de cita');
+    console.log('📅 Fecha:', date);
+    console.log('✏️ Cita existente:', appointment);
+    console.log('👤 Usuario actual:', this.currentUserId());
+    console.log('👔 Es proveedor:', this.isProvider());
+    console.log('🩺 Profesor seleccionado:', this.selectedProfessorId());
+    
+    const modalData: AppointmentModalData = {
+      date: date,
+      appointmentId: appointment?.id,
+      patientName: appointment?.patientName,
+      reason: appointment?.reason,
+      notes: appointment?.notes || undefined,
+      startAt: appointment?.startAt,
+      endAt: appointment?.endAt,
+      studentId: appointment?.studentId,
+      professorId: appointment?.professorId || (this.isProvider() ? this.currentUserId() : (this.selectedProfessorId() || ''))
+    };
+    
+    console.log('📤 Datos del modal:', modalData);
+    this.modalData.set(modalData);
+    this.selectedAppointmentForModal.set(appointment || null);
+  }
+
+  closeModal() {
+    this.modalData.set(null);
+    this.selectedAppointmentForModal.set(null);
+  }
+
+  saveAppointmentFromModal(payload: any) {
+    console.log('💾 Guardando cita con payload:', payload);
+    
+    if (payload.appointmentId) {
+      // Editar cita existente
+      console.log('✏️ Editando cita existente:', payload.appointmentId);
+      this.agenda.updateAppointment(payload.appointmentId, {
+        patientName: payload.patientName,
+        reason: payload.reason,
+        status: payload.status,
+        notes: payload.notes
+      }).subscribe({
+        next: () => {
+          console.log('✅ Cita actualizada exitosamente');
+          this.closeModal();
+          this.loadAppointments();
+          this.refreshAvailability();
+        },
+        error: (err) => {
+          console.error('❌ Error al actualizar cita:', err);
+          const message = err?.error?.message || err?.error || 'Error al actualizar la cita. Por favor intenta nuevamente.';
+          alert(message);
+        }
+      });
+    } else {
+      // Crear nueva cita
+      console.log('➕ Creando nueva cita');
+      this.creating.set(true);
+      this.agenda.createAppointment({
+        studentId: payload.studentId,
+        professorId: payload.professorId,
+        patientName: payload.patientName,
+        reason: payload.reason,
+        startAt: payload.startAt,
+        endAt: payload.endAt,
+        status: payload.status,
+        notes: payload.notes
+      }).subscribe({
+        next: (response) => {
+          console.log('✅ Cita creada exitosamente:', response);
+          this.creating.set(false);
+          this.closeModal();
+          this.loadAppointments();
+          this.refreshAvailability();
+        },
+        error: (err) => {
+          this.creating.set(false);
+          console.error('❌ Error al crear cita:', err);
+          const message = err?.error?.message || err?.error || 'Error al crear la cita. Por favor intenta nuevamente.';
+          alert(message);
+        }
+      });
+    }
+  }
+
+  deleteAppointmentFromModal(appointmentId: string) {
+    this.agenda.deleteAppointment(appointmentId).subscribe({
+      next: () => {
+        this.closeModal();
+        this.loadAppointments();
+        this.refreshAvailability();
+      },
+      error: (err) => {
+        console.error('Error al eliminar cita:', err);
+        const message = err?.error?.message || err?.error || 'Error al eliminar la cita. Por favor intenta nuevamente.';
+        alert(message);
+      }
+    });
+  }
+
+  onAppointmentClick(appointment: Appointment) {
+    const apptDate = new Date(appointment.startAt);
+    this.openAppointmentModal(apptDate, appointment);
+  }
+
   setProfessor(id: string) {
     this.selectedProfessorId.set(id);
     this.refreshAvailability();
   }
 
-  setStudent(id: string) {
-    this.selectedStudentId.set(id);
-    const selected = this.students().find(student => student.id === id);
-    if (selected) {
-      this.patientName.set(selected.fullName);
-    }
-    this.refreshAvailability();
-  }
-
   book(slot: TimeSlot) {
-    const professorId = this.selectedProfessorId();
-    const studentId = this.selectedStudentId();
-    if (!professorId || !studentId) return;
-
-    this.creating.set(true);
-    const reason = this.appointmentReason().trim() || 'Consulta odontológica';
-    const patientName = this.isProvider()
-      ? (this.patientName().trim() || this.getSelectedStudentName())
-      : (this.auth.user()?.fullName ?? 'Paciente');
-
-    this.agenda.createAppointment({
-      studentId,
-      professorId,
-      patientName,
-      reason,
-      startAt: slot.startAt,
-      endAt: slot.endAt
-    }).subscribe({
-      next: () => {
-        this.creating.set(false);
-        this.loadAppointments();
-        this.refreshAvailability();
-      },
-      error: () => {
-        this.creating.set(false);
-      }
-    });
+    // Ya no creamos citas desde el click en los horarios
+    // Solo permitimos crear citas desde el modal de doble click
+    return;
   }
 
   openOutlookEmail(appointment: Appointment) {
@@ -144,17 +329,7 @@ export class AgendaComponent implements OnInit {
           this.professors.set(providers);
         }
       });
-
-      this.agenda.getStudents().subscribe({
-        next: students => {
-          this.students.set(students);
-          if (!this.selectedStudentId() && students.length > 0) {
-            this.selectedStudentId.set(students[0].id);
-            this.patientName.set(students[0].fullName);
-          }
-          this.refreshAvailability();
-        }
-      });
+      this.refreshAvailability();
       return;
     }
 
@@ -164,23 +339,24 @@ export class AgendaComponent implements OnInit {
         if (!this.selectedProfessorId() && professors.length > 0) {
           this.selectedProfessorId.set(professors[0].id);
         }
-        this.selectedStudentId.set(this.currentUserId());
         this.refreshAvailability();
       }
     });
   }
 
   private loadAppointments() {
-    const params: { studentId?: string; professorId?: string } = {};
-    if (this.isProvider()) {
-      if (this.selectedStudentId()) params.studentId = this.selectedStudentId();
-    } else {
-      params.studentId = this.currentUserId();
-    }
+    console.log('📅 Cargando citas...');
+    const params: { professorId?: string } = {};
     if (this.selectedProfessorId()) params.professorId = this.selectedProfessorId();
 
     this.agenda.getAppointments(params).subscribe({
-      next: items => this.appointments.set(items)
+      next: items => {
+        console.log(`✅ Citas cargadas: ${items.length}`, items);
+        this.appointments.set(items);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar citas:', err);
+      }
     });
   }
 
@@ -193,24 +369,13 @@ export class AgendaComponent implements OnInit {
   private refreshAvailability() {
     const date = this.formatDateParam(this.selectedDate());
     const professorId = this.selectedProfessorId();
-    const studentId = this.isProvider() ? this.selectedStudentId() : this.currentUserId();
 
     if (professorId) {
       this.agenda.getAvailability(date, { professorId }).subscribe({
         next: availability => this.professorAvailability.set(availability)
       });
     }
-    if (studentId) {
-      this.agenda.getAvailability(date, { studentId }).subscribe({
-        next: availability => this.studentAvailability.set(availability)
-      });
-    }
     this.loadAppointments();
-  }
-
-  private getSelectedStudentName() {
-    const student = this.students().find(item => item.id === this.selectedStudentId());
-    return student?.fullName ?? 'Paciente';
   }
 
   private formatDateParam(date: Date) {

@@ -1,0 +1,74 @@
+<app-top-nav></app-top-nav>
+
+<section class="contabilidad-container">
+  <div class="page-header">
+    <div>
+      <h1>📊 Contabilidad</h1>
+      <p>Sistema de gestión contable simplificado</p>
+    </div>
+  </div>
+
+  <!-- Estadísticas Rápidas -->
+  <div class="stats-grid">
+    <div *ngFor="let stat of stats()" class="stat-card" [class]="'stat-' + stat.color">
+      <div class="stat-icon">{{ stat.icon }}</div>
+      <div class="stat-content">
+        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-value">{{ stat.value | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Módulos de Contabilidad -->
+  <div class="modules-section">
+    <h2>Módulos</h2>
+    <div class="modules-grid">
+      <div *ngFor="let module of modules()" 
+           class="module-card" 
+           [class]="'module-' + module.color"
+           (click)="navigateTo(module.route)">
+        <div class="module-icon">{{ module.icon }}</div>
+        <div class="module-content">
+          <h3>{{ module.title }}</h3>
+          <p>{{ module.description }}</p>
+        </div>
+        <div class="module-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimos Movimientos -->
+  <div class="recent-section">
+    <div class="section-header">
+      <h2>📝 Últimos Movimientos</h2>
+      <button class="btn-link" (click)="navigateTo('/odontologo/contabilidad/reportes')">
+        Ver todos →
+      </button>
+    </div>
+    
+    <div class="entries-list" *ngIf="recentEntries().length > 0">
+      <div *ngFor="let entry of recentEntries()" class="entry-item">
+        <div class="entry-info">
+          <div class="entry-category">{{ entry.categoryName }}</div>
+          <div class="entry-desc">{{ entry.description }}</div>
+          <div class="entry-date">{{ entry.date | date:'short' }}</div>
+        </div>
+        <div class="entry-amount" [class]="entry.type === 'Income' ? 'income' : 'expense'">
+          {{ entry.type === 'Income' ? '+' : '-' }}{{ entry.amount | currency:'USD':'symbol':'1.2-2' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="recentEntries().length === 0 && !loading()">
+      <div class="empty-icon">📭</div>
+      <p>No hay movimientos registrados este mes</p>
+      <button class="btn btn-primary" (click)="navigateTo('/odontologo/contabilidad/ingresos')">
+        Registrar Ingreso
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="loading()">
+      Cargando...
+    </div>
+  </div>
+</section>

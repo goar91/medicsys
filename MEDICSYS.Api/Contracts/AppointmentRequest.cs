@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MEDICSYS.Api.Models;
 
 namespace MEDICSYS.Api.Contracts;
 
@@ -21,6 +22,8 @@ public class AppointmentRequest
 
     [Required]
     public DateTime EndAt { get; set; }
+
+    public AppointmentStatus? Status { get; set; }
 
     public string? Notes { get; set; }
 }

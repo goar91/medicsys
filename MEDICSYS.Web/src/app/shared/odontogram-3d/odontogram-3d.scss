@@ -326,15 +326,17 @@
 }
 
 .coronal-circle {
-  width: 64px;
-  height: 64px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: var(--tooth-bg, var(--odonto-bg));
   border: 3px solid var(--tooth-border, var(--odonto-border));
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 2px;
+  padding: 4px;
   transition: all 0.3s;
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -348,62 +350,62 @@
 }
 
 .surface {
-  position: absolute;
-  background: transparent;
-  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
   transition: all 0.2s;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 
-  &:hover {
-    opacity: 0.8;
-    transform: scale(1.05);
-    z-index: 2;
+  &::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.2s;
   }
 
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.6);
+    transform: scale(1.05);
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  // Disposición en grid fija sin superposición
   &.top {
-    width: 28px;
-    height: 28px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 1;
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    border-radius: 4px 4px 0 0;
   }
 
   &.left {
-    width: 22px;
-    height: 44px;
-    top: 50%;
-    left: 2px;
-    transform: translateY(-50%);
-    border-radius: 10px 0 0 10px;
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+    border-radius: 4px 0 0 4px;
   }
 
   &.right {
-    width: 22px;
-    height: 44px;
-    top: 50%;
-    right: 2px;
-    transform: translateY(-50%);
-    border-radius: 0 10px 10px 0;
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+    border-radius: 0 4px 4px 0;
   }
 
   &.front {
-    width: 44px;
-    height: 22px;
-    top: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 10px 10px 0 0;
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    border-radius: 4px;
+    z-index: 1;
   }
 
   &.back {
-    width: 44px;
-    height: 22px;
-    bottom: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 0 0 10px 10px;
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+    border-radius: 0 0 4px 4px;
   }
 }
 

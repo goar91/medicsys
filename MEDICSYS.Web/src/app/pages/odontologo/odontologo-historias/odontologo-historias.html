@@ -1,0 +1,93 @@
+<app-top-nav></app-top-nav>
+
+<div class="historias-container">
+  <div class="header">
+    <h1>Historias Clínicas</h1>
+    <button class="btn btn-primary" (click)="createNew()">
+      <i class="icon-plus"></i>
+      Nueva Historia Clínica
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Buscar por nombre, cédula o número de historia clínica..."
+      (input)="onSearch($event)"
+      [value]="searchTerm()"
+    />
+    <i class="icon-search"></i>
+  </div>
+
+  <div class="content" *ngIf="!loading(); else loadingTemplate">
+    <div class="table-container" *ngIf="filteredHistories().length > 0; else emptyTemplate">
+      <table class="histories-table">
+        <thead>
+          <tr>
+            <th>N° Historia</th>
+            <th>Paciente</th>
+            <th>Cédula</th>
+            <th>Fecha Creación</th>
+            <th>Última Actualización</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let history of filteredHistories()">
+            <td>{{ getClinicalHistoryNumber(history) }}</td>
+            <td class="patient-name">{{ getPatientName(history) }}</td>
+            <td>{{ getPatientId(history) }}</td>
+            <td>{{ formatDate(history.createdAt) }}</td>
+            <td>{{ formatDate(history.updatedAt) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(history.status)">
+                {{ getStatusText(history.status) }}
+              </span>
+            </td>
+            <td class="actions">
+              <button
+                class="btn-icon btn-edit"
+                (click)="editHistory(history)"
+                title="Editar historia clínica"
+              >
+                <i class="icon-edit"></i>
+              </button>
+              <button
+                class="btn-icon btn-delete"
+                (click)="deleteHistory(history)"
+                title="Eliminar historia clínica"
+              >
+                <i class="icon-delete"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No se encontraron historias clínicas</h3>
+        <p *ngIf="searchTerm()">
+          No hay resultados para "{{ searchTerm() }}"
+        </p>
+        <p *ngIf="!searchTerm()">
+          Aún no has creado ninguna historia clínica
+        </p>
+        <button class="btn btn-primary" (click)="createNew()">
+          Crear Primera Historia Clínica
+        </button>
+      </div>
+    </ng-template>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando historias clínicas...</p>
+    </div>
+  </ng-template>
+</div>

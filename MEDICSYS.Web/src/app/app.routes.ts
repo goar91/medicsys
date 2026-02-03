@@ -9,6 +9,7 @@ import { ClinicalHistoryReviewComponent } from './pages/clinical-history-review/
 import { AgendaComponent } from './pages/agenda/agenda';
 import { OdontologoDashboardComponent } from './pages/odontologo/odontologo-dashboard/odontologo-dashboard';
 import { OdontologoPacientesComponent } from './pages/odontologo/odontologo-pacientes/odontologo-pacientes';
+import { OdontologoHistoriasComponent } from './pages/odontologo/odontologo-historias/odontologo-historias';
 import { OdontologoFacturacionComponent } from './pages/odontologo/odontologo-facturacion/odontologo-facturacion.component';
 import { OdontologoFacturaFormComponent } from './pages/odontologo/odontologo-factura-form/odontologo-factura-form';
 import { OdontologoFacturaDetalleComponent } from './pages/odontologo/odontologo-factura-detalle/odontologo-factura-detalle';
@@ -37,6 +38,11 @@ export const routes: Routes = [
   {
     path: 'odontologo/pacientes',
     component: OdontologoPacientesComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'odontologo/historias',
+    component: OdontologoHistoriasComponent,
     canActivate: [authGuard]
   },
   {

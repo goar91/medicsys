@@ -33,7 +33,7 @@ public class ClinicalHistoriesController : ControllerBase
             .Include(x => x.Student)
             .AsNoTracking();
 
-        if (!IsProfessor())
+        if (!IsReviewer())
         {
             query = query.Where(x => x.StudentId == userId);
         }
@@ -59,7 +59,7 @@ public class ClinicalHistoriesController : ControllerBase
             return NotFound();
         }
 
-        if (!IsProfessor() && history.StudentId != userId)
+        if (!IsReviewer() && history.StudentId != userId)
         {
             return Forbid();
         }
@@ -78,6 +78,7 @@ public class ClinicalHistoriesController : ControllerBase
         {
             Id = Guid.NewGuid(),
             StudentId = userId,
+            PatientId = request.PatientId,
             Data = json,
             Status = ClinicalHistoryStatus.Draft,
             CreatedAt = DateTime.UtcNow,
@@ -105,7 +106,7 @@ public class ClinicalHistoriesController : ControllerBase
             return NotFound();
         }
 
-        var isProfessor = IsProfessor();
+        var isProfessor = IsReviewer();
         if (!isProfessor && history.StudentId != userId)
         {
             return Forbid();
@@ -117,6 +118,7 @@ public class ClinicalHistoriesController : ControllerBase
         }
 
         history.Data = JsonSerializer.Serialize(request.Data);
+        history.PatientId = request.PatientId;
         history.UpdatedAt = DateTime.UtcNow;
 
         if (!isProfessor && history.Status == ClinicalHistoryStatus.Rejected)
@@ -132,16 +134,24 @@ public class ClinicalHistoriesController : ControllerBase
         return Ok(Map(history));
     }
 
-    [Authorize(Roles = Roles.Professor)]
+    [Authorize(Roles = $"{Roles.Professor},{Roles.Odontologo}")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
+        var userId = GetUserId();
         var history = await _db.ClinicalHistories
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (history == null)
         {
             return NotFound();
+        }
+
+        // Verificar que sea el creador o profesor
+        var isProfessor = IsReviewer();
+        if (!isProfessor && history.StudentId != userId)
+        {
+            return Forbid();
         }
 
         _db.ClinicalHistories.Remove(history);
@@ -305,9 +315,9 @@ public class ClinicalHistoriesController : ControllerBase
         return Ok(Map(history));
     }
 
-    private bool IsProfessor()
+    private bool IsReviewer()
     {
-        return User.IsInRole(Roles.Professor);
+        return User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
     }
 
     private Guid GetUserId()
