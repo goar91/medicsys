@@ -13,6 +13,7 @@ namespace MEDICSYS.Api.Controllers;
 
 [ApiController]
 [Route("api/clinical-histories")]
+[Authorize(Roles = $"{Roles.Student},{Roles.Professor},{Roles.Odontologo}")]
 public class ClinicalHistoriesController : ControllerBase
 {
     private readonly AppDbContext _db;

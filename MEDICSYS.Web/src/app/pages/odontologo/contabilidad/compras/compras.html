@@ -1,0 +1,318 @@
+<div class="compras-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Módulo de Compras</h1>
+        <p class="header-subtitle">Registra compras que alimentan automáticamente el inventario</p>
+      </div>
+    </div>
+    <button type="button" class="btn-primary" (click)="openModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Nueva Compra
+    </button>
+  </header>
+
+  <!-- Filtros -->
+  <section class="filters-section">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="form-field">
+        <label>Proveedor</label>
+        <input type="text" formControlName="supplier" placeholder="Buscar por proveedor...">
+      </div>
+      <div class="form-field">
+        <label>Desde</label>
+        <input type="date" formControlName="dateFrom">
+      </div>
+      <div class="form-field">
+        <label>Hasta</label>
+        <input type="date" formControlName="dateTo">
+      </div>
+      <div class="form-field">
+        <label>Estado</label>
+        <select formControlName="status">
+          <option value="all">Todos</option>
+          <option value="Pending">Pendiente</option>
+          <option value="Received">Recibido</option>
+        </select>
+      </div>
+      <button type="button" class="btn-secondary" (click)="applyFilters()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+        Filtrar
+      </button>
+    </form>
+  </section>
+
+  <!-- Lista de Compras -->
+  <section class="purchases-list">
+    <div class="table-container">
+      <table class="purchases-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Proveedor</th>
+            <th>N° Factura</th>
+            <th>Artículos</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="loading()">
+            <td colspan="7" class="loading-cell">
+              <div class="spinner"></div>
+              Cargando compras...
+            </td>
+          </tr>
+          <tr *ngIf="!loading() && purchases().length === 0">
+            <td colspan="7" class="empty-cell">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              <p>No hay compras registradas</p>
+            </td>
+          </tr>
+          <tr *ngFor="let purchase of purchases()">
+            <td>{{ purchase.purchaseDate | date:'dd/MM/yyyy' }}</td>
+            <td><strong>{{ purchase.supplier }}</strong></td>
+            <td>{{ purchase.invoiceNumber || '-' }}</td>
+            <td>{{ purchase.items.length }} artículo(s)</td>
+            <td><strong>{{ purchase.total | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+            <td>
+              <span class="badge" [class.badge-success]="purchase.status === 'Received'" 
+                                   [class.badge-warning]="purchase.status === 'Pending'">
+                {{ purchase.status === 'Received' ? 'Recibido' : 'Pendiente' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button type="button" class="btn-icon" (click)="editPurchase(purchase)" title="Editar">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn-icon btn-danger" (click)="deletePurchase(purchase.id)" title="Eliminar">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal de Nueva Compra -->
+  <div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-card">
+        <!-- Modal Header -->
+        <div class="modal-card-header">
+          <div class="modal-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/>
+              <circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+          </div>
+          <div class="modal-header-text">
+            <h2 class="modal-title">{{ editingPurchase() ? 'Editar' : 'Nueva' }} Compra</h2>
+            <p class="modal-subtitle">Complete la información de la compra</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-card-body">
+          <form [formGroup]="purchaseForm">
+            <!-- Información General -->
+            <div class="form-section">
+              <div class="section-header">
+                <div class="section-bar"></div>
+                <h3>Información General</h3>
+              </div>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Proveedor *</label>
+                  <div class="input-with-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <input type="text" formControlName="supplier" class="field-input" 
+                           placeholder="Nombre del proveedor" required>
+                  </div>
+                  <span class="field-error" *ngIf="purchaseForm.get('supplier')?.invalid && purchaseForm.get('supplier')?.touched">
+                    El proveedor es requerido (mínimo 2 caracteres)
+                  </span>
+                </div>
+                
+                <div class="form-field">
+                  <label>N° de Factura</label>
+                  <div class="input-with-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <input type="text" formControlName="invoiceNumber" class="field-input" 
+                           placeholder="Número de factura">
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label>Fecha de Compra *</label>
+                  <div class="input-with-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <input type="date" formControlName="purchaseDate" class="field-input" required>
+                  </div>
+                </div>
+
+                <div class="form-field full-width">
+                  <label>Notas</label>
+                  <textarea formControlName="notes" class="field-input" rows="2" 
+                            placeholder="Notas adicionales sobre la compra"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Artículos -->
+            <div class="form-section">
+              <div class="section-header">
+                <div class="section-bar"></div>
+                <h3>Artículos</h3>
+              </div>
+
+              <!-- Agregar Artículo -->
+              <div [formGroup]="itemForm" class="item-form">
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label>Artículo *</label>
+                    <select formControlName="inventoryItemId" class="field-input" 
+                            (change)="onInventoryItemChange($any($event.target).value)" required>
+                      <option [value]="0">Seleccionar artículo...</option>
+                      <option *ngFor="let item of inventoryItems()" [value]="item.id">
+                        {{ item.name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label>Cantidad *</label>
+                    <input type="number" formControlName="quantity" class="field-input" min="1" required>
+                  </div>
+
+                  <div class="form-field">
+                    <label>Precio Unitario *</label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">$</span>
+                      <input type="number" formControlName="unitPrice" class="field-input" 
+                             step="0.01" min="0.01" required>
+                    </div>
+                  </div>
+
+                  <div class="form-field">
+                    <label>Vencimiento</label>
+                    <input type="date" formControlName="expirationDate" class="field-input">
+                  </div>
+                </div>
+
+                <button type="button" class="btn-add-item" (click)="addItem()" [disabled]="itemForm.invalid">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  Agregar Artículo
+                </button>
+              </div>
+
+              <!-- Lista de Artículos Agregados -->
+              <div class="items-list" *ngIf="selectedItems().length > 0">
+                <table class="items-table">
+                  <thead>
+                    <tr>
+                      <th>Artículo</th>
+                      <th>Cantidad</th>
+                      <th>Precio Unit.</th>
+                      <th>Subtotal</th>
+                      <th>Vencimiento</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of selectedItems(); let i = index">
+                      <td>{{ item.inventoryItemName }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+                      <td><strong>{{ item.quantity * item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+                      <td>{{ item.expirationDate ? (item.expirationDate | date:'dd/MM/yyyy') : '-' }}</td>
+                      <td>
+                        <button type="button" class="btn-remove" (click)="removeItem(i)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Total -->
+              <div class="purchase-total" *ngIf="selectedItems().length > 0">
+                <span>Total de la Compra:</span>
+                <strong>{{ totalPurchase() | currency:'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+
+              <div class="empty-items" *ngIf="selectedItems().length === 0">
+                <p>No hay artículos agregados. Agregue al menos un artículo para continuar.</p>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-card-footer">
+          <button type="button" class="btn-secondary" (click)="closeModal()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-primary" (click)="savePurchase()" 
+                  [disabled]="loading() || purchaseForm.invalid || selectedItems().length === 0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!loading()">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <div class="spinner" *ngIf="loading()"></div>
+            {{ loading() ? 'Guardando...' : (editingPurchase() ? 'Actualizar' : 'Guardar') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

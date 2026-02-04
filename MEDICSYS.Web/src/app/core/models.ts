@@ -111,5 +111,74 @@ export interface AccountingSummary {
   totalIncome: number;
   totalExpense: number;
   net: number;
+  profit?: number;
+  profitMargin?: number;
+  incomePercentChange?: number;
+  expensePercentChange?: number;
   groups: { group: string; type: string; total: number }[];
+}
+
+export interface InventoryItem {
+  id: string | number;
+  name: string;
+  description?: string;
+  sku?: string;
+  quantity: number;
+  minimumQuantity: number;
+  unitPrice: number;
+  supplier?: string;
+  expirationDate?: string;
+  isLowStock?: boolean;
+  isExpiringSoon?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  // Aliases para compatibilidad backend
+  category?: string;
+  minQuantity?: number;
+  purchasePrice?: number;
+  salePrice?: number;
+}
+
+export interface PurchaseItem {
+  inventoryItemId: string | number;
+  inventoryItemName: string;
+  quantity: number;
+  unitPrice: number;
+  expirationDate?: string;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  supplier: string;
+  invoiceNumber?: string;
+  purchaseDate: string;
+  notes?: string;
+  items: PurchaseItem[];
+  total: number;
+  status: 'Pending' | 'Received';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Expense {
+  id: string;
+  odontologoId: string;
+  description: string;
+  amount: number;
+  expenseDate: string;
+  category: string;
+  paymentMethod: string;
+  invoiceNumber?: string;
+  supplier?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ExpenseSummary {
+  totalExpenses: number;
+  monthExpenses: number;
+  weekExpenses: number;
+  expensesByCategory: Record<string, number>;
+  recentExpenses: Expense[];
 }

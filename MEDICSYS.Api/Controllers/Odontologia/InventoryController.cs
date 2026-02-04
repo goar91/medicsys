@@ -70,7 +70,9 @@ public class InventoryController : ControllerBase
             MinimumQuantity = request.MinimumQuantity,
             UnitPrice = request.UnitPrice,
             Supplier = request.Supplier,
-            ExpirationDate = request.ExpirationDate,
+            ExpirationDate = request.ExpirationDate.HasValue 
+                ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
+                : null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -102,7 +104,9 @@ public class InventoryController : ControllerBase
         item.MinimumQuantity = request.MinimumQuantity;
         item.UnitPrice = request.UnitPrice;
         item.Supplier = request.Supplier;
-        item.ExpirationDate = request.ExpirationDate;
+        item.ExpirationDate = request.ExpirationDate.HasValue 
+            ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
+            : null;
         item.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();

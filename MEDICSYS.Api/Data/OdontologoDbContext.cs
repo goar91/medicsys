@@ -17,6 +17,10 @@ public class OdontologoDbContext : DbContext
     public DbSet<AccountingCategory> AccountingCategories => Set<AccountingCategory>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<InventoryAlert> InventoryAlerts => Set<InventoryAlert>();
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
+    public DbSet<Expense> Expenses => Set<Expense>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -128,6 +132,69 @@ public class OdontologoDbContext : DbContext
             entity.HasIndex(e => e.OdontologoId);
             entity.HasIndex(e => e.IsResolved);
             entity.HasIndex(e => e.Type);
+        });
+
+        // PurchaseOrder
+        builder.Entity<PurchaseOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Supplier).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.InvoiceNumber).HasMaxLength(100);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            entity.Property(e => e.Total).HasPrecision(18, 2);
+            entity.HasMany(e => e.Items)
+                .WithOne(e => e.PurchaseOrder)
+                .HasForeignKey(e => e.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PurchaseDate);
+            entity.HasIndex(e => e.Status);
+        });
+
+        // PurchaseItem
+        builder.Entity<PurchaseItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.HasOne(e => e.InventoryItem)
+                .WithMany()
+                .HasForeignKey(e => e.InventoryItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Expense
+        builder.Entity<Expense>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.PaymentMethod).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.InvoiceNumber).HasMaxLength(100);
+            entity.Property(e => e.Supplier).HasMaxLength(200);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.ExpenseDate);
+            entity.HasIndex(e => e.Category);
+        });
+
+        // InventoryMovement
+        builder.Entity<InventoryMovement>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MovementType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.TotalCost).HasPrecision(18, 2);
+            entity.Property(e => e.Reference).HasMaxLength(200);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.HasOne(e => e.InventoryItem)
+                .WithMany()
+                .HasForeignKey(e => e.InventoryItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.InventoryItemId);
+            entity.HasIndex(e => e.MovementDate);
+            entity.HasIndex(e => e.MovementType);
         });
     }
 }

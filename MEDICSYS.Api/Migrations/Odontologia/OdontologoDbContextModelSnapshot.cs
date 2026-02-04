@@ -279,6 +279,66 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.ToTable("InvoiceItems");
                 });
 
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.Expense", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("OdontologoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("ExpenseDate");
+
+                    b.HasIndex("OdontologoId");
+
+                    b.ToTable("Expenses");
+                });
+
             modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.InventoryAlert", b =>
                 {
                     b.Property<Guid>("Id")
@@ -327,6 +387,12 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("AverageCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Batch")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -336,6 +402,12 @@ namespace MEDICSYS.Api.Migrations.Odontologia
 
                     b.Property<DateTime?>("ExpirationDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MaximumQuantity")
+                        .HasColumnType("integer");
 
                     b.Property<int>("MinimumQuantity")
                         .HasColumnType("integer");
@@ -349,6 +421,9 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                         .HasColumnType("uuid");
 
                     b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ReorderPoint")
                         .HasColumnType("integer");
 
                     b.Property<string>("Sku")
@@ -373,6 +448,70 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.HasIndex("Sku");
 
                     b.ToTable("InventoryItems");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.InventoryMovement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("MovementDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("OdontologoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PurchaseOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("StockAfter")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StockBefore")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryItemId");
+
+                    b.HasIndex("MovementDate");
+
+                    b.HasIndex("MovementType");
+
+                    b.HasIndex("OdontologoId");
+
+                    b.ToTable("InventoryMovements");
                 });
 
             modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.OdontologoAppointment", b =>
@@ -524,6 +663,86 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.ToTable("OdontologoPatients");
                 });
 
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.PurchaseItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PurchaseOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryItemId");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.ToTable("PurchaseItems");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.PurchaseOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("OdontologoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("PurchaseDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Supplier")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OdontologoId");
+
+                    b.HasIndex("PurchaseDate");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("PurchaseOrders");
+                });
+
             modelBuilder.Entity("MEDICSYS.Api.Models.AccountingEntry", b =>
                 {
                     b.HasOne("MEDICSYS.Api.Models.AccountingCategory", "Category")
@@ -569,7 +788,42 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.Navigation("InventoryItem");
                 });
 
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.InventoryMovement", b =>
+                {
+                    b.HasOne("MEDICSYS.Api.Models.Odontologia.InventoryItem", "InventoryItem")
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InventoryItem");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.PurchaseItem", b =>
+                {
+                    b.HasOne("MEDICSYS.Api.Models.Odontologia.InventoryItem", "InventoryItem")
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MEDICSYS.Api.Models.Odontologia.PurchaseOrder", "PurchaseOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InventoryItem");
+
+                    b.Navigation("PurchaseOrder");
+                });
+
             modelBuilder.Entity("MEDICSYS.Api.Models.Invoice", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Odontologia.PurchaseOrder", b =>
                 {
                     b.Navigation("Items");
                 });

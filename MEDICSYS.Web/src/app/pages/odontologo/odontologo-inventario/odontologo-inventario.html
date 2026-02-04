@@ -192,71 +192,199 @@
   </div>
 </section>
 <!-- Modal para nuevo/editar artículo -->
-<div class="modal" *ngIf="showNewItemForm()" (click)="onModalBackdropClick($event)">
-  <div class="modal-content" style="max-width: 600px;">
-    <header class="modal-header">
-      <h2>{{ editingItem() ? 'Editar Artículo' : 'Nuevo Artículo' }}</h2>
-      <button class="btn-icon" (click)="closeModal()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </header>
-    <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre <span style="color: red;">*</span></label>
-          <input type="text" formControlName="name" class="form-control" placeholder="Ej: Guantes de látex" />
-          <small class="error" *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched">
-            El nombre es requerido
-          </small>
-        </div>
-
-        <div class="form-group">
-          <label>Descripción</label>
-          <textarea formControlName="description" class="form-control" rows="2" placeholder="Descripción del artículo"></textarea>
-        </div>
-
-        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label>SKU / Código</label>
-            <input type="text" formControlName="sku" class="form-control" placeholder="SKU-001" />
+<div class="modal-overlay" *ngIf="showNewItemForm()" (click)="onModalBackdropClick($event)">
+  <div class="modal-container" style="max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-card">
+      <header class="modal-card-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
           </div>
-
-          <div class="form-group">
-            <label>Proveedor</label>
-            <input type="text" formControlName="supplier" class="form-control" placeholder="Nombre del proveedor" />
+          <div>
+            <h2 class="modal-title">{{ editingItem() ? 'Editar Artículo' : 'Nuevo Artículo de Inventario' }}</h2>
+            <p class="modal-subtitle">{{ editingItem() ? 'Actualiza la información del artículo' : 'Registra un nuevo artículo en el inventario' }}</p>
           </div>
         </div>
-
-        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label>Cantidad <span style="color: red;">*</span></label>
-            <input type="number" formControlName="quantity" class="form-control" min="0" />
-          </div>
-
-          <div class="form-group">
-            <label>Cantidad Mínima <span style="color: red;">*</span></label>
-            <input type="number" formControlName="minimumQuantity" class="form-control" min="0" />
-          </div>
-        </div>
-
-        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label>Precio Unitario ($) <span style="color: red;">*</span></label>
-            <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0" />
-          </div>
-
-          <div class="form-group">
-            <label>Fecha de Expiración</label>
-            <input type="date" formControlName="expirationDate" class="form-control" />
-          </div>
-        </div>
-      </div>
-      <footer class="modal-footer">
-        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancelar</button>
-        <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || loading()">
-          {{ editingItem() ? 'Actualizar' : 'Crear' }}
+        <button type="button" class="modal-close-btn" (click)="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
         </button>
-      </footer>
-    </form>
+      </header>
+
+      <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+        <div class="modal-card-body">
+          <!-- Información General -->
+          <div class="form-section">
+            <h3 class="section-title">Información General</h3>
+            
+            <div class="form-field">
+              <label class="field-label required">Nombre del Artículo</label>
+              <input 
+                type="text" 
+                formControlName="name" 
+                class="field-input" 
+                placeholder="Ej: Guantes de látex talla M"
+                [class.error]="itemForm.get('name')?.invalid && itemForm.get('name')?.touched"
+              />
+              <span class="field-error" *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                El nombre del artículo es obligatorio
+              </span>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Descripción</label>
+              <textarea 
+                formControlName="description" 
+                class="field-input field-textarea" 
+                rows="3" 
+                placeholder="Descripción detallada del artículo (opcional)"
+              ></textarea>
+              <span class="field-hint">Agrega detalles adicionales sobre el artículo</span>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label class="field-label">Código SKU</label>
+                <input 
+                  type="text" 
+                  formControlName="sku" 
+                  class="field-input" 
+                  placeholder="SKU-001"
+                />
+                <span class="field-hint">Código único de identificación</span>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Proveedor</label>
+                <input 
+                  type="text" 
+                  formControlName="supplier" 
+                  class="field-input" 
+                  placeholder="Nombre del proveedor"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock y Precios -->
+          <div class="form-section">
+            <h3 class="section-title">Stock y Precios</h3>
+            
+            <div class="form-row-2">
+              <div class="form-field">
+                <label class="field-label required">Cantidad Actual</label>
+                <div class="input-with-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                  <input 
+                    type="number" 
+                    formControlName="quantity" 
+                    class="field-input with-icon" 
+                    min="0" 
+                    placeholder="0"
+                    [class.error]="itemForm.get('quantity')?.invalid && itemForm.get('quantity')?.touched"
+                  />
+                </div>
+                <span class="field-hint">Unidades en stock</span>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label required">Stock Mínimo</label>
+                <div class="input-with-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <input 
+                    type="number" 
+                    formControlName="minimumQuantity" 
+                    class="field-input with-icon" 
+                    min="0" 
+                    placeholder="0"
+                    [class.error]="itemForm.get('minimumQuantity')?.invalid && itemForm.get('minimumQuantity')?.touched"
+                  />
+                </div>
+                <span class="field-hint">Alertar cuando esté por debajo</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label class="field-label required">Precio Unitario</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">$</span>
+                  <input 
+                    type="number" 
+                    formControlName="unitPrice" 
+                    class="field-input with-prefix" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="0.00"
+                    [class.error]="itemForm.get('unitPrice')?.invalid && itemForm.get('unitPrice')?.touched"
+                  />
+                </div>
+                <span class="field-hint">Precio por unidad</span>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Fecha de Expiración</label>
+                <div class="input-with-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <input 
+                    type="date" 
+                    formControlName="expirationDate" 
+                    class="field-input with-icon"
+                  />
+                </div>
+                <span class="field-hint">Fecha de vencimiento (opcional)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Valor Total (calculado) -->
+          <div class="form-section" *ngIf="itemForm.get('quantity')?.value && itemForm.get('unitPrice')?.value">
+            <div class="value-summary">
+              <div class="value-label">Valor Total del Stock</div>
+              <div class="value-amount">${{ ((itemForm.get('quantity')?.value || 0) * (itemForm.get('unitPrice')?.value || 0)).toFixed(2) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-card-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="loading()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || loading()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline *ngIf="!loading()" points="20 6 9 17 4 12"/>
+              <circle *ngIf="loading()" cx="12" cy="12" r="10" class="spinner"/>
+            </svg>
+            {{ loading() ? 'Guardando...' : (editingItem() ? 'Actualizar Artículo' : 'Crear Artículo') }}
+          </button>
+        </footer>
+      </form>
+    </div>
   </div>
 </div>

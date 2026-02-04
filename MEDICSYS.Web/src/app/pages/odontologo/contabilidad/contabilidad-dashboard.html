@@ -1,74 +1,164 @@
-<app-top-nav></app-top-nav>
-
-<section class="contabilidad-container">
-  <div class="page-header">
-    <div>
-      <h1>📊 Contabilidad</h1>
-      <p>Sistema de gestión contable simplificado</p>
-    </div>
-  </div>
-
-  <!-- Estadísticas Rápidas -->
-  <div class="stats-grid">
-    <div *ngFor="let stat of stats()" class="stat-card" [class]="'stat-' + stat.color">
-      <div class="stat-icon">{{ stat.icon }}</div>
-      <div class="stat-content">
-        <div class="stat-label">{{ stat.label }}</div>
-        <div class="stat-value">{{ stat.value | currency:'USD':'symbol':'1.2-2' }}</div>
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Centro de Contabilidad</h1>
+        <p class="header-subtitle">Gestión financiera integral para tu consultorio</p>
       </div>
     </div>
+    <div class="header-period">
+      <span class="period-label">Período actual:</span>
+      <strong>{{ currentMonth }}</strong>
+    </div>
+  </header>
+
+  <!-- Resumen Financiero -->
+  <section class="financial-summary" *ngIf="!loading() && stats()">
+    <div class="summary-card income">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+          <polyline points="17 6 23 6 23 12"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Ingresos del Mes</span>
+        <h2 class="card-value">{{ totalIncome() | currency:'USD':'symbol':'1.2-2' }}</h2>
+        <span class="card-meta">Facturación total</span>
+      </div>
+    </div>
+
+    <div class="summary-card expense">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+          <polyline points="17 18 23 18 23 12"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Gastos del Mes</span>
+        <h2 class="card-value">{{ totalExpense() | currency:'USD':'symbol':'1.2-2' }}</h2>
+        <span class="card-meta">Egresos totales</span>
+      </div>
+    </div>
+
+    <div class="summary-card profit">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Utilidad Neta</span>
+        <h2 class="card-value">{{ profit() | currency:'USD':'symbol':'1.2-2' }}</h2>
+        <span class="card-meta">Margen: {{ profitMargin() | number:'1.1-1' }}%</span>
+      </div>
+    </div>
+
+    <div class="summary-card pending">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Cuentas por Cobrar</span>
+        <h2 class="card-value">{{ pendingAmount() | currency:'USD':'symbol':'1.2-2' }}</h2>
+        <span class="card-meta">{{ pendingInvoices() }} facturas pendientes</span>
+      </div>
+    </div>
+
+    <div class="summary-card inventory">
+      <div class="card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Valor Inventario</span>
+        <h2 class="card-value">{{ inventoryValue() | currency:'USD':'symbol':'1.2-2' }}</h2>
+        <span class="card-meta" *ngIf="lowStockItems() > 0" style="color: #f59e0b;">
+          {{ lowStockItems() }} items con stock bajo
+        </span>
+        <span class="card-meta" *ngIf="lowStockItems() === 0" style="color: #10b981;">
+          Stock saludable
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loader -->
+  <div class="loader-section" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Cargando datos...</p>
   </div>
 
-  <!-- Módulos de Contabilidad -->
-  <div class="modules-section">
-    <h2>Módulos</h2>
+  <!-- Módulos de Gestión -->
+  <section class="modules-section">
+    <h2 class="section-title">Módulos de Gestión</h2>
     <div class="modules-grid">
-      <div *ngFor="let module of modules()" 
-           class="module-card" 
-           [class]="'module-' + module.color"
-           (click)="navigateTo(module.route)">
-        <div class="module-icon">{{ module.icon }}</div>
-        <div class="module-content">
-          <h3>{{ module.title }}</h3>
-          <p>{{ module.description }}</p>
+      <a *ngFor="let module of modules" 
+         [routerLink]="module.route" 
+         class="module-card"
+         [attr.data-color]="module.color">
+        <div class="module-header">
+          <div class="module-icon" [innerHTML]="module.icon"></div>
+          <h3 class="module-title">{{ module.title }}</h3>
         </div>
-        <div class="module-arrow">→</div>
-      </div>
+        <p class="module-description">{{ module.description }}</p>
+        <div class="module-footer">
+          <span class="module-link">
+            Acceder
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
+        </div>
+      </a>
     </div>
-  </div>
+  </section>
 
-  <!-- Últimos Movimientos -->
-  <div class="recent-section">
-    <div class="section-header">
-      <h2>📝 Últimos Movimientos</h2>
-      <button class="btn-link" (click)="navigateTo('/odontologo/contabilidad/reportes')">
-        Ver todos →
+  <!-- Acciones Rápidas -->
+  <section class="quick-actions">
+    <h2 class="section-title">Acciones Rápidas</h2>
+    <div class="actions-grid">
+      <button type="button" class="action-btn" routerLink="/odontologo/facturacion">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Nueva Factura
+      </button>
+      <button type="button" class="action-btn" routerLink="/odontologo/contabilidad/gastos">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Registrar Gasto
+      </button>
+      <button type="button" class="action-btn" routerLink="/odontologo/contabilidad/compras">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Nueva Compra
+      </button>
+      <button type="button" class="action-btn" routerLink="/odontologo/inventario">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        Ver Inventario
       </button>
     </div>
-    
-    <div class="entries-list" *ngIf="recentEntries().length > 0">
-      <div *ngFor="let entry of recentEntries()" class="entry-item">
-        <div class="entry-info">
-          <div class="entry-category">{{ entry.categoryName }}</div>
-          <div class="entry-desc">{{ entry.description }}</div>
-          <div class="entry-date">{{ entry.date | date:'short' }}</div>
-        </div>
-        <div class="entry-amount" [class]="entry.type === 'Income' ? 'income' : 'expense'">
-          {{ entry.type === 'Income' ? '+' : '-' }}{{ entry.amount | currency:'USD':'symbol':'1.2-2' }}
-        </div>
-      </div>
-    </div>
+  </section>
+</div>
 
-    <div class="empty-state" *ngIf="recentEntries().length === 0 && !loading()">
-      <div class="empty-icon">📭</div>
-      <p>No hay movimientos registrados este mes</p>
-      <button class="btn btn-primary" (click)="navigateTo('/odontologo/contabilidad/ingresos')">
-        Registrar Ingreso
-      </button>
-    </div>
-
-    <div class="loading" *ngIf="loading()">
-      Cargando...
-    </div>
-  </div>
-</section>

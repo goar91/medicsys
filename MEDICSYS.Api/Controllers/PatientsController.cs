@@ -10,7 +10,7 @@ namespace MEDICSYS.Api.Controllers;
 
 [ApiController]
 [Route("api/patients")]
-[Authorize]
+[Authorize(Roles = Roles.Odontologo)]
 public class PatientsController : ControllerBase
 {
     private readonly AppDbContext _db;

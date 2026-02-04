@@ -5,13 +5,18 @@ Plataforma para historias clinicas universitarias con flujo alumno-profesor.
 ## Requisitos
 - .NET SDK 9
 - Node.js (LTS)
-- PostgreSQL (latest) o Docker
+- PostgreSQL (latest)
+
+## Estrategia de Base de Datos (2026-02)
+Para preservar todos los datos y evitar pÃ©rdidas, se mantiene una base de datos separada por mÃ³dulo:
+- `medicsys` (core: agenda, pacientes, historias clÃ­nicas, recordatorios)
+- `medicsys_academico` (academic + identidad/roles)
+- `medicsys_odontologia` (odontologÃ­a: inventario, contabilidad, facturaciÃ³n, pacientes odontolÃ³gicos)
+
+Esta separaciÃ³n evita migraciones destructivas y mantiene los datos existentes. La API sincroniza usuarios desde el contexto acadÃ©mico hacia el core para garantizar consistencia de nombres y correos.
 
 ## Backend (API)
-1) Inicia PostgreSQL:
-   - Con Docker:
-     - `docker compose up -d`
-   - O instala PostgreSQL y crea la base `medicsys`.
+1) Inicia PostgreSQL e instala la base `medicsys`.
 2) Configura la cadena de conexion si aplica: `MEDICSYS.Api/appsettings.json`.
 3) Restaura herramientas:
    - `dotnet tool restore`

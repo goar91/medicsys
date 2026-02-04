@@ -14,20 +14,12 @@ Get-Process | Where-Object { $_.ProcessName -match "dotnet|node" -and $_.Path -l
 }
 Write-Host "   ✅ Procesos detenidos" -ForegroundColor Green
 
-# Detener Docker
-Write-Host "`n2. Deteniendo contenedores Docker..." -ForegroundColor Yellow
-Set-Location "d:\Programación\MEDICSYS"
-docker compose down 2>&1 | Out-Null
-Write-Host "   ✅ Docker detenido" -ForegroundColor Green
-
-# Iniciar Docker
-Write-Host "`n3. Iniciando PostgreSQL en Docker..." -ForegroundColor Yellow
-docker compose up -d
-Start-Sleep -Seconds 5
-Write-Host "   ✅ PostgreSQL iniciado" -ForegroundColor Green
+# Verificar PostgreSQL
+Write-Host "`n2. Verificando PostgreSQL..." -ForegroundColor Yellow
+Write-Host "   Asegúrate de que PostgreSQL esté iniciado en el puerto 5432." -ForegroundColor Gray
 
 # Compilar Backend
-Write-Host "`n4. Compilando Backend (.NET 9)..." -ForegroundColor Yellow
+Write-Host "`n3. Compilando Backend (.NET 9)..." -ForegroundColor Yellow
 Set-Location "d:\Programación\MEDICSYS\MEDICSYS.Api"
 dotnet build --configuration Release > $null 2>&1
 if ($LASTEXITCODE -eq 0) {
@@ -38,12 +30,12 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 # Iniciar Backend
-Write-Host "`n5. Iniciando Backend API..." -ForegroundColor Yellow
+Write-Host "`n4. Iniciando Backend API..." -ForegroundColor Yellow
 Start-Process cmd -ArgumentList "/c", "cd /d `"d:\Programación\MEDICSYS\MEDICSYS.Api`" && dotnet run" -WindowStyle Minimized
 Write-Host "   ✅ Backend iniciado en segundo plano" -ForegroundColor Green
 
 # Compilar Frontend
-Write-Host "`n6. Instalando dependencias del Frontend..." -ForegroundColor Yellow
+Write-Host "`n5. Instalando dependencias del Frontend..." -ForegroundColor Yellow
 Set-Location "d:\Programación\MEDICSYS\MEDICSYS.Web"
 if (-not (Test-Path "node_modules")) {
     npm install > $null 2>&1
@@ -53,12 +45,12 @@ if (-not (Test-Path "node_modules")) {
 }
 
 # Iniciar Frontend
-Write-Host "`n7. Iniciando Frontend (Angular 21)..." -ForegroundColor Yellow
+Write-Host "`n6. Iniciando Frontend (Angular 21)..." -ForegroundColor Yellow
 Start-Process cmd -ArgumentList "/c", "cd /d `"d:\Programación\MEDICSYS\MEDICSYS.Web`" && npm start" -WindowStyle Minimized
 Write-Host "   ✅ Frontend iniciado en segundo plano" -ForegroundColor Green
 
 # Esperar servicios
-Write-Host "`n8. Esperando que los servicios estén listos..." -ForegroundColor Yellow
+Write-Host "`n7. Esperando que los servicios estén listos..." -ForegroundColor Yellow
 Write-Host "   (Esto puede tardar 1-2 minutos)" -ForegroundColor Gray
 
 $maxAttempts = 30
@@ -133,7 +125,7 @@ Write-Host "   ✅ Edición de citas" -ForegroundColor Green
 Write-Host "   ✅ Auto-eliminación de citas pasadas" -ForegroundColor Green
 Write-Host ""
 Write-Host "📋 Acciones disponibles:" -ForegroundColor White
-Write-Host "   - Dashboard → 'Ver Historias' para acceder al listado" -ForegroundColor Gray
+Write-Host "   - Dashboard → Ver Historias para acceder al listado" -ForegroundColor Gray
 Write-Host "   - Agenda con calendario moderno y gestión de citas" -ForegroundColor Gray
 Write-Host "   - Búsqueda por nombre, cédula o número de HC" -ForegroundColor Gray
 Write-Host ""

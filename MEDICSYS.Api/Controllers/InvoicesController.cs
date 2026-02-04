@@ -141,10 +141,8 @@ public class InvoicesController : ControllerBase
 
         await RegisterAccountingEntryAsync(invoice);
 
-        if (request.SendToSri)
-        {
-            await SendToSriInternalAsync(invoice);
-        }
+        // NO enviar automáticamente al SRI
+        // El usuario debe enviar manualmente desde el módulo de autorización SRI
 
         return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, Map(invoice));
     }

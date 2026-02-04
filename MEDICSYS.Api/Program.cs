@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +26,11 @@ try
             .ReadFrom.Services(services)
             .Enrich.FromLogContext());
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
     builder.Services.AddOpenApi();
 
     // DbContext principal (historiales, agenda, pacientes, recordatorios)
@@ -134,44 +139,7 @@ try
         await AcademicSeedData.SeedAsync(academicDb, userManager);
         await OdontologoSeedData.SeedAsync(odontologoDb, userManager);
 
-        // Sincronizar usuarios del contexto académico al contexto principal
-        var academicUsers = await academicDb.Users.AsNoTracking().ToListAsync();
-        var appUsers = await appDb.Users.AsNoTracking().ToListAsync();
-        var appUserIds = new HashSet<Guid>(appUsers.Select(u => u.Id));
-        var appUserNames = new HashSet<string>(appUsers.Select(u => u.NormalizedUserName ?? string.Empty));
-        var appEmails = new HashSet<string>(appUsers.Select(u => u.NormalizedEmail ?? string.Empty));
-
-        var missingUsers = academicUsers
-            .Where(u => !appUserIds.Contains(u.Id))
-            .Where(u => string.IsNullOrWhiteSpace(u.NormalizedUserName) || !appUserNames.Contains(u.NormalizedUserName))
-            .Where(u => string.IsNullOrWhiteSpace(u.NormalizedEmail) || !appEmails.Contains(u.NormalizedEmail))
-            .Select(u => new ApplicationUser
-            {
-                Id = u.Id,
-                FullName = u.FullName,
-                UniversityId = u.UniversityId,
-                UserName = u.UserName,
-                NormalizedUserName = u.NormalizedUserName,
-                Email = u.Email,
-                NormalizedEmail = u.NormalizedEmail,
-                EmailConfirmed = u.EmailConfirmed,
-                PasswordHash = u.PasswordHash,
-                SecurityStamp = u.SecurityStamp,
-                ConcurrencyStamp = u.ConcurrencyStamp,
-                PhoneNumber = u.PhoneNumber,
-                PhoneNumberConfirmed = u.PhoneNumberConfirmed,
-                TwoFactorEnabled = u.TwoFactorEnabled,
-                LockoutEnd = u.LockoutEnd,
-                LockoutEnabled = u.LockoutEnabled,
-                AccessFailedCount = u.AccessFailedCount
-            })
-            .ToList();
-
-        if (missingUsers.Count > 0)
-        {
-            appDb.Users.AddRange(missingUsers);
-            await appDb.SaveChangesAsync();
-        }
+        // Sincronización de usuarios se ejecuta fuera del bloque de entorno
     }
     else
     {
@@ -193,6 +161,8 @@ try
         });
     }
 
+    await SyncAcademicUsersAsync(app.Services);
+
     app.UseCors("WebApp");
     app.UseStaticFiles();
     app.UseAuthentication();
@@ -201,6 +171,65 @@ try
     app.MapControllers();
 
     await app.RunAsync();
+
+    static async Task SyncAcademicUsersAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var academicDb = scope.ServiceProvider.GetRequiredService<AcademicDbContext>();
+        var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var academicUsers = await academicDb.Users.AsNoTracking().ToListAsync();
+        var appUsers = await appDb.Users.ToListAsync();
+        var appUsersById = appUsers.ToDictionary(u => u.Id, u => u);
+
+        foreach (var user in academicUsers)
+        {
+            if (appUsersById.TryGetValue(user.Id, out var existing))
+            {
+                existing.FullName = user.FullName;
+                existing.UniversityId = user.UniversityId;
+                existing.UserName = user.UserName;
+                existing.NormalizedUserName = user.NormalizedUserName;
+                existing.Email = user.Email;
+                existing.NormalizedEmail = user.NormalizedEmail;
+                existing.EmailConfirmed = user.EmailConfirmed;
+                existing.PasswordHash = user.PasswordHash;
+                existing.SecurityStamp = user.SecurityStamp;
+                existing.ConcurrencyStamp = user.ConcurrencyStamp;
+                existing.PhoneNumber = user.PhoneNumber;
+                existing.PhoneNumberConfirmed = user.PhoneNumberConfirmed;
+                existing.TwoFactorEnabled = user.TwoFactorEnabled;
+                existing.LockoutEnd = user.LockoutEnd;
+                existing.LockoutEnabled = user.LockoutEnabled;
+                existing.AccessFailedCount = user.AccessFailedCount;
+            }
+            else
+            {
+                appDb.Users.Add(new ApplicationUser
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    UniversityId = user.UniversityId,
+                    UserName = user.UserName,
+                    NormalizedUserName = user.NormalizedUserName,
+                    Email = user.Email,
+                    NormalizedEmail = user.NormalizedEmail,
+                    EmailConfirmed = user.EmailConfirmed,
+                    PasswordHash = user.PasswordHash,
+                    SecurityStamp = user.SecurityStamp,
+                    ConcurrencyStamp = user.ConcurrencyStamp,
+                    PhoneNumber = user.PhoneNumber,
+                    PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                    TwoFactorEnabled = user.TwoFactorEnabled,
+                    LockoutEnd = user.LockoutEnd,
+                    LockoutEnabled = user.LockoutEnabled,
+                    AccessFailedCount = user.AccessFailedCount
+                });
+            }
+        }
+
+        await appDb.SaveChangesAsync();
+    }
 }
 catch (Exception ex)
 {

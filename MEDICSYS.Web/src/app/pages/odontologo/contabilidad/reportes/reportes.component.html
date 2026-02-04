@@ -1,0 +1,344 @@
+<div class="reportes-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Reportes Financieros</h1>
+        <p>Análisis detallado del desempeño financiero</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action" (click)="exportToPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+        PDF
+      </button>
+      <button class="btn-action" (click)="exportToExcel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'financial'" (click)="setActiveTab('financial')">
+      Reporte Financiero
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'sales'" (click)="setActiveTab('sales')">
+      Reporte de Ventas
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'comparative'" (click)="setActiveTab('comparative')">
+      Comparativo
+    </button>
+  </div>
+
+  <!-- Financial Report -->
+  @if (activeTab() === 'financial') {
+    <div class="report-content">
+      <!-- Filters -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="financialStartDate" (change)="loadFinancialReport()">
+        </div>
+        <div class="filter-group">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="financialEndDate" (change)="loadFinancialReport()">
+        </div>
+        <button class="btn-apply" (click)="loadFinancialReport()">Aplicar</button>
+      </div>
+
+      @if (loading()) {
+        <div class="loading">Generando reporte...</div>
+      } @else if (financialReport()) {
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+          <div class="summary-card green">
+            <h3>Ingresos Totales</h3>
+            <div class="value">${{ financialReport()!.summary.totalIncome | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card red">
+            <h3>Gastos Totales</h3>
+            <div class="value">${{ financialReport()!.summary.totalExpenses | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card purple">
+            <h3>Compras Totales</h3>
+            <div class="value">${{ financialReport()!.summary.totalPurchases | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card blue">
+            <h3>Utilidad Neta</h3>
+            <div class="value">${{ financialReport()!.summary.profit | number:'1.2-2' }}</div>
+            <div class="meta">Margen: {{ financialReport()!.summary.profitMargin | number:'1.1-1' }}%</div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+          <!-- Income vs Expenses Chart -->
+          <div class="chart-card">
+            <h3>Ingresos vs Gastos por Mes</h3>
+            <div class="bar-chart">
+              @for (item of financialReport()!.incomeByMonth; track item.month) {
+                <div class="bar-group">
+                  <div class="bars">
+                    <div class="bar green" 
+                         [style.height.%]="getBarHeight(item.amount, maxIncomeValue())"
+                         [title]="'Ingreso: $' + (item.amount | number:'1.2-2')">
+                    </div>
+                    @for (expense of financialReport()!.expensesByMonth; track expense.month) {
+                      @if (expense.month === item.month) {
+                        <div class="bar red"
+                             [style.height.%]="getBarHeight(expense.amount, maxIncomeValue())"
+                             [title]="'Gasto: $' + (expense.amount | number:'1.2-2')">
+                        </div>
+                      }
+                    }
+                  </div>
+                  <div class="bar-label">{{ item.month }}</div>
+                </div>
+              }
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-dot green"></span>
+                Ingresos
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot red"></span>
+                Gastos
+              </div>
+            </div>
+          </div>
+
+          <!-- Expenses by Category -->
+          <div class="chart-card">
+            <h3>Gastos por Categoría</h3>
+            <div class="category-chart">
+              @for (category of financialReport()!.expensesByCategory; track category.category; let idx = $index) {
+                <div class="category-bar">
+                  <div class="category-label">{{ category.category }}</div>
+                  <div class="category-progress">
+                    <div class="category-fill"
+                         [style.width.%]="getBarHeight(category.amount, maxExpenseCategoryValue())"
+                         [style.background]="getCategoryColor(idx)">
+                    </div>
+                  </div>
+                  <div class="category-value">${{ category.amount | number:'1.2-2' }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Summary -->
+        <div class="inventory-summary">
+          <h3>Resumen de Inventario</h3>
+          <div class="inventory-grid">
+            <div class="inventory-stat">
+              <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Total Items</div>
+                <div class="stat-value">{{ financialReport()!.inventorySummary.totalItems }}</div>
+              </div>
+            </div>
+            <div class="inventory-stat">
+              <div class="stat-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Valor Total</div>
+                <div class="stat-value">${{ financialReport()!.inventorySummary.totalValue | number:'1.2-2' }}</div>
+              </div>
+            </div>
+            <div class="inventory-stat">
+              <div class="stat-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Stock Bajo</div>
+                <div class="stat-value">{{ financialReport()!.inventorySummary.lowStockItems }}</div>
+              </div>
+            </div>
+            <div class="inventory-stat">
+              <div class="stat-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Promedio Stock</div>
+                <div class="stat-value">{{ financialReport()!.inventorySummary.averageStock | number:'1.0-0' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Sales Report -->
+  @if (activeTab() === 'sales') {
+    <div class="report-content">
+      <!-- Filters -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="salesStartDate" (change)="loadSalesReport()">
+        </div>
+        <div class="filter-group">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="salesEndDate" (change)="loadSalesReport()">
+        </div>
+        <button class="btn-apply" (click)="loadSalesReport()">Aplicar</button>
+      </div>
+
+      @if (loading()) {
+        <div class="loading">Generando reporte...</div>
+      } @else if (salesReport()) {
+        <!-- Summary -->
+        <div class="summary-grid">
+          <div class="summary-card blue">
+            <h3>Ventas Totales</h3>
+            <div class="value">${{ salesReport()!.summary.totalSales | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card green">
+            <h3>Facturas Emitidas</h3>
+            <div class="value">{{ salesReport()!.summary.invoiceCount }}</div>
+          </div>
+          <div class="summary-card purple">
+            <h3>Ticket Promedio</h3>
+            <div class="value">${{ salesReport()!.summary.averageTicket | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <!-- Top Services -->
+          <div class="chart-card">
+            <h3>Top 10 Servicios</h3>
+            <div class="services-list">
+              @for (service of salesReport()!.topServices; track service.service) {
+                <div class="service-item">
+                  <div class="service-name">{{ service.service }}</div>
+                  <div class="service-bar">
+                    <div class="service-fill"
+                         [style.width.%]="getBarHeight(service.revenue, maxServiceRevenueValue())">
+                    </div>
+                  </div>
+                  <div class="service-value">${{ service.revenue | number:'1.2-2' }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Payment Methods -->
+          <div class="chart-card">
+            <h3>Métodos de Pago</h3>
+            <div class="payment-chart">
+              @for (payment of salesReport()!.paymentMethods; track payment.method) {
+                <div class="payment-item">
+                  <div class="payment-header">
+                    <span class="payment-method">{{ payment.method }}</span>
+                    <span class="payment-count">{{ payment.count }} transacciones</span>
+                  </div>
+                  <div class="payment-bar">
+                    <div class="payment-fill"
+                         [style.width.%]="getBarHeight(payment.amount, maxPaymentValue())">
+                    </div>
+                  </div>
+                  <div class="payment-value">${{ payment.amount | number:'1.2-2' }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Comparative Report -->
+  @if (activeTab() === 'comparative') {
+    <div class="report-content">
+      <!-- Filter -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Meses a Comparar</label>
+          <select [(ngModel)]="comparativeMonths" (change)="loadComparativeReport()">
+            <option [value]="3">3 meses</option>
+            <option [value]="6">6 meses</option>
+            <option [value]="12">12 meses</option>
+          </select>
+        </div>
+        <button class="btn-apply" (click)="loadComparativeReport()">Aplicar</button>
+      </div>
+
+      @if (loading()) {
+        <div class="loading">Generando reporte...</div>
+      } @else if (comparativeReport()) {
+        <!-- Averages -->
+        <div class="summary-grid">
+          <div class="summary-card green">
+            <h3>Ingreso Promedio</h3>
+            <div class="value">${{ comparativeReport()!.averageIncome | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card red">
+            <h3>Gasto Promedio</h3>
+            <div class="value">${{ comparativeReport()!.averageExpenses | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-card blue">
+            <h3>Utilidad Promedio</h3>
+            <div class="value">${{ comparativeReport()!.averageProfit | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <!-- Monthly Comparison Table -->
+        <div class="table-card">
+          <h3>Comparación Mensual</h3>
+          <table class="comparative-table">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Ingresos</th>
+                <th>Gastos</th>
+                <th>Utilidad</th>
+                <th>Margen %</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (month of comparativeReport()!.data; track month.month) {
+                <tr>
+                  <td class="month-name">{{ month.monthName }}</td>
+                  <td class="income">${{ month.income | number:'1.2-2' }}</td>
+                  <td class="expense">${{ month.expenses | number:'1.2-2' }}</td>
+                  <td class="profit" [class.negative]="month.profit < 0">
+                    ${{ month.profit | number:'1.2-2' }}
+                  </td>
+                  <td>
+                    {{ month.income > 0 ? ((month.profit / month.income) * 100 | number:'1.1-1') : 0 }}%
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

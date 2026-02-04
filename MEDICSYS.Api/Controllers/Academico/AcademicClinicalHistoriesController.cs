@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace MEDICSYS.Api.Controllers.Academico;
 
 [ApiController]
 [Route("api/academic/clinical-histories")]
-[Authorize]
+[Authorize(Roles = $"{Roles.Student},{Roles.Professor}")]
 public class AcademicClinicalHistoriesController : ControllerBase
 {
     private readonly AcademicDbContext _db;
@@ -25,7 +26,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AcademicClinicalHistoryDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<AcademicClinicalHistoryDto>>> GetAll([FromQuery] Guid? studentId, [FromQuery] string? status)
     {
         var userId = GetUserId();
         var isProfessor = User.IsInRole(Roles.Professor);
@@ -39,6 +40,15 @@ public class AcademicClinicalHistoriesController : ControllerBase
         if (!isProfessor)
         {
             query = query.Where(h => h.StudentId == userId);
+        }
+        else if (studentId.HasValue)
+        {
+            query = query.Where(h => h.StudentId == studentId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<ClinicalHistoryStatus>(status, true, out var parsedStatus))
+        {
+            query = query.Where(h => h.Status == parsedStatus);
         }
 
         var histories = await query
@@ -61,6 +71,11 @@ public class AcademicClinicalHistoriesController : ControllerBase
 
         if (history == null)
             return NotFound();
+
+        if (history.Status != ClinicalHistoryStatus.Submitted)
+        {
+            return BadRequest(new { message = "La historia clínica debe estar enviada para revisión." });
+        }
 
         // Alumno solo puede ver las suyas
         if (!isProfessor && history.StudentId != userId)
@@ -107,17 +122,61 @@ public class AcademicClinicalHistoriesController : ControllerBase
         if (history == null)
             return NotFound();
 
-        // Alumno solo puede editar las suyas si están en Draft
+        // Alumno solo puede editar las suyas si están en Draft o Rejected
         if (!isProfessor)
         {
             if (history.StudentId != userId)
                 return Forbid();
 
-            if (history.Status != ClinicalHistoryStatus.Draft)
-                return BadRequest(new { message = "Solo se pueden editar historias en estado Draft" });
+            if (history.Status == ClinicalHistoryStatus.Submitted || history.Status == ClinicalHistoryStatus.Approved)
+            {
+                return BadRequest(new { message = "Solo se pueden editar historias en estado Draft o Rejected" });
+            }
         }
 
         history.Data = request.Data;
+        history.UpdatedAt = DateTime.UtcNow;
+
+        if (!isProfessor && history.Status == ClinicalHistoryStatus.Rejected)
+        {
+            history.Status = ClinicalHistoryStatus.Draft;
+            history.ReviewedAt = null;
+            history.ReviewedByProfessorId = null;
+            history.ProfessorComments = null;
+        }
+
+        await _db.SaveChangesAsync();
+
+        return Ok(MapToDto(history));
+    }
+
+    [HttpPost("{id:guid}/submit")]
+    [Authorize(Roles = Roles.Student)]
+    public async Task<ActionResult<AcademicClinicalHistoryDto>> Submit(Guid id)
+    {
+        var studentId = GetUserId();
+
+        var history = await _db.AcademicClinicalHistories
+            .Include(h => h.Student)
+            .Include(h => h.ReviewedByProfessor)
+            .FirstOrDefaultAsync(h => h.Id == id);
+
+        if (history == null)
+        {
+            return NotFound();
+        }
+
+        if (history.StudentId != studentId)
+        {
+            return Forbid();
+        }
+
+        if (history.Status != ClinicalHistoryStatus.Draft)
+        {
+            return BadRequest(new { message = "La historia clínica debe estar en estado Draft para enviar." });
+        }
+
+        history.Status = ClinicalHistoryStatus.Submitted;
         history.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -139,7 +198,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
             return NotFound();
 
         history.ReviewedByProfessorId = professorId;
-        history.ProfessorComments = request.Comments;
+        history.ProfessorComments = request.ReviewNotes;
         history.Status = request.Approved ? ClinicalHistoryStatus.Approved : ClinicalHistoryStatus.Rejected;
         history.ReviewedAt = DateTime.UtcNow;
         history.UpdatedAt = DateTime.UtcNow;
@@ -170,7 +229,9 @@ public record CreateAcademicClinicalHistoryRequest(JsonObject Data);
 
 public record UpdateAcademicClinicalHistoryRequest(JsonObject Data);
 
-public record ReviewAcademicClinicalHistoryRequest(bool Approved, string? Comments);
+public record ReviewAcademicClinicalHistoryRequest(
+    bool Approved,
+    [property: JsonPropertyName("reviewNotes")] string? ReviewNotes);
 
 public record AcademicClinicalHistoryDto(
     Guid Id,

@@ -243,6 +243,12 @@ export class AppointmentModalComponent implements OnInit {
 
     const formValue = this.appointmentForm.getRawValue();
     
+    // Validar que haya un nombre de paciente
+    if (!formValue.patientName || formValue.patientName.trim() === '') {
+      alert('Debes seleccionar un paciente de la lista o ingresar el nombre del paciente');
+      return;
+    }
+    
     // Profesor: requiere estudiante seleccionado
     // Alumno: usa su propio ID
     // Odontólogo: usa su propio ID (no requiere estudiante separado)

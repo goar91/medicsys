@@ -1,0 +1,329 @@
+<div class="kardex-container">
+  <div class="header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Inventario Kardex</h1>
+        <p>Control de movimientos y existencias</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action blue" (click)="openModal('create')">+ Nuevo Item</button>
+      <button class="btn-action green" (click)="openModal('entry')">+ Entrada</button>
+      <button class="btn-action red" (click)="openModal('exit')">- Salida</button>
+      <button class="btn-action orange" (click)="openModal('adjustment')">⚙ Ajuste</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input type="text" [ngModel]="filterText()" (ngModelChange)="filterText.set($event)" placeholder="Buscar por nombre, SKU o descripción...">
+    <label><input type="checkbox" [ngModel]="filterLowStock()" (ngModelChange)="filterLowStock.set($event)"> Stock Bajo</label>
+    <label><input type="checkbox" [ngModel]="filterExpiring()" (ngModelChange)="filterExpiring.set($event)"> Por Vencer</label>
+  </div>
+
+  <!-- Items Table -->
+  <div class="table-container">
+    @if (loading()) {
+      <div class="loading">Cargando inventario...</div>
+    } @else {
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Stock</th>
+            <th>Costo Promedio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filteredItems(); track item.id) {
+            <tr [class]="getStatusClass(item)">
+              <td>{{ item.sku || '-' }}</td>
+              <td>
+                <strong>{{ item.name }}</strong>
+                @if (item.description) {
+                  <small>{{ item.description }}</small>
+                }
+              </td>
+              <td>{{ item.location || '-' }}</td>
+              <td>
+                <span class="stock">{{ item.quantity }}</span>
+                <small>Min: {{ item.minimumQuantity }}</small>
+              </td>
+              <td>${{ item.averageCost || item.unitPrice | number:'1.2-2' }}</td>
+              <td>
+                @if (item.isLowStock) {
+                  <span class="badge low-stock">Stock Bajo</span>
+                }
+                @if (item.needsReorder) {
+                  <span class="badge reorder">Reordenar</span>
+                }
+                @if (item.isExpiringSoon) {
+                  <span class="badge expiring">Por Vencer</span>
+                }
+              </td>
+              <td>
+                <div class="actions">
+                  <button class="btn-icon" (click)="openModal('kardex', item)" title="Ver Kardex">📊</button>
+                  <button class="btn-icon" (click)="openModal('entry', item)" title="Entrada">+</button>
+                  <button class="btn-icon" (click)="openModal('exit', item)" title="Salida">-</button>
+                  <button class="btn-icon" (click)="openModal('edit', item)" title="Editar">✏️</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Modal -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>
+            @switch (modalType()) {
+              @case ('entry') { Entrada de Inventario }
+              @case ('exit') { Salida de Inventario }
+              @case ('adjustment') { Ajuste de Inventario }
+              @case ('edit') { Editar Item }
+              @case ('create') { Nuevo Item de Inventario }
+              @case ('kardex') { Kardex - {{ selectedItem()?.name }} }
+            }
+          </h2>
+          <button class="btn-close" (click)="closeModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+          @if (modalType() === 'create') {
+            <form [formGroup]="createForm" (ngSubmit)="saveCreate()">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nombre *</label>
+                  <input type="text" formControlName="name" placeholder="Ej: Guantes de látex">
+                </div>
+                <div class="form-group">
+                  <label>SKU</label>
+                  <input type="text" formControlName="sku" placeholder="Ej: GLV-001">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Descripción</label>
+                <textarea formControlName="description" rows="2" placeholder="Descripción del producto"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Cantidad Inicial</label>
+                  <input type="number" formControlName="initialQuantity" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                  <label>Precio Unitario *</label>
+                  <input type="number" formControlName="unitPrice" step="0.01" min="0" placeholder="0.00">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Stock Mínimo *</label>
+                  <input type="number" formControlName="minimumQuantity" min="0" placeholder="10">
+                </div>
+                <div class="form-group">
+                  <label>Stock Máximo</label>
+                  <input type="number" formControlName="maximumQuantity" min="0" placeholder="100">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Punto de Reorden</label>
+                  <input type="number" formControlName="reorderPoint" min="0" placeholder="20">
+                </div>
+                <div class="form-group">
+                  <label>Proveedor</label>
+                  <input type="text" formControlName="supplier" placeholder="Nombre del proveedor">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Ubicación</label>
+                  <input type="text" formControlName="location" placeholder="Ej: Estante A3">
+                </div>
+                <div class="form-group">
+                  <label>Lote</label>
+                  <input type="text" formControlName="batch" placeholder="Número de lote">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Fecha de Vencimiento</label>
+                <input type="date" formControlName="expirationDate">
+              </div>
+              <button type="submit" class="btn-primary" [disabled]="createForm.invalid">Crear Item</button>
+            </form>
+          }
+
+          @if (modalType() === 'entry' || modalType() === 'exit') {
+            <form [formGroup]="movementForm" (ngSubmit)="saveMovement()">
+              @if (!selectedItem()) {
+                <div class="form-group">
+                  <label>Seleccionar Item *</label>
+                  <select formControlName="inventoryItemId" (change)="onItemSelected($event)">
+                    <option value="">-- Seleccione un item --</option>
+                    @for (item of items(); track item.id) {
+                      <option [value]="item.id">{{ item.name }} ({{ item.sku }}) - Stock: {{ item.quantity }}</option>
+                    }
+                  </select>
+                </div>
+              } @else {
+                <div class="form-group">
+                  <label>Item</label>
+                  <input type="text" [value]="selectedItem()!.name + ' - Stock actual: ' + selectedItem()!.quantity" readonly>
+                </div>
+              }
+              <div class="form-group">
+                <label>Cantidad *</label>
+                <input type="number" formControlName="quantity" min="1">
+              </div>
+              <div class="form-group">
+                <label>Precio Unitario *</label>
+                <input type="number" formControlName="unitPrice" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" formControlName="movementDate">
+              </div>
+              <div class="form-group">
+                <label>Referencia</label>
+                <input type="text" formControlName="reference">
+              </div>
+              <div class="form-group">
+                <label>Notas</label>
+                <textarea formControlName="notes" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn-primary" [disabled]="movementForm.invalid">Guardar</button>
+            </form>
+          }
+
+          @if (modalType() === 'adjustment') {
+            <form [formGroup]="movementForm" (ngSubmit)="saveMovement()">
+              @if (!selectedItem()) {
+                <div class="form-group">
+                  <label>Seleccionar Item *</label>
+                  <select formControlName="inventoryItemId" (change)="onItemSelected($event)">
+                    <option value="">-- Seleccione un item --</option>
+                    @for (item of items(); track item.id) {
+                      <option [value]="item.id">{{ item.name }} ({{ item.sku }}) - Stock: {{ item.quantity }}</option>
+                    }
+                  </select>
+                </div>
+              } @else {
+                <div class="form-group">
+                  <label>Item</label>
+                  <input type="text" [value]="selectedItem()!.name + ' - Stock actual: ' + selectedItem()!.quantity" readonly>
+                </div>
+              }
+              <div class="form-group">
+                <label>Nueva Cantidad *</label>
+                <input type="number" formControlName="newQuantity" min="0">
+              </div>
+              <div class="form-group">
+                <label>Razón del Ajuste *</label>
+                <input type="text" formControlName="reason">
+              </div>
+              <div class="form-group">
+                <label>Notas</label>
+                <textarea formControlName="notes" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn-primary" [disabled]="movementForm.invalid">Guardar</button>
+            </form>
+          }
+
+          @if (modalType() === 'edit') {
+            <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nombre *</label>
+                  <input type="text" formControlName="name">
+                </div>
+                <div class="form-group">
+                  <label>SKU</label>
+                  <input type="text" formControlName="sku">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Stock Mínimo</label>
+                  <input type="number" formControlName="minimumQuantity">
+                </div>
+                <div class="form-group">
+                  <label>Punto de Reorden</label>
+                  <input type="number" formControlName="reorderPoint">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Ubicación</label>
+                  <input type="text" formControlName="location">
+                </div>
+                <div class="form-group">
+                  <label>Lote</label>
+                  <input type="text" formControlName="batch">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary" [disabled]="editForm.invalid">Guardar</button>
+            </form>
+          }
+
+          @if (modalType() === 'kardex' && kardexReport()) {
+            <div class="kardex-report">
+              <div class="kardex-summary">
+                <div class="summary-item">
+                  <label>Entradas</label>
+                  <span>{{ kardexReport()!.summary.totalEntries }}</span>
+                </div>
+                <div class="summary-item">
+                  <label>Salidas</label>
+                  <span>{{ kardexReport()!.summary.totalExits }}</span>
+                </div>
+                <div class="summary-item">
+                  <label>Stock Actual</label>
+                  <span>{{ kardexReport()!.summary.currentStock }}</span>
+                </div>
+              </div>
+              <table class="movements-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Cant.</th>
+                    <th>Stock Antes</th>
+                    <th>Stock Después</th>
+                    <th>Referencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (mov of kardexReport()!.movements; track mov.id) {
+                    <tr>
+                      <td>{{ mov.movementDate | date:'dd/MM/yyyy' }}</td>
+                      <td>{{ getMovementTypeLabel(mov.movementType) }}</td>
+                      <td>{{ mov.quantity }}</td>
+                      <td>{{ mov.stockBefore }}</td>
+                      <td>{{ mov.stockAfter }}</td>
+                      <td>{{ mov.reference || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

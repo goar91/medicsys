@@ -16,11 +16,13 @@ public class AgendaController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ILogger<AgendaController> _logger;
 
-    public AgendaController(AppDbContext db, UserManager<ApplicationUser> userManager)
+    public AgendaController(AppDbContext db, UserManager<ApplicationUser> userManager, ILogger<AgendaController> logger)
     {
         _db = db;
         _userManager = userManager;
+        _logger = logger;
     }
 
     [Authorize]
@@ -57,51 +59,93 @@ public class AgendaController : ControllerBase
     [HttpPost("appointments")]
     public async Task<ActionResult<AppointmentDto>> CreateAppointment(AppointmentRequest request)
     {
+        _logger.LogInformation("CreateAppointment called with payload: {@Request}", request);
+
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("Model validation failed: {@Errors}", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return BadRequest(ModelState);
+        }
+
+        if (request.StartAt >= request.EndAt)
+        {
+            return BadRequest(new { message = "La hora de inicio debe ser menor a la hora de fin." });
+        }
+
         var userId = GetUserId();
-        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+        var isProfessor = User.IsInRole(Roles.Professor);
         var isOdontologo = User.IsInRole(Roles.Odontologo);
+        var isProvider = isProfessor || isOdontologo;
+
+        Guid professorId;
+        if (isProvider)
+        {
+            professorId = userId;
+        }
+        else
+        {
+            if (!request.ProfessorId.HasValue || request.ProfessorId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Debe seleccionar un profesor/odontólogo." });
+            }
+            professorId = request.ProfessorId.Value;
+        }
+
+        Guid studentId;
+        if (!request.StudentId.HasValue || request.StudentId == Guid.Empty)
+        {
+            if (!isProvider)
+            {
+                studentId = userId;
+            }
+            else if (isOdontologo)
+            {
+                studentId = userId;
+            }
+            else
+            {
+                return BadRequest(new { message = "Debe seleccionar un alumno." });
+            }
+        }
+        else
+        {
+            studentId = request.StudentId.Value;
+        }
 
         // Validación para alumno
-        if (!isProvider && request.StudentId != userId)
+        if (!isProvider && studentId != userId)
         {
             return Forbid();
         }
 
-        // Si es proveedor, establecer su ID como professorId
-        if (isProvider)
+        if (string.IsNullOrWhiteSpace(request.PatientName))
         {
-            request.ProfessorId = userId;
+            return BadRequest(new { message = "El nombre del paciente es requerido." });
         }
 
-        // Si no se proporciona StudentId, usar el userId (para Odontólogos)
-        if (!request.StudentId.HasValue || request.StudentId == Guid.Empty)
-        {
-            request.StudentId = userId;
-        }
+        var student = await EnsureUserAsync(studentId);
+        var professor = await EnsureUserAsync(professorId);
 
-        var student = await EnsureUserAsync(request.StudentId.Value);
-        var professor = await EnsureUserAsync(request.ProfessorId);
-        
         if (student == null)
         {
-            return BadRequest(new { message = $"Usuario con ID {request.StudentId} no encontrado." });
+            return BadRequest(new { message = $"Usuario con ID {studentId} no encontrado." });
         }
         if (professor == null)
         {
-            return BadRequest(new { message = $"Odontólogo con ID {request.ProfessorId} no encontrado." });
+            return BadRequest(new { message = $"Odontólogo con ID {professorId} no encontrado." });
         }
 
         var appointment = new Appointment
         {
             Id = Guid.NewGuid(),
-            StudentId = request.StudentId.Value,
-            ProfessorId = request.ProfessorId,
+            StudentId = studentId,
+            ProfessorId = professorId,
             PatientName = request.PatientName,
             Reason = request.Reason,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
             Notes = request.Notes,
-            Status = request.Status ?? AppointmentStatus.Pending,
+            Status = isProvider ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -132,7 +176,7 @@ public class AgendaController : ControllerBase
             professorId ??= userId;
         }
 
-        var dayStart = date.Date;
+        var dayStart = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
         var dayEnd = dayStart.AddDays(1);
 
         var query = _db.Appointments.AsNoTracking().Where(x => x.StartAt >= dayStart && x.StartAt < dayEnd);
@@ -183,6 +227,11 @@ public class AgendaController : ControllerBase
             return Forbid();
         }
 
+        if (!isProvider && appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Cancelled)
+        {
+            return BadRequest(new { message = "Solo puedes modificar citas pendientes." });
+        }
+
         // Actualizar campos si se proporcionan
         if (!string.IsNullOrWhiteSpace(request.PatientName))
         {
@@ -196,12 +245,45 @@ public class AgendaController : ControllerBase
         {
             appointment.Notes = request.Notes;
         }
-        if (request.Status.HasValue)
+        if (request.Status.HasValue && isProvider)
         {
             appointment.Status = request.Status.Value;
         }
 
         appointment.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(Map(appointment));
+    }
+
+    [Authorize(Roles = $"{Roles.Professor},{Roles.Odontologo}")]
+    [HttpPost("appointments/{id:guid}/review")]
+    public async Task<ActionResult<AppointmentDto>> ReviewAppointment(Guid id, [FromBody] AppointmentReviewRequest request)
+    {
+        var userId = GetUserId();
+
+        var appointment = await _db.Appointments
+            .Include(x => x.Student)
+            .Include(x => x.Professor)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+
+        if (appointment.ProfessorId != userId)
+        {
+            return Forbid();
+        }
+
+        appointment.Status = request.Approved ? AppointmentStatus.Confirmed : AppointmentStatus.Cancelled;
+        if (!string.IsNullOrWhiteSpace(request.Notes))
+        {
+            appointment.Notes = request.Notes;
+        }
+        appointment.UpdatedAt = DateTime.UtcNow;
+
         await _db.SaveChangesAsync();
 
         return Ok(Map(appointment));
@@ -244,8 +326,8 @@ public class AgendaController : ControllerBase
     private static List<TimeSlotDto> BuildSlots(DateTime dayStart, List<Appointment> appointments)
     {
         var slots = new List<TimeSlotDto>();
-        var start = dayStart.AddHours(8);
-        var end = dayStart.AddHours(18);
+        var start = dayStart.AddHours(7);  // 7:00 AM
+        var end = dayStart.AddHours(19);   // 7:00 PM
         var cursor = start;
         while (cursor < end)
         {

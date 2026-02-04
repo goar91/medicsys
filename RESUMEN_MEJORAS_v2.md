@@ -232,7 +232,7 @@ GET    /api/agenda/availability           # Obtener disponibilidad
 
 ### 2. iniciar-medicsys.ps1
 - Detiene procesos existentes
-- Inicia Docker (PostgreSQL)
+- Verifica PostgreSQL local
 - Compila y ejecuta Backend
 - Instala dependencias y ejecuta Frontend
 - Verifica estado de servicios
@@ -460,7 +460,7 @@ Profesor:
 ```
 Frontend: http://localhost:4200
 Backend:  http://localhost:5154
-Docker:   localhost:5432 (PostgreSQL)
+PostgreSQL: localhost:5432
 ```
 
 ---

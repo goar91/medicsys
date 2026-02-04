@@ -1,6 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { NgFor, NgIf, DatePipe, DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 import { InventoryService, InventoryItem, InventoryAlert } from '../../../core/inventory.service';
@@ -8,7 +7,7 @@ import { InventoryService, InventoryItem, InventoryAlert } from '../../../core/i
 @Component({
   selector: 'app-odontologo-inventario',
   standalone: true,
-  imports: [TopNavComponent, NgFor, NgIf, DatePipe, DecimalPipe, RouterLink, ReactiveFormsModule],
+  imports: [TopNavComponent, NgFor, NgIf, DatePipe, DecimalPipe, ReactiveFormsModule],
   templateUrl: './odontologo-inventario.html',
   styleUrl: './odontologo-inventario.scss'
 })
@@ -93,7 +92,7 @@ export class OdontologoInventarioComponent implements OnInit {
     this.filter.set(value);
   }
 
-  deleteItem(id: string) {
+  deleteItem(id: string | number) {
     if (!confirm('¿Está seguro de eliminar este artículo del inventario?')) {
       return;
     }
@@ -168,7 +167,9 @@ export class OdontologoInventarioComponent implements OnInit {
       minimumQuantity: formValue.minimumQuantity,
       unitPrice: formValue.unitPrice,
       supplier: formValue.supplier || undefined,
-      expirationDate: formValue.expirationDate || undefined
+      expirationDate: (formValue.expirationDate && formValue.expirationDate.trim() !== '') 
+        ? formValue.expirationDate 
+        : undefined
     };
 
     const operation = this.editingItem()
@@ -215,3 +216,5 @@ export class OdontologoInventarioComponent implements OnInit {
       this.closeModal();
     }
   }
+}
+

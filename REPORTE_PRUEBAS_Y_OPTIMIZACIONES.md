@@ -53,7 +53,7 @@ PUT  /api/clinical-histories/:id        ✅ Funcional
 ```
 
 #### Base de Datos
-- ✅ PostgreSQL en Docker
+- ✅ PostgreSQL local
 - ✅ Conexión exitosa
 - ✅ Persistencia de datos
 - ✅ Migraciones aplicadas correctamente
@@ -291,7 +291,7 @@ services.AddRateLimiter(options => {
 ```bash
 # Script de backup diario
 #!/bin/bash
-docker exec medicsys-postgres pg_dump -U postgres medicsys > backup_$(date +%Y%m%d).sql
+pg_dump -U postgres -h localhost -p 5432 medicsys > backup_$(date +%Y%m%d).sql
 ```
 
 #### 3. Migraciones Versionadas
@@ -430,7 +430,7 @@ npx sb init
 ## ✅ Estado del Sistema
 
 ### Servicios en Ejecución
-- ✅ PostgreSQL (Docker) - Puerto 5432
+- ✅ PostgreSQL local - Puerto 5432
 - ✅ Backend API (.NET 9) - Puerto 5154
 - ⏳ Frontend (Angular 21) - Puerto 4200 (inicializando)
 
@@ -447,8 +447,8 @@ npx sb init
 
 ### Iniciar Servicios
 ```powershell
-# Docker
-docker compose up -d
+# PostgreSQL
+# Asegúrate de que el servicio esté iniciado en el puerto 5432
 
 # Backend (desde MEDICSYS.Api)
 dotnet run
@@ -459,9 +459,6 @@ npm start
 
 ### Detener Servicios
 ```powershell
-# Docker
-docker compose down
-
 # Backend/Frontend
 # Cerrar las ventanas de PowerShell o Ctrl+C
 ```
@@ -472,7 +469,7 @@ docker compose down
 .\test-historias-clinicas.ps1
 
 # Base de datos
-docker exec medicsys-postgres psql -U postgres -d medicsys
+psql -h localhost -U postgres -d medicsys
 ```
 
 ### Logs
@@ -480,8 +477,8 @@ docker exec medicsys-postgres psql -U postgres -d medicsys
 # Backend
 tail -f MEDICSYS.Api/logs/api-$(Get-Date -Format "yyyyMMdd").log
 
-# Docker
-docker logs medicsys-postgres
+# PostgreSQL
+# Revisar logs del servicio según tu instalación local
 ```
 
 ---

@@ -182,7 +182,7 @@ export class OdontologoContabilidadComponent {
       date: entry.date,
       description: entry.description,
       amount: entry.amount,
-      paymentMethod: entry.paymentMethod,
+      paymentMethod: entry.paymentMethod || 'Cash',
       reference: entry.reference || ''
     });
     

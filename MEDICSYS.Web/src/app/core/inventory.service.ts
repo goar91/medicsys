@@ -2,22 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api.config';
+import { InventoryItem } from './models';
 
-export interface InventoryItem {
-  id: string;
-  name: string;
-  description?: string;
-  sku?: string;
-  quantity: number;
-  minimumQuantity: number;
-  unitPrice: number;
-  supplier?: string;
-  expirationDate?: string;
-  isLowStock: boolean;
-  isExpiringSoon: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export para compatibilidad
+export type { InventoryItem };
 
 export interface InventoryAlert {
   id: string;
@@ -60,11 +48,11 @@ export class InventoryService {
     return this.http.post<InventoryItem>(this.apiUrl, request);
   }
 
-  update(id: string, request: CreateInventoryItemRequest): Observable<InventoryItem> {
+  update(id: string | number, request: CreateInventoryItemRequest): Observable<InventoryItem> {
     return this.http.put<InventoryItem>(`${this.apiUrl}/${id}`, request);
   }
 
-  delete(id: string): Observable<void> {
+  delete(id: string | number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 

@@ -260,7 +260,7 @@ http://localhost:4200
 
 ## 📝 NOTAS ADICIONALES
 
-- Base de datos PostgreSQL en Docker funcionando correctamente
+- Base de datos PostgreSQL local funcionando correctamente
 - Migraciones aplicadas: `20260203164319_AddPatientsTable`
 - Tabla `Patients` creada con índice único en `IdNumber`
 - Relación FK entre `ClinicalHistory.PatientId` → `Patients.Id`
@@ -272,6 +272,6 @@ http://localhost:4200
 
 **Backend:** http://localhost:5154 - ✅ RUNNING  
 **Frontend:** http://localhost:4200 - ✅ RUNNING  
-**Database:** PostgreSQL en Docker - ✅ CONNECTED
+**Database:** PostgreSQL local - ✅ CONNECTED
 
 **SISTEMA FUNCIONANDO CORRECTAMENTE** 🎉

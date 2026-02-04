@@ -9,8 +9,7 @@
 #### 1. Base de Datos PostgreSQL
 - **Estado:** ✅ Corriendo
 - **Puerto:** 5432
-- **Contenedor:** medicsys-postgres
-- **Comando:** `docker compose up -d`
+- **Servicio:** PostgreSQL local
 
 #### 2. Backend API (.NET)
 - **Estado:** ✅ Corriendo
@@ -60,7 +59,7 @@
 
 1. **Error de tipo en TypeScript:** Corregido cast de tipo en el formulario de contabilidad
 2. **Warning de RouterLink:** Eliminado import no utilizado en componente de factura
-3. **Docker Compose:** Base de datos PostgreSQL iniciada correctamente
+3. **Base de datos:** PostgreSQL iniciado correctamente
 
 ### Cómo Iniciar la Aplicación
 
@@ -72,7 +71,7 @@
 #### Opción 2: Manual
 ```powershell
 # 1. Iniciar base de datos
-docker compose up -d
+# Asegúrate de que PostgreSQL esté en ejecución (puerto 5432)
 
 # 2. En una terminal, iniciar backend
 cd MEDICSYS.Api
@@ -89,9 +88,6 @@ Start-Process "http://localhost:4200"
 ### Cómo Detener la Aplicación
 
 ```powershell
-# Detener contenedores Docker
-docker compose down
-
 # Los procesos de backend y frontend se pueden detener con Ctrl+C en sus terminales
 ```
 

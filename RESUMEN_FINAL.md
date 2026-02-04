@@ -347,7 +347,7 @@ deletePatient(id: string) {
 - **Estado:** Signals (Angular Reactive)
 
 ### DevOps:
-- **Containerización:** Docker (PostgreSQL)
+- **Entorno:** Local
 - **Control de Versiones:** Git
 - **IDE:** Visual Studio Code
 
@@ -377,7 +377,7 @@ El sistema MEDICSYS ahora cuenta con:
 **Sistema en producción local:**
 - Backend: http://localhost:5154 ✅
 - Frontend: http://localhost:4200 ✅
-- Database: PostgreSQL en Docker ✅
+- Database: PostgreSQL local ✅
 
 **MEDICSYS está listo para uso en producción** 🎉
 

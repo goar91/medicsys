@@ -11,7 +11,7 @@ namespace MEDICSYS.Api.Controllers.Academico;
 
 [ApiController]
 [Route("api/academic/appointments")]
-[Authorize]
+[Authorize(Roles = $"{Roles.Student},{Roles.Professor}")]
 public class AcademicAppointmentsController : ControllerBase
 {
     private readonly AcademicDbContext _db;
@@ -24,7 +24,12 @@ public class AcademicAppointmentsController : ControllerBase
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AcademicAppointmentDto>>> GetAll([FromQuery] DateTime? start, [FromQuery] DateTime? end)
+    public async Task<ActionResult<IEnumerable<AcademicAppointmentDto>>> GetAll(
+        [FromQuery] DateTime? start,
+        [FromQuery] DateTime? end,
+        [FromQuery] Guid? studentId,
+        [FromQuery] Guid? professorId,
+        [FromQuery] string? status)
     {
         var userId = GetUserId();
         var isProfessor = User.IsInRole(Roles.Professor);
@@ -38,6 +43,23 @@ public class AcademicAppointmentsController : ControllerBase
         if (!isProfessor)
         {
             query = query.Where(a => a.StudentId == userId);
+        }
+        else
+        {
+            if (studentId.HasValue)
+            {
+                query = query.Where(a => a.StudentId == studentId.Value);
+            }
+
+            if (professorId.HasValue)
+            {
+                query = query.Where(a => a.ProfessorId == professorId.Value);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<AppointmentStatus>(status, true, out var parsedStatus))
+        {
+            query = query.Where(a => a.Status == parsedStatus);
         }
 
         if (start.HasValue)
@@ -58,31 +80,70 @@ public class AcademicAppointmentsController : ControllerBase
     {
         var userId = GetUserId();
         var isProfessor = User.IsInRole(Roles.Professor);
+        var isStudent = User.IsInRole(Roles.Student);
 
-        // Solo profesores pueden crear citas
-        if (!isProfessor)
+        if (!isProfessor && !isStudent)
+        {
             return Forbid();
+        }
 
-        var student = await _db.Users.FindAsync(request.StudentId);
-        var professor = await _db.Users.FindAsync(request.ProfessorId);
+        if (request.StartAt >= request.EndAt)
+        {
+            return BadRequest(new { message = "La hora de inicio debe ser menor a la hora de fin." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.PatientName))
+        {
+            return BadRequest(new { message = "El nombre del paciente es requerido." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Reason))
+        {
+            return BadRequest(new { message = "La razón de la cita es requerida." });
+        }
+
+        Guid studentId;
+        Guid professorId;
+
+        if (isProfessor)
+        {
+            professorId = userId;
+            if (!request.StudentId.HasValue || request.StudentId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Debe seleccionar un alumno." });
+            }
+            studentId = request.StudentId.Value;
+        }
+        else
+        {
+            studentId = userId;
+            if (!request.ProfessorId.HasValue || request.ProfessorId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Debe seleccionar un profesor." });
+            }
+            professorId = request.ProfessorId.Value;
+        }
+
+        var student = await _db.Users.FindAsync(studentId);
+        var professor = await _db.Users.FindAsync(professorId);
 
         if (student == null)
-            return BadRequest(new { message = $"Estudiante con ID {request.StudentId} no encontrado." });
+            return BadRequest(new { message = $"Estudiante con ID {studentId} no encontrado." });
 
         if (professor == null)
-            return BadRequest(new { message = $"Profesor con ID {request.ProfessorId} no encontrado." });
+            return BadRequest(new { message = $"Profesor con ID {professorId} no encontrado." });
 
         var appointment = new AcademicAppointment
         {
             Id = Guid.NewGuid(),
-            StudentId = request.StudentId,
-            ProfessorId = request.ProfessorId,
+            StudentId = studentId,
+            ProfessorId = professorId,
             PatientName = request.PatientName,
             Reason = request.Reason,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
             Notes = request.Notes,
-            Status = request.Status ?? AppointmentStatus.Pending,
+            Status = isProfessor ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -113,14 +174,59 @@ public class AcademicAppointmentsController : ControllerBase
         if (appointment == null)
             return NotFound();
 
-        // Solo el profesor puede modificar
-        if (!isProfessor)
+        if (!isProfessor && appointment.StudentId != userId)
             return Forbid();
 
-        appointment.PatientName = request.PatientName;
-        appointment.Reason = request.Reason;
-        appointment.Notes = request.Notes;
-        appointment.Status = request.Status ?? appointment.Status;
+        if (!isProfessor && appointment.Status != AppointmentStatus.Pending)
+        {
+            return BadRequest(new { message = "Solo puedes modificar citas pendientes." });
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.PatientName))
+        {
+            appointment.PatientName = request.PatientName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Reason))
+        {
+            appointment.Reason = request.Reason;
+        }
+
+        if (request.Notes != null)
+        {
+            appointment.Notes = request.Notes;
+        }
+
+        if (request.Status.HasValue && isProfessor)
+        {
+            appointment.Status = request.Status.Value;
+        }
+        appointment.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return Ok(MapToDto(appointment));
+    }
+
+    [HttpPost("{id:guid}/review")]
+    [Authorize(Roles = Roles.Professor)]
+    public async Task<ActionResult<AcademicAppointmentDto>> Review(Guid id, [FromBody] ReviewAcademicAppointmentRequest request)
+    {
+        var appointment = await _db.AcademicAppointments
+            .Include(a => a.Student)
+            .Include(a => a.Professor)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (appointment == null)
+        {
+            return NotFound();
+        }
+
+        appointment.Status = request.Approved ? AppointmentStatus.Confirmed : AppointmentStatus.Cancelled;
+        if (!string.IsNullOrWhiteSpace(request.Notes))
+        {
+            appointment.Notes = request.Notes;
+        }
         appointment.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -202,8 +308,8 @@ public class AcademicAppointmentsController : ControllerBase
 }
 
 public record CreateAcademicAppointmentRequest(
-    Guid StudentId,
-    Guid ProfessorId,
+    Guid? StudentId,
+    Guid? ProfessorId,
     string PatientName,
     string Reason,
     DateTime StartAt,
@@ -213,11 +319,13 @@ public record CreateAcademicAppointmentRequest(
 );
 
 public record UpdateAcademicAppointmentRequest(
-    string PatientName,
-    string Reason,
+    string? PatientName,
+    string? Reason,
     string? Notes,
     AppointmentStatus? Status
 );
+
+public record ReviewAcademicAppointmentRequest(bool Approved, string? Notes);
 
 public record AcademicAppointmentDto(
     Guid Id,

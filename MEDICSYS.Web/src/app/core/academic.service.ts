@@ -48,10 +48,25 @@ export interface AcademicReminder {
 export class AcademicService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${API_BASE_URL}/academic`;
+  private readonly guidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  private normalizeGuid(value?: string): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    const lower = trimmed.toLowerCase();
+    if (lower === 'null' || lower === 'undefined') return null;
+    return this.guidRegex.test(trimmed) ? trimmed : null;
+  }
 
   // Citas académicas
   getAppointments(params?: { studentId?: string; professorId?: string }): Observable<AcademicAppointment[]> {
-    return this.http.get<AcademicAppointment[]>(`${this.baseUrl}/appointments`, { params: params as any });
+    const httpParams: Record<string, string> = {};
+    const studentId = this.normalizeGuid(params?.studentId);
+    const professorId = this.normalizeGuid(params?.professorId);
+    if (studentId) httpParams['studentId'] = studentId;
+    if (professorId) httpParams['professorId'] = professorId;
+    return this.http.get<AcademicAppointment[]>(`${this.baseUrl}/appointments`, { params: httpParams as any });
   }
 
   createAppointment(data: Partial<AcademicAppointment>): Observable<AcademicAppointment> {
@@ -62,13 +77,24 @@ export class AcademicService {
     return this.http.put<AcademicAppointment>(`${this.baseUrl}/appointments/${id}`, data);
   }
 
+  reviewAppointment(id: string, approved: boolean, notes?: string): Observable<AcademicAppointment> {
+    return this.http.post<AcademicAppointment>(`${this.baseUrl}/appointments/${id}/review`, {
+      approved,
+      notes
+    });
+  }
+
   deleteAppointment(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/appointments/${id}`);
   }
 
   // Historias clínicas académicas
   getClinicalHistories(params?: { studentId?: string; status?: string }): Observable<AcademicClinicalHistory[]> {
-    return this.http.get<AcademicClinicalHistory[]>(`${this.baseUrl}/clinical-histories`, { params: params as any });
+    const httpParams: Record<string, string> = {};
+    const studentId = this.normalizeGuid(params?.studentId);
+    if (studentId) httpParams['studentId'] = studentId;
+    if (params?.status) httpParams['status'] = params.status;
+    return this.http.get<AcademicClinicalHistory[]>(`${this.baseUrl}/clinical-histories`, { params: httpParams as any });
   }
 
   getClinicalHistoryById(id: string): Observable<AcademicClinicalHistory> {

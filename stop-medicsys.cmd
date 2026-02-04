@@ -2,8 +2,6 @@
 setlocal EnableDelayedExpansion
 set ROOT=%~dp0
 set PID_DIR=%ROOT%.medicsys-pids
-set COMPOSE_FILE=%ROOT%docker-compose.yml
-
 echo === Deteniendo servicios MEDICSYS ===
 
 REM Detener procesos usando archivos PID
@@ -22,10 +20,6 @@ for %%p in (5154 4200) do (
 REM Cerrar navegadores con localhost:4200
 echo Cerrando ventanas del navegador relacionadas con MEDICSYS...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Process -Name chrome,msedge,firefox,brave,opera -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -match 'localhost:4200'} | Stop-Process -Force -ErrorAction SilentlyContinue"
-
-REM Detener contenedores Docker
-echo Deteniendo contenedores Docker...
-docker compose -f "%COMPOSE_FILE%" down --remove-orphans 2>nul
 
 REM Limpiar archivos PID
 if exist "%PID_DIR%" (

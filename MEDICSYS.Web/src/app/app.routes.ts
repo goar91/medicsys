@@ -75,13 +75,31 @@ export const routes: Routes = [
   },
   {
     path: 'odontologo/contabilidad',
-    component: OdontologoContabilidadComponent,
+    loadComponent: () => import('./pages/odontologo/contabilidad/contabilidad-dashboard').then(m => m.ContabilidadDashboardComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/contabilidad/compras',
+    loadComponent: () => import('./pages/odontologo/contabilidad/compras/compras').then(m => m.ComprasComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/contabilidad/gastos',
+    loadComponent: () => import('./pages/odontologo/contabilidad/gastos/gastos.component').then(m => m.GastosComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/contabilidad/reportes',
+    loadComponent: () => import('./pages/odontologo/contabilidad/reportes/reportes.component').then(m => m.ReportesComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/inventario',
-    component: OdontologoInventarioComponent,
+    loadComponent: () => import('./pages/odontologo/inventario/kardex.component').then(m => m.KardexComponent),
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Odontologo'] }
   },

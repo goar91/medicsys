@@ -49,16 +49,28 @@ export interface Reminder {
 @Injectable({ providedIn: 'root' })
 export class AgendaService {
   private readonly baseUrl = `${API_BASE_URL}`;
+  private readonly guidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   constructor(private readonly http: HttpClient) {}
 
+  private normalizeGuid(value?: string): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    const lower = trimmed.toLowerCase();
+    if (lower === 'null' || lower === 'undefined') return null;
+    return this.guidRegex.test(trimmed) ? trimmed : null;
+  }
+
   getAppointments(params?: { studentId?: string; professorId?: string }) {
     let httpParams = new HttpParams();
-    if (params?.studentId) {
-      httpParams = httpParams.set('studentId', params.studentId);
+    const studentId = this.normalizeGuid(params?.studentId);
+    if (studentId) {
+      httpParams = httpParams.set('studentId', studentId);
     }
-    if (params?.professorId) {
-      httpParams = httpParams.set('professorId', params.professorId);
+    const professorId = this.normalizeGuid(params?.professorId);
+    if (professorId) {
+      httpParams = httpParams.set('professorId', professorId);
     }
     return this.http.get<Appointment[]>(`${this.baseUrl}/agenda/appointments`, { params: httpParams });
   }
@@ -78,11 +90,13 @@ export class AgendaService {
 
   getAvailability(date: string, params?: { studentId?: string; professorId?: string }) {
     let httpParams = new HttpParams().set('date', date);
-    if (params?.studentId) {
-      httpParams = httpParams.set('studentId', params.studentId);
+    const studentId = this.normalizeGuid(params?.studentId);
+    if (studentId) {
+      httpParams = httpParams.set('studentId', studentId);
     }
-    if (params?.professorId) {
-      httpParams = httpParams.set('professorId', params.professorId);
+    const professorId = this.normalizeGuid(params?.professorId);
+    if (professorId) {
+      httpParams = httpParams.set('professorId', professorId);
     }
     return this.http.get<AvailabilityResponse>(`${this.baseUrl}/agenda/availability`, { params: httpParams });
   }
@@ -114,6 +128,10 @@ export class AgendaService {
     notes?: string | null;
   }) {
     return this.http.put<Appointment>(`${this.baseUrl}/agenda/appointments/${id}`, payload);
+  }
+
+  reviewAppointment(id: string, payload: { approved: boolean; notes?: string }) {
+    return this.http.post<Appointment>(`${this.baseUrl}/agenda/appointments/${id}/review`, payload);
   }
 
   deleteAppointment(id: string) {
