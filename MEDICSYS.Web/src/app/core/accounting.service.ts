@@ -35,6 +35,14 @@ export class AccountingService {
   createEntry(payload: AccountingEntryPayload) {
     return this.http.post<AccountingEntry>(`${this.baseUrl}/entries`, payload);
   }
+  
+  updateEntry(entryId: string, payload: AccountingEntryPayload) {
+    return this.http.put<AccountingEntry>(`${this.baseUrl}/entries/${entryId}`, payload);
+  }
+  
+  deleteEntry(entryId: string) {
+    return this.http.delete(`${this.baseUrl}/entries/${entryId}`);
+  }
 
   getSummary(params?: { from?: string; to?: string }) {
     let httpParams = new HttpParams();

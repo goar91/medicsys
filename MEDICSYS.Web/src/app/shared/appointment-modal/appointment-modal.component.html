@@ -40,13 +40,23 @@
 
       <!-- Asignación -->
       <div class="form-section">
-        <label class="field">
-          <span class="field-label required">Odontólogo</span>
-          <select class="input" formControlName="professorId" [disabled]="isProvider">
-            <option value="">Seleccionar...</option>
-            <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
-          </select>
-        </label>
+        <div class="grid-2">
+          <label class="field">
+            <span class="field-label required">{{ providerLabel }}</span>
+            <select class="input" formControlName="professorId" [disabled]="isProvider">
+              <option value="">Seleccionar...</option>
+              <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
+            </select>
+          </label>
+
+          <label class="field" *ngIf="role === 'Profesor'">
+            <span class="field-label required">Alumno</span>
+            <select class="input" formControlName="studentId">
+              <option value="">Seleccionar alumno...</option>
+              <option *ngFor="let student of students()" [value]="student.id">{{ student.fullName }}</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <!-- Fecha y Hora -->

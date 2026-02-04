@@ -13,9 +13,9 @@ namespace MEDICSYS.Api.Controllers;
 [Authorize(Roles = Roles.Odontologo)]
 public class AccountingController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly OdontologoDbContext _db;
 
-    public AccountingController(AppDbContext db)
+    public AccountingController(OdontologoDbContext db)
     {
         _db = db;
     }
@@ -106,6 +106,75 @@ public class AccountingController : ControllerBase
 
         entry.Category = category;
         return Ok(MapEntry(entry));
+    }
+
+    [HttpPut("entries/{id}")]
+    public async Task<ActionResult<AccountingEntryDto>> UpdateEntry(Guid id, AccountingEntryRequest request)
+    {
+        var entry = await _db.AccountingEntries
+            .Include(x => x.Category)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (entry == null)
+        {
+            return NotFound("Movimiento no encontrado.");
+        }
+
+        if (entry.Source == "Invoice")
+        {
+            return BadRequest("No se pueden editar movimientos generados automáticamente desde facturas.");
+        }
+
+        var category = await _db.AccountingCategories.FindAsync(request.CategoryId);
+        if (category == null)
+        {
+            return BadRequest("Categoría inválida.");
+        }
+
+        if (!Enum.TryParse<AccountingEntryType>(request.Type, true, out var entryType))
+        {
+            return BadRequest("Tipo de movimiento inválido.");
+        }
+
+        PaymentMethod? paymentMethod = null;
+        if (!string.IsNullOrWhiteSpace(request.PaymentMethod) &&
+            Enum.TryParse<PaymentMethod>(request.PaymentMethod, true, out var method))
+        {
+            paymentMethod = method;
+        }
+
+        entry.Date = request.Date.Date;
+        entry.Type = entryType;
+        entry.CategoryId = category.Id;
+        entry.Description = request.Description;
+        entry.Amount = request.Amount;
+        entry.PaymentMethod = paymentMethod;
+        entry.Reference = request.Reference;
+
+        await _db.SaveChangesAsync();
+
+        entry.Category = category;
+        return Ok(MapEntry(entry));
+    }
+
+    [HttpDelete("entries/{id}")]
+    public async Task<IActionResult> DeleteEntry(Guid id)
+    {
+        var entry = await _db.AccountingEntries.FindAsync(id);
+        if (entry == null)
+        {
+            return NotFound("Movimiento no encontrado.");
+        }
+
+        if (entry.Source == "Invoice")
+        {
+            return BadRequest("No se pueden eliminar movimientos generados automáticamente desde facturas.");
+        }
+
+        _db.AccountingEntries.Remove(entry);
+        await _db.SaveChangesAsync();
+
+        return NoContent();
     }
 
     [HttpGet("summary")]

@@ -14,6 +14,7 @@ import { OdontologoFacturacionComponent } from './pages/odontologo/odontologo-fa
 import { OdontologoFacturaFormComponent } from './pages/odontologo/odontologo-factura-form/odontologo-factura-form';
 import { OdontologoFacturaDetalleComponent } from './pages/odontologo/odontologo-factura-detalle/odontologo-factura-detalle';
 import { OdontologoContabilidadComponent } from './pages/odontologo/odontologo-contabilidad/odontologo-contabilidad';
+import { OdontologoInventarioComponent } from './pages/odontologo/odontologo-inventario/odontologo-inventario';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -33,42 +34,56 @@ export const routes: Routes = [
   {
     path: 'odontologo/dashboard',
     component: OdontologoDashboardComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/pacientes',
     component: OdontologoPacientesComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/historias',
     component: OdontologoHistoriasComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/agenda',
     component: AgendaComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/facturacion',
     component: OdontologoFacturacionComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/facturacion/new',
     component: OdontologoFacturaFormComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/facturacion/:id',
     component: OdontologoFacturaDetalleComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/contabilidad',
     component: OdontologoContabilidadComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/inventario',
+    component: OdontologoInventarioComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
   },
   {
     path: 'odontologo/histories/new',

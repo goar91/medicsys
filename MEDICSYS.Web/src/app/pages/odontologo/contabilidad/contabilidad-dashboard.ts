@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { NgFor, NgIf, DatePipe, DecimalPipe } from '@angular/common';
+import { NgFor, NgIf, DatePipe, DecimalPipe, CurrencyPipe } from '@angular/common';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 import { AccountingService } from '../../../core/accounting.service';
 import { AccountingEntry, AccountingSummary } from '../../../core/models';
@@ -15,7 +15,7 @@ interface QuickStat {
 @Component({
   selector: 'app-contabilidad-dashboard',
   standalone: true,
-  imports: [NgFor, NgIf, RouterLink, DatePipe, DecimalPipe, TopNavComponent],
+  imports: [NgFor, NgIf, DatePipe, CurrencyPipe, TopNavComponent],
   templateUrl: './contabilidad-dashboard.html',
   styleUrl: './contabilidad-dashboard.scss'
 })

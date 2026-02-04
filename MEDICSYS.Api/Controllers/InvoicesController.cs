@@ -16,11 +16,11 @@ public class InvoicesController : ControllerBase
 {
     private const decimal VatRate = 0.15m;
 
-    private readonly AppDbContext _db;
+    private readonly OdontologoDbContext _db;
     private readonly ISriService _sri;
     private readonly ILogger<InvoicesController> _logger;
 
-    public InvoicesController(AppDbContext db, ISriService sri, ILogger<InvoicesController> logger)
+    public InvoicesController(OdontologoDbContext db, ISriService sri, ILogger<InvoicesController> logger)
     {
         _db = db;
         _sri = sri;

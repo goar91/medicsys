@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AgendaService, Appointment, AvailabilityResponse, TimeSlot, UserSummary } from '../../core/agenda.service';
 import { AuthService } from '../../core/auth.service';
@@ -18,9 +18,10 @@ interface CalendarDay {
   templateUrl: './agenda.html',
   styleUrl: './agenda.scss'
 })
-export class AgendaComponent implements OnInit {
+export class AgendaComponent implements OnInit, OnDestroy {
   private readonly agenda = inject(AgendaService);
   private readonly auth = inject(AuthService);
+  private cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
 
   readonly role = computed(() => this.auth.getRole());
   readonly isProfessor = computed(() => this.role() === 'Profesor');
@@ -57,9 +58,16 @@ export class AgendaComponent implements OnInit {
     this.startAutoCleanup();
   }
 
+  ngOnDestroy() {
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+    }
+  }
+
   startAutoCleanup() {
     // Limpiar citas pasadas cada minuto
-    setInterval(() => {
+    this.cleanupIntervalId = setInterval(() => {
       this.cleanupPastAppointments();
     }, 60000); // 60 segundos
     // Ejecutar inmediatamente también
@@ -228,7 +236,14 @@ export class AgendaComponent implements OnInit {
         },
         error: (err) => {
           console.error('❌ Error al actualizar cita:', err);
-          const message = err?.error?.message || err?.error || 'Error al actualizar la cita. Por favor intenta nuevamente.';
+          let message = 'Error al actualizar la cita. Por favor intenta nuevamente.';
+          if (err?.error?.message) {
+            message = err.error.message;
+          } else if (typeof err?.error === 'string') {
+            message = err.error;
+          } else if (err?.message) {
+            message = err.message;
+          }
           alert(message);
         }
       });
@@ -256,7 +271,14 @@ export class AgendaComponent implements OnInit {
         error: (err) => {
           this.creating.set(false);
           console.error('❌ Error al crear cita:', err);
-          const message = err?.error?.message || err?.error || 'Error al crear la cita. Por favor intenta nuevamente.';
+          let message = 'Error al crear la cita. Por favor intenta nuevamente.';
+          if (err?.error?.message) {
+            message = err.error.message;
+          } else if (typeof err?.error === 'string') {
+            message = err.error;
+          } else if (err?.message) {
+            message = err.message;
+          }
           alert(message);
         }
       });
@@ -272,7 +294,14 @@ export class AgendaComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al eliminar cita:', err);
-        const message = err?.error?.message || err?.error || 'Error al eliminar la cita. Por favor intenta nuevamente.';
+        let message = 'Error al eliminar la cita. Por favor intenta nuevamente.';
+        if (err?.error?.message) {
+          message = err.error.message;
+        } else if (typeof err?.error === 'string') {
+          message = err.error;
+        } else if (err?.message) {
+          message = err.message;
+        }
         alert(message);
       }
     });

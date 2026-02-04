@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Contracts;
@@ -14,10 +15,12 @@ namespace MEDICSYS.Api.Controllers;
 public class AgendaController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AgendaController(AppDbContext db)
+    public AgendaController(AppDbContext db, UserManager<ApplicationUser> userManager)
     {
         _db = db;
+        _userManager = userManager;
     }
 
     [Authorize]
@@ -56,28 +59,42 @@ public class AgendaController : ControllerBase
     {
         var userId = GetUserId();
         var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+        var isOdontologo = User.IsInRole(Roles.Odontologo);
 
+        // Validación para alumno
         if (!isProvider && request.StudentId != userId)
         {
             return Forbid();
         }
 
+        // Si es proveedor, establecer su ID como professorId
         if (isProvider)
         {
             request.ProfessorId = userId;
         }
 
-        var student = await _db.Users.FindAsync(request.StudentId);
-        var professor = await _db.Users.FindAsync(request.ProfessorId);
-        if (student == null || professor == null)
+        // Si no se proporciona StudentId, usar el userId (para Odontólogos)
+        if (!request.StudentId.HasValue || request.StudentId == Guid.Empty)
         {
-            return BadRequest("Invalid student or professor.");
+            request.StudentId = userId;
+        }
+
+        var student = await EnsureUserAsync(request.StudentId.Value);
+        var professor = await EnsureUserAsync(request.ProfessorId);
+        
+        if (student == null)
+        {
+            return BadRequest(new { message = $"Usuario con ID {request.StudentId} no encontrado." });
+        }
+        if (professor == null)
+        {
+            return BadRequest(new { message = $"Odontólogo con ID {request.ProfessorId} no encontrado." });
         }
 
         var appointment = new Appointment
         {
             Id = Guid.NewGuid(),
-            StudentId = request.StudentId,
+            StudentId = request.StudentId.Value,
             ProfessorId = request.ProfessorId,
             PatientName = request.PatientName,
             Reason = request.Reason,
@@ -314,5 +331,45 @@ public class AgendaController : ControllerBase
             Status = appointment.Status.ToString(),
             Notes = appointment.Notes
         };
+    }
+
+    private async Task<ApplicationUser?> EnsureUserAsync(Guid userId)
+    {
+        var existing = await _db.Users.FindAsync(userId);
+        if (existing != null)
+        {
+            return existing;
+        }
+
+        var sourceUser = await _userManager.FindByIdAsync(userId.ToString());
+        if (sourceUser == null)
+        {
+            return null;
+        }
+
+        var clone = new ApplicationUser
+        {
+            Id = sourceUser.Id,
+            FullName = sourceUser.FullName,
+            UniversityId = sourceUser.UniversityId,
+            UserName = sourceUser.UserName,
+            NormalizedUserName = sourceUser.NormalizedUserName,
+            Email = sourceUser.Email,
+            NormalizedEmail = sourceUser.NormalizedEmail,
+            EmailConfirmed = sourceUser.EmailConfirmed,
+            PasswordHash = sourceUser.PasswordHash,
+            SecurityStamp = sourceUser.SecurityStamp,
+            ConcurrencyStamp = sourceUser.ConcurrencyStamp,
+            PhoneNumber = sourceUser.PhoneNumber,
+            PhoneNumberConfirmed = sourceUser.PhoneNumberConfirmed,
+            TwoFactorEnabled = sourceUser.TwoFactorEnabled,
+            LockoutEnd = sourceUser.LockoutEnd,
+            LockoutEnabled = sourceUser.LockoutEnabled,
+            AccessFailedCount = sourceUser.AccessFailedCount
+        };
+
+        _db.Users.Add(clone);
+        await _db.SaveChangesAsync();
+        return clone;
     }
 }

@@ -1,9 +1,17 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
-import { ClinicalHistoryService } from '../../core/clinical-history.service';
-import { ClinicalHistory, ClinicalHistoryStatus } from '../../core/models';
+import { AcademicService, AcademicClinicalHistory, AcademicAppointment } from '../../core/academic.service';
+import { AuthService } from '../../core/auth.service';
+
+interface DashboardMetric {
+  label: string;
+  value: number | string;
+  change: string;
+  trend: 'up' | 'down' | 'neutral';
+  icon: string;
+}
 
 @Component({
   selector: 'app-professor-dashboard',
@@ -13,9 +21,60 @@ import { ClinicalHistory, ClinicalHistoryStatus } from '../../core/models';
   styleUrl: './professor-dashboard.scss'
 })
 export class ProfessorDashboardComponent implements OnInit {
-  readonly histories = signal<ClinicalHistory[]>([]);
+  private readonly academicService = inject(AcademicService);
+  private readonly auth = inject(AuthService);
+
+  readonly histories = signal<AcademicClinicalHistory[]>([]);
+  readonly appointments = signal<AcademicAppointment[]>([]);
   readonly loading = signal(true);
-  readonly filter = signal<'all' | ClinicalHistoryStatus>('all');
+  readonly filter = signal<'all' | 'Draft' | 'Submitted' | 'Approved' | 'Rejected'>('all');
+
+  readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
+
+  readonly metrics = computed<DashboardMetric[]>(() => {
+    const submitted = this.histories().filter(h => h.status === 'Submitted').length;
+    const approved = this.histories().filter(h => h.status === 'Approved').length;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const todayApptsCount = this.appointments().filter(apt => {
+      const aptDate = new Date(apt.startAt);
+      return aptDate >= today && aptDate < tomorrow;
+    }).length;
+
+    return [
+      {
+        label: 'Historias Pendientes',
+        value: submitted,
+        change: 'Esperan revisión',
+        trend: submitted > 0 ? 'neutral' as const : 'up' as const,
+        icon: 'clipboard'
+      },
+      {
+        label: 'Historias Aprobadas',
+        value: approved,
+        change: 'Total aprobadas',
+        trend: 'up' as const,
+        icon: 'check'
+      },
+      {
+        label: 'Citas Hoy',
+        value: todayApptsCount,
+        change: 'Programadas',
+        trend: 'neutral' as const,
+        icon: 'calendar'
+      },
+      {
+        label: 'Total Historias',
+        value: this.histories().length,
+        change: 'En el sistema',
+        trend: 'neutral' as const,
+        icon: 'file'
+      }
+    ];
+  });
 
   readonly filtered = computed(() => {
     const value = this.filter();
@@ -26,15 +85,15 @@ export class ProfessorDashboardComponent implements OnInit {
     return items.filter(item => item.status === value);
   });
 
-  constructor(private readonly service: ClinicalHistoryService) {}
-
   ngOnInit() {
     this.load();
   }
 
   load() {
     this.loading.set(true);
-    this.service.getAll().subscribe({
+    
+    // Cargar historias clínicas
+    this.academicService.getClinicalHistories().subscribe({
       next: items => {
         this.histories.set(items);
         this.loading.set(false);
@@ -44,9 +103,19 @@ export class ProfessorDashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+
+    // Cargar citas
+    this.academicService.getAppointments({ professorId: this.currentUserId() }).subscribe({
+      next: items => {
+        this.appointments.set(items);
+      },
+      error: () => {
+        this.appointments.set([]);
+      }
+    });
   }
 
-  setFilter(value: 'all' | ClinicalHistoryStatus) {
+  setFilter(value: 'all' | 'Draft' | 'Submitted' | 'Approved' | 'Rejected') {
     this.filter.set(value);
   }
 
@@ -54,7 +123,7 @@ export class ProfessorDashboardComponent implements OnInit {
     if (!confirm('¿Seguro que deseas eliminar esta historia clínica?')) {
       return;
     }
-    this.service.delete(id).subscribe({
+    this.academicService.deleteClinicalHistory(id).subscribe({
       next: () => {
         this.histories.set(this.histories().filter(item => item.id !== id));
       },

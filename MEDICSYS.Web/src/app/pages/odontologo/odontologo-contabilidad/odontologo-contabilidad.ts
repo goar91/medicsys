@@ -5,6 +5,12 @@ import { AccountingService } from '../../../core/accounting.service';
 import { AccountingCategory, AccountingEntry, AccountingSummary } from '../../../core/models';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 
+interface ChartDataPoint {
+  label: string;
+  income: number;
+  expense: number;
+}
+
 @Component({
   selector: 'app-odontologo-contabilidad',
   standalone: true,
@@ -23,6 +29,40 @@ export class OdontologoContabilidadComponent {
   readonly filterType = signal('');
   readonly fromDate = signal(this.formatDateInput(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   readonly toDate = signal(this.formatDateInput(new Date()));
+  
+  // New features
+  readonly editingEntry = signal<AccountingEntry | null>(null);
+  readonly showDeleteConfirm = signal<string | null>(null);
+  readonly viewMode = signal<'list' | 'chart'>('list');
+  
+  readonly chartData = computed<ChartDataPoint[]>(() => {
+    const data = new Map<string, { income: number, expense: number }>();
+    
+    this.entries().forEach(entry => {
+      const month = new Date(entry.date).toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+      if (!data.has(month)) {
+        data.set(month, { income: 0, expense: 0 });
+      }
+      const point = data.get(month)!;
+      if (entry.type === 'Income') {
+        point.income += entry.amount;
+      } else {
+        point.expense += entry.amount;
+      }
+    });
+    
+    return Array.from(data.entries()).map(([label, values]) => ({
+      label,
+      income: values.income,
+      expense: values.expense
+    })).slice(-6); // Last 6 months
+  });
+  
+  readonly maxChartValue = computed(() => {
+    const data = this.chartData();
+    if (data.length === 0) return 1000;
+    return Math.max(...data.map(d => Math.max(d.income, d.expense))) * 1.1;
+  });
 
   readonly entryForm = this.fb.nonNullable.group({
     type: ['Expense', Validators.required],
@@ -97,6 +137,25 @@ export class OdontologoContabilidadComponent {
     }
 
     const payload = this.entryForm.getRawValue();
+    
+    // If editing, update instead
+    if (this.editingEntry()) {
+      this.accounting.updateEntry(this.editingEntry()!.id, {
+        ...payload,
+        type: payload.type as 'Income' | 'Expense',
+        paymentMethod: payload.paymentMethod || null,
+        reference: payload.reference || null
+      }).subscribe({
+        next: () => {
+          this.refreshEntries();
+          this.refreshSummary();
+          this.cancelEdit();
+        }
+      });
+      return;
+    }
+    
+    // Create new entry
     this.accounting.createEntry({
       ...payload,
       type: payload.type as 'Income' | 'Expense',
@@ -113,6 +172,87 @@ export class OdontologoContabilidadComponent {
         });
       }
     });
+  }
+  
+  editEntry(entry: AccountingEntry) {
+    this.editingEntry.set(entry);
+    this.entryForm.patchValue({
+      type: entry.type,
+      categoryId: entry.categoryId,
+      date: entry.date,
+      description: entry.description,
+      amount: entry.amount,
+      paymentMethod: entry.paymentMethod,
+      reference: entry.reference || ''
+    });
+    
+    // Scroll to form
+    setTimeout(() => {
+      document.querySelector('.form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+  
+  cancelEdit() {
+    this.editingEntry.set(null);
+    this.entryForm.patchValue({
+      type: 'Expense',
+      categoryId: '',
+      date: this.formatDateInput(new Date()),
+      description: '',
+      amount: 0,
+      paymentMethod: 'Cash',
+      reference: ''
+    });
+  }
+  
+  confirmDelete(entryId: string) {
+    this.showDeleteConfirm.set(entryId);
+  }
+  
+  deleteEntry(entryId: string) {
+    this.accounting.deleteEntry(entryId).subscribe({
+      next: () => {
+        this.entries.update(list => list.filter(e => e.id !== entryId));
+        this.refreshSummary();
+        this.showDeleteConfirm.set(null);
+      }
+    });
+  }
+  
+  cancelDelete() {
+    this.showDeleteConfirm.set(null);
+  }
+  
+  toggleViewMode() {
+    this.viewMode.update(mode => mode === 'list' ? 'chart' : 'list');
+  }
+  
+  exportToCSV() {
+    const headers = ['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto', 'Método de Pago', 'Referencia'];
+    const rows = this.entries().map(e => [
+      e.date,
+      e.type === 'Income' ? 'Ingreso' : 'Egreso',
+      `${e.categoryGroup} - ${e.categoryName}`,
+      e.description,
+      e.amount.toString(),
+      e.paymentMethod,
+      e.reference || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `contabilidad_${this.fromDate()}_${this.toDate()}.csv`;
+    link.click();
+  }
+  
+  getChartBarHeight(value: number): number {
+    return (value / this.maxChartValue()) * 100;
   }
 
   categoryTotal(category: AccountingCategory) {

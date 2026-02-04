@@ -5,8 +5,7 @@ namespace MEDICSYS.Api.Contracts;
 
 public class AppointmentRequest
 {
-    [Required]
-    public Guid StudentId { get; set; }
+    public Guid? StudentId { get; set; }
 
     [Required]
     public Guid ProfessorId { get; set; }

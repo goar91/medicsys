@@ -107,11 +107,13 @@ $historia1 = @{
             indiceCpo = "C:2 P:0 O:0"
         }
         treatments = @{
-            plan = "1. Restauración con resina pieza 16 cara oclusal
+            plan = @'
+1. Restauracion con resina pieza 16 cara oclusal
 2. Profilaxis dental
-3. Aplicación de flúor
-4. Instrucciones de higiene oral"
-            procedures = "Anestesia local, remoción de tejido cariado, restauración con resina compuesta"
+3. Aplicacion de fluor
+4. Instrucciones de higiene oral
+'@
+            procedures = "Anestesia local, remocion de tejido cariado, restauracion con resina compuesta"
         }
         medios = @{
             imagenes = "Radiografía periapical pieza 16"
@@ -232,11 +234,13 @@ $historia2 = @{
             indiceCpo = "C:1 P:8 O:3"
         }
         treatments = @{
-            plan = "1. Prótesis Parcial Removible Superior
+            plan = @'
+1. Protesis Parcial Removible Superior
 2. Tratamiento periodontal
 3. Control de higiene oral
-4. Seguimiento cada 6 meses"
-            procedures = "Impresiones, prueba de estructura metálica, prueba de dientes, instalación de PPR"
+4. Seguimiento cada 6 meses
+'@
+            procedures = "Impresiones, prueba de estructura metalica, prueba de dientes, instalacion de PPR"
         }
         medios = @{
             imagenes = "Radiografía panorámica, modelos de estudio"
@@ -364,7 +368,7 @@ if ($historia1Id) {
                     atm = ""
                     ganglios = ""
                 }
-                notes = "Paciente colaborador, buen estado general de salud oral exceptuando pieza 16 - ACTUALIZACIÓN: Se agregó nota sobre tratamiento completado"
+                notes = "Paciente colaborador, buen estado general de salud oral exceptuando pieza 16 - ACTUALIZACION: Se agrego nota sobre tratamiento completado"
             }
             indicators = @{
                 higieneOral = "Buena"
@@ -374,11 +378,13 @@ if ($historia1Id) {
                 indiceCpo = "C:2 P:0 O:0"
             }
             treatments = @{
-                plan = "1. Restauración con resina pieza 16 cara oclusal - COMPLETADO
+                plan = @'
+1. Restauracion con resina pieza 16 cara oclusal - COMPLETADO
 2. Profilaxis dental - COMPLETADO
-3. Aplicación de flúor - COMPLETADO
-4. Instrucciones de higiene oral - COMPLETADO"
-                procedures = "Anestesia local, remoción de tejido cariado, restauración con resina compuesta - COMPLETADO"
+3. Aplicacion de fluor - COMPLETADO
+4. Instrucciones de higiene oral - COMPLETADO
+'@
+                procedures = "Anestesia local, remocion de tejido cariado, restauracion con resina compuesta - COMPLETADO"
             }
             medios = @{
                 imagenes = "Radiografía periapical pieza 16"

@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
+using MEDICSYS.Api.Security;
 using MEDICSYS.Api.Services;
 
 Log.Logger = new LoggerConfiguration()
@@ -27,9 +28,31 @@ try
     builder.Services.AddControllers();
     builder.Services.AddOpenApi();
 
+    // DbContext principal (historiales, agenda, pacientes, recordatorios)
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    {
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+        dataSourceBuilder.EnableDynamicJson();
+        options.UseNpgsql(dataSourceBuilder.Build());
+    });
 
+    // DbContext para Sistema Académico (Profesor-Alumno)
+    builder.Services.AddDbContext<AcademicDbContext>(options =>
+    {
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("AcademicoConnection"));
+        dataSourceBuilder.EnableDynamicJson();
+        options.UseNpgsql(dataSourceBuilder.Build());
+    });
+
+    // DbContext para Odontología (facturación, inventario, contabilidad)
+    builder.Services.AddDbContext<OdontologoDbContext>(options =>
+    {
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("OdontologiaConnection"));
+        dataSourceBuilder.EnableDynamicJson();
+        options.UseNpgsql(dataSourceBuilder.Build());
+    });
+
+    // Identity usa el contexto académico
     builder.Services.AddIdentityCore<ApplicationUser>(options =>
         {
             options.Password.RequiredLength = 8;
@@ -38,7 +61,7 @@ try
             options.User.RequireUniqueEmail = true;
         })
         .AddRoles<IdentityRole<Guid>>()
-        .AddEntityFrameworkStores<AppDbContext>()
+        .AddEntityFrameworkStores<AcademicDbContext>()
         .AddSignInManager();
 
     var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt key missing.");
@@ -93,9 +116,62 @@ try
         app.MapOpenApi();
 
         using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+        
+        // Migrar bases de datos
+        var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await appDb.Database.MigrateAsync();
+
+        var academicDb = scope.ServiceProvider.GetRequiredService<AcademicDbContext>();
+        await academicDb.Database.MigrateAsync();
+
+        var odontologoDb = scope.ServiceProvider.GetRequiredService<OdontologoDbContext>();
+        await odontologoDb.Database.MigrateAsync();
+
+        // Poblar datos de prueba
         await SeedData.InitializeAsync(scope.ServiceProvider);
+
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        await AcademicSeedData.SeedAsync(academicDb, userManager);
+        await OdontologoSeedData.SeedAsync(odontologoDb, userManager);
+
+        // Sincronizar usuarios del contexto académico al contexto principal
+        var academicUsers = await academicDb.Users.AsNoTracking().ToListAsync();
+        var appUsers = await appDb.Users.AsNoTracking().ToListAsync();
+        var appUserIds = new HashSet<Guid>(appUsers.Select(u => u.Id));
+        var appUserNames = new HashSet<string>(appUsers.Select(u => u.NormalizedUserName ?? string.Empty));
+        var appEmails = new HashSet<string>(appUsers.Select(u => u.NormalizedEmail ?? string.Empty));
+
+        var missingUsers = academicUsers
+            .Where(u => !appUserIds.Contains(u.Id))
+            .Where(u => string.IsNullOrWhiteSpace(u.NormalizedUserName) || !appUserNames.Contains(u.NormalizedUserName))
+            .Where(u => string.IsNullOrWhiteSpace(u.NormalizedEmail) || !appEmails.Contains(u.NormalizedEmail))
+            .Select(u => new ApplicationUser
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                UniversityId = u.UniversityId,
+                UserName = u.UserName,
+                NormalizedUserName = u.NormalizedUserName,
+                Email = u.Email,
+                NormalizedEmail = u.NormalizedEmail,
+                EmailConfirmed = u.EmailConfirmed,
+                PasswordHash = u.PasswordHash,
+                SecurityStamp = u.SecurityStamp,
+                ConcurrencyStamp = u.ConcurrencyStamp,
+                PhoneNumber = u.PhoneNumber,
+                PhoneNumberConfirmed = u.PhoneNumberConfirmed,
+                TwoFactorEnabled = u.TwoFactorEnabled,
+                LockoutEnd = u.LockoutEnd,
+                LockoutEnabled = u.LockoutEnabled,
+                AccessFailedCount = u.AccessFailedCount
+            })
+            .ToList();
+
+        if (missingUsers.Count > 0)
+        {
+            appDb.Users.AddRange(missingUsers);
+            await appDb.SaveChangesAsync();
+        }
     }
     else
     {

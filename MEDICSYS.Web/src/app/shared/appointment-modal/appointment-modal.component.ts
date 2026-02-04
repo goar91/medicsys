@@ -37,6 +37,7 @@ export class AppointmentModalComponent implements OnInit {
   @Input() data: AppointmentModalData | null = null;
   @Input() isProvider = false;
   @Input() currentUserId = '';
+  @Input() role: string = '';
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
   @Output() delete = new EventEmitter<string>();
@@ -44,6 +45,7 @@ export class AppointmentModalComponent implements OnInit {
   readonly loading = signal(false);
   readonly patients = signal<Patient[]>([]);
   readonly professors = signal<UserSummary[]>([]);
+  readonly students = signal<UserSummary[]>([]);
   readonly showNewPatient = signal(false);
   readonly selectedPatientId = signal<string | null>(null);
 
@@ -51,6 +53,7 @@ export class AppointmentModalComponent implements OnInit {
     patientId: [''],
     patientName: ['', [Validators.required]],
     professorId: ['', [Validators.required]],
+    studentId: [''],
     reason: ['Consulta odontológica', [Validators.required]],
     date: ['', [Validators.required]],
     startTime: ['09:00', [Validators.required]],
@@ -78,9 +81,14 @@ export class AppointmentModalComponent implements OnInit {
     return this.isEditMode ? 'Editar Cita' : 'Nueva Cita';
   }
 
+  get providerLabel(): string {
+    return this.role === 'Odontologo' ? 'Odontólogo' : 'Profesor';
+  }
+
   ngOnInit() {
     this.loadPatients();
     this.loadProfessors();
+    this.loadStudents();
     
     if (this.data) {
       this.initializeForm();
@@ -94,9 +102,13 @@ export class AppointmentModalComponent implements OnInit {
     const startTime = this.data.startAt ? new Date(this.data.startAt).toTimeString().substring(0, 5) : '09:00';
     const endTime = this.data.endAt ? new Date(this.data.endAt).toTimeString().substring(0, 5) : '10:00';
 
+    // Para proveedores (Odontólogos), el professorId debe ser su propio ID
+    const professorId = this.isProvider ? this.currentUserId : (this.data.professorId || '');
+
     this.appointmentForm.patchValue({
       patientName: this.data.patientName || '',
-      professorId: this.data.professorId || (this.isProvider ? this.currentUserId : ''),
+      professorId: professorId,
+      studentId: this.data.studentId || '',
       reason: this.data.reason || 'Consulta odontológica',
       date: dateStr,
       startTime: startTime,
@@ -104,6 +116,8 @@ export class AppointmentModalComponent implements OnInit {
       status: (this.data as any).status || 'Pending',
       notes: this.data.notes || ''
     });
+    
+    console.log('📋 Formulario inicializado con professorId:', professorId);
   }
 
   loadPatients() {
@@ -125,9 +139,22 @@ export class AppointmentModalComponent implements OnInit {
     });
   }
   loadProfessors() {
-    this.agendaService.getOdontologos().subscribe({
+    const request = this.role === 'Odontologo'
+      ? this.agendaService.getOdontologos()
+      : this.agendaService.getProfessors();
+    request.subscribe({
       next: (profs) => this.professors.set(profs),
       error: (err) => console.error('Error loading professors:', err)
+    });
+  }
+
+  loadStudents() {
+    if (this.role !== 'Profesor') {
+      return;
+    }
+    this.agendaService.getStudents().subscribe({
+      next: (students) => this.students.set(students),
+      error: (err) => console.error('Error loading students:', err)
     });
   }
 
@@ -189,7 +216,15 @@ export class AppointmentModalComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err: any) => {
-        alert(err?.error?.message || err.message || 'Error al crear paciente');
+        let message = 'Error al crear paciente';
+        if (err?.error?.message) {
+          message = err.error.message;
+        } else if (typeof err?.error === 'string') {
+          message = err.error;
+        } else if (err?.message) {
+          message = err.message;
+        }
+        alert(message);
         this.loading.set(false);
       }
     });
@@ -201,26 +236,34 @@ export class AppointmentModalComponent implements OnInit {
   }
 
   onSave() {
-    console.log('💾 Formulario de cita - iniciando guardado');
-    console.log('📝 Formulario válido:', !this.appointmentForm.invalid);
-    console.log('📝 Valores del formulario:', this.appointmentForm.getRawValue());
-    
     if (this.appointmentForm.invalid) {
-      console.log('⚠️ Formulario inválido, marcando campos tocados');
       this.appointmentForm.markAllAsTouched();
       return;
     }
 
     const formValue = this.appointmentForm.getRawValue();
-    // Para odontólogos, usamos el currentUserId como studentId para mantener compatibilidad con el backend
-    const studentId = this.currentUserId;
     
-    console.log('👤 Usuario actual (studentId):', studentId);
-    console.log('🩺 Odontólogo:', formValue.professorId);
+    // Profesor: requiere estudiante seleccionado
+    // Alumno: usa su propio ID
+    // Odontólogo: usa su propio ID (no requiere estudiante separado)
+    let studentId: string;
+    if (this.role === 'Profesor') {
+      studentId = formValue.studentId;
+      if (!studentId) {
+        alert('Selecciona un alumno para la cita');
+        return;
+      }
+    } else if (this.role === 'Alumno') {
+      studentId = this.currentUserId;
+    } else {
+      // Odontólogo: puede enviar su propio ID o no enviar studentId
+      studentId = this.currentUserId;
+    }
     
-    if (!studentId) {
-      console.log('❌ No se proporcionó usuario actual');
-      alert('Error: No se pudo identificar el usuario actual');
+    const professorId = this.isProvider ? this.currentUserId : formValue.professorId;
+
+    if (!professorId) {
+      alert('Error: Falta seleccionar el odontólogo/profesor');
       return;
     }
     
@@ -228,19 +271,23 @@ export class AppointmentModalComponent implements OnInit {
     const startDateTime = new Date(`${dateStr}T${formValue.startTime}:00`);
     const endDateTime = new Date(`${dateStr}T${formValue.endTime}:00`);
 
-    const payload = {
+    const payload: any = {
       patientName: formValue.patientName,
-      professorId: formValue.professorId,
-      studentId, // Usamos currentUserId para compatibilidad con backend
+      professorId: professorId,
       reason: formValue.reason,
       startAt: startDateTime.toISOString(),
       endAt: endDateTime.toISOString(),
       status: formValue.status,
-      notes: formValue.notes || null,
-      appointmentId: this.data?.appointmentId
+      notes: formValue.notes || null
     };
 
-    console.log('📤 Emitiendo payload:', payload);
+    // Solo agregar studentId si está definido
+    if (studentId) {
+      payload.studentId = studentId;
+    }
+
+    console.log('📤 Enviando payload de cita:', payload);
+
     this.save.emit(payload);
   }
 

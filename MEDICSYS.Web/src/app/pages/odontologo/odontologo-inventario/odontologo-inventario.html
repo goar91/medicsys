@@ -1,0 +1,262 @@
+<app-top-nav></app-top-nav>
+
+<section class="page odontologo-inventario">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Gestión de Inventario</p>
+      <h2>Inventario de Materiales y Suministros</h2>
+      <p class="subtitle">Control de stock y alertas de inventario</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" type="button" (click)="loadData()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Actualizar
+      </button>
+      <button class="btn btn-primary" type="button" (click)="showNewItemForm.set(true)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo Artículo
+      </button>
+    </div>
+  </header>
+
+  <!-- Métricas de inventario -->
+  <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+        <div>
+          <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0;">Total de Items</p>
+          <h3 style="color: #111827; font-size: 2rem; font-weight: 700; margin: 0;">{{ items().length }}</h3>
+          <p style="color: #6b7280; font-size: 0.75rem; margin: 0.5rem 0 0 0;">En inventario</p>
+        </div>
+        <div style="background: #f3f4f6; padding: 0.75rem; border-radius: 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+        <div>
+          <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0;">Stock Bajo</p>
+          <h3 style="color: #f59e0b; font-size: 2rem; font-weight: 700; margin: 0;">{{ lowStockCount() }}</h3>
+          <p style="color: #6b7280; font-size: 0.75rem; margin: 0.5rem 0 0 0;">Requieren reposición</p>
+        </div>
+        <div style="background: #fef3c7; padding: 0.75rem; border-radius: 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+        <div>
+          <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0;">Agotados</p>
+          <h3 style="color: #ef4444; font-size: 2rem; font-weight: 700; margin: 0;">{{ outOfStockCount() }}</h3>
+          <p style="color: #6b7280; font-size: 0.75rem; margin: 0.5rem 0 0 0;">Sin stock</p>
+        </div>
+        <div style="background: #fee2e2; padding: 0.75rem; border-radius: 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+        <div>
+          <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0;">Por Expirar</p>
+          <h3 style="color: #f59e0b; font-size: 2rem; font-weight: 700; margin: 0;">{{ expiringCount() }}</h3>
+          <p style="color: #6b7280; font-size: 0.75rem; margin: 0.5rem 0 0 0;">En 30 días</p>
+        </div>
+        <div style="background: #fef3c7; padding: 0.75rem; border-radius: 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas activas -->
+  <div class="card alerts-section" *ngIf="unresolvedAlerts().length > 0" style="margin-bottom: 2rem; background: #fef3c7; border-color: #f59e0b;">
+    <div class="card-header" style="border-bottom: 1px solid #fcd34d;">
+      <h3 style="color: #92400e; margin: 0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.5rem;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Alertas Activas ({{ unresolvedAlerts().length }})
+      </h3>
+    </div>
+    <div style="padding: 1rem;">
+      <div *ngFor="let alert of unresolvedAlerts()" 
+           [attr.data-type]="getAlertTypeClass(alert.type)"
+           style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; margin-bottom: 0.5rem; background: white; border-radius: 8px; border-left: 4px solid;"
+           [style.border-left-color]="getAlertTypeClass(alert.type) === 'danger' ? '#ef4444' : '#f59e0b'">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle *ngIf="getAlertIcon(alert.type) === 'alert-circle'" cx="12" cy="12" r="10"/>
+            <line *ngIf="getAlertIcon(alert.type) === 'alert-circle'" x1="12" y1="8" x2="12" y2="12"/>
+            <line *ngIf="getAlertIcon(alert.type) === 'alert-circle'" x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div>
+            <p style="margin: 0; font-weight: 500; color: #111827;">{{ alert.message }}</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: #6b7280;">{{ alert.createdAt | date: 'short' }}</p>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline" (click)="resolveAlert(alert.id)">Resolver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+    <button class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">
+      Todos ({{ items().length }})
+    </button>
+    <button class="chip" [class.active]="filter() === 'low-stock'" (click)="setFilter('low-stock')">
+      Stock Bajo ({{ lowStockCount() }})
+    </button>
+    <button class="chip" [class.active]="filter() === 'expiring'" (click)="setFilter('expiring')">
+      Por Expirar ({{ expiringCount() }})
+    </button>
+  </div>
+
+  <!-- Lista de inventario -->
+  <div class="card">
+    <div *ngIf="loading()" class="empty">
+      <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      Cargando inventario...
+    </div>
+
+    <div *ngIf="!loading() && filteredItems().length === 0" class="empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <p>No hay artículos en el inventario.</p>
+    </div>
+
+    <div *ngIf="!loading() && filteredItems().length > 0" class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Artículo</th>
+            <th>SKU</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+            <th>Proveedor</th>
+            <th>Expiración</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredItems()" [class.table-danger]="item.quantity === 0" [class.table-warning]="item.isLowStock && item.quantity > 0">
+            <td>
+              <strong>{{ item.name }}</strong>
+              <br>
+              <small style="color: #6b7280;">{{ item.description || '-' }}</small>
+            </td>
+            <td>{{ item.sku || '-' }}</td>
+            <td>
+              <strong [style.color]="item.quantity === 0 ? '#ef4444' : item.isLowStock ? '#f59e0b' : '#059669'">
+                {{ item.quantity }}
+              </strong>
+              / {{ item.minimumQuantity }}
+            </td>
+            <td>${{ item.unitPrice | number: '1.2-2' }}</td>
+            <td>{{ item.supplier || '-' }}</td>
+            <td>
+              <span *ngIf="item.expirationDate" 
+                    [style.color]="item.isExpiringSoon ? '#f59e0b' : '#6b7280'">
+                {{ item.expirationDate | date: 'dd/MM/yyyy' }}
+              </span>
+              <span *ngIf="!item.expirationDate">-</span>
+            </td>
+            <td>
+              <span class="badge" 
+                    [class.badge-danger]="item.quantity === 0"
+                    [class.badge-warning]="item.isLowStock && item.quantity > 0"
+                    [class.badge-success]="!item.isLowStock && item.quantity > 0">
+                {{ item.quantity === 0 ? 'Agotado' : item.isLowStock ? 'Stock Bajo' : 'OK' }}
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-sm btn-outline" (click)="editItem(item)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="deleteItem(item.id)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- Modal para nuevo/editar artículo -->
+<div class="modal" *ngIf="showNewItemForm()" (click)="onModalBackdropClick($event)">
+  <div class="modal-content" style="max-width: 600px;">
+    <header class="modal-header">
+      <h2>{{ editingItem() ? 'Editar Artículo' : 'Nuevo Artículo' }}</h2>
+      <button class="btn-icon" (click)="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre <span style="color: red;">*</span></label>
+          <input type="text" formControlName="name" class="form-control" placeholder="Ej: Guantes de látex" />
+          <small class="error" *ngIf="itemForm.get('name')?.invalid && itemForm.get('name')?.touched">
+            El nombre es requerido
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea formControlName="description" class="form-control" rows="2" placeholder="Descripción del artículo"></textarea>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>SKU / Código</label>
+            <input type="text" formControlName="sku" class="form-control" placeholder="SKU-001" />
+          </div>
+
+          <div class="form-group">
+            <label>Proveedor</label>
+            <input type="text" formControlName="supplier" class="form-control" placeholder="Nombre del proveedor" />
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Cantidad <span style="color: red;">*</span></label>
+            <input type="number" formControlName="quantity" class="form-control" min="0" />
+          </div>
+
+          <div class="form-group">
+            <label>Cantidad Mínima <span style="color: red;">*</span></label>
+            <input type="number" formControlName="minimumQuantity" class="form-control" min="0" />
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Precio Unitario ($) <span style="color: red;">*</span></label>
+            <input type="number" formControlName="unitPrice" class="form-control" step="0.01" min="0" />
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de Expiración</label>
+            <input type="date" formControlName="expirationDate" class="form-control" />
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || loading()">
+          {{ editingItem() ? 'Actualizar' : 'Crear' }}
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>

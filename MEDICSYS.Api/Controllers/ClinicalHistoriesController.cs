@@ -28,7 +28,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ClinicalHistoryDto>>> GetAll()
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var query = _db.ClinicalHistories
             .Include(x => x.Student)
             .AsNoTracking();
@@ -49,7 +49,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ClinicalHistoryDto>> GetById(Guid id)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .Include(x => x.Student)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -71,7 +71,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ClinicalHistoryDto>> Create(ClinicalHistoryUpsertRequest request)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var json = JsonSerializer.Serialize(request.Data);
 
         var history = new ClinicalHistory
@@ -96,7 +96,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ClinicalHistoryDto>> Update(Guid id, ClinicalHistoryUpsertRequest request)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .Include(x => x.Student)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -138,7 +138,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -176,7 +176,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpPost("{id:guid}/submit")]
     public async Task<ActionResult<ClinicalHistoryDto>> Submit(Guid id)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .Include(x => x.Student)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -215,7 +215,7 @@ public class ClinicalHistoriesController : ControllerBase
             return BadRequest("File is required.");
         }
 
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .Include(x => x.Student)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -289,7 +289,7 @@ public class ClinicalHistoriesController : ControllerBase
     [HttpPost("{id:guid}/review")]
     public async Task<ActionResult<ClinicalHistoryDto>> Review(Guid id, ClinicalHistoryReviewRequest request)
     {
-        var userId = GetUserId();
+        var userId = await ResolveUserIdAsync();
         var history = await _db.ClinicalHistories
             .Include(x => x.Student)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -320,15 +320,30 @@ public class ClinicalHistoriesController : ControllerBase
         return User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
     }
 
-    private Guid GetUserId()
+    private async Task<Guid> ResolveUserIdAsync()
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(id))
+        if (Guid.TryParse(id, out var userId))
         {
-            throw new UnauthorizedAccessException();
+            var exists = await _db.Users.AsNoTracking().AnyAsync(u => u.Id == userId);
+            if (exists)
+            {
+                return userId;
+            }
         }
 
-        return Guid.Parse(id);
+        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue(ClaimTypes.Name);
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var user = await _db.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email == email || u.UserName == email);
+            if (user != null)
+            {
+                return user.Id;
+            }
+        }
+
+        throw new UnauthorizedAccessException();
     }
 
     private static ClinicalHistoryDto Map(ClinicalHistory history)

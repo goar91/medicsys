@@ -3,65 +3,144 @@
 <section class="page contabilidad-page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Contabilidad</p>
+      <p class="eyebrow">💰 Contabilidad</p>
       <h2>Resumen financiero del consultorio</h2>
       <p class="subtitle">Controla ingresos, egresos y el flujo de caja con base en tu plan financiero.</p>
     </div>
-    <div class="filters">
-      <label>
-        Desde
-        <input class="input" type="date" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); applyFilters()">
-      </label>
-      <label>
-        Hasta
-        <input class="input" type="date" [value]="toDate()" (change)="toDate.set($any($event.target).value); applyFilters()">
-      </label>
-      <label>
-        Tipo
-        <select class="input" [value]="filterType()" (change)="filterType.set($any($event.target).value); applyFilters()">
-          <option value="">Todos</option>
-          <option value="Income">Ingresos</option>
-          <option value="Expense">Egresos</option>
-        </select>
-      </label>
+    <div class="header-actions">
+      <div class="filters">
+        <label>
+          📅 Desde
+          <input class="input" type="date" [value]="fromDate()" (change)="fromDate.set($any($event.target).value); applyFilters()">
+        </label>
+        <label>
+          📅 Hasta
+          <input class="input" type="date" [value]="toDate()" (change)="toDate.set($any($event.target).value); applyFilters()">
+        </label>
+        <label>
+          🏷️ Tipo
+          <select class="input" [value]="filterType()" (change)="filterType.set($any($event.target).value); applyFilters()">
+            <option value="">Todos</option>
+            <option value="Income">Ingresos</option>
+            <option value="Expense">Egresos</option>
+          </select>
+        </label>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-outline" (click)="toggleViewMode()">
+          {{ viewMode() === 'list' ? '📊 Ver Gráfico' : '📋 Ver Lista' }}
+        </button>
+        <button class="btn btn-outline" (click)="exportToCSV()">
+          📥 Exportar CSV
+        </button>
+      </div>
     </div>
   </header>
 
   <div class="summary-grid" *ngIf="summary() as summary">
     <div class="card summary-card income">
-      <p>Ingresos</p>
-      <h3>{{ summary.totalIncome | currency:'USD':'symbol':'1.2-2' }}</h3>
-      <span>Periodo seleccionado</span>
+      <div class="card-icon">📈</div>
+      <div class="card-content">
+        <p>Ingresos</p>
+        <h3>{{ summary.totalIncome | currency:'USD':'symbol':'1.2-2' }}</h3>
+        <span>Periodo seleccionado</span>
+      </div>
     </div>
     <div class="card summary-card expense">
-      <p>Egresos</p>
-      <h3>{{ summary.totalExpense | currency:'USD':'symbol':'1.2-2' }}</h3>
-      <span>Control de gastos</span>
+      <div class="card-icon">📉</div>
+      <div class="card-content">
+        <p>Egresos</p>
+        <h3>{{ summary.totalExpense | currency:'USD':'symbol':'1.2-2' }}</h3>
+        <span>Control de gastos</span>
+      </div>
     </div>
     <div class="card summary-card net">
-      <p>Utilidad</p>
-      <h3>{{ summary.net | currency:'USD':'symbol':'1.2-2' }}</h3>
-      <span>Saldo del periodo</span>
+      <div class="card-icon">💵</div>
+      <div class="card-content">
+        <p>Utilidad</p>
+        <h3 [class.negative]="summary.net < 0">{{ summary.net | currency:'USD':'symbol':'1.2-2' }}</h3>
+        <span>Saldo del periodo</span>
+      </div>
     </div>
   </div>
 
   <div class="content-grid">
-    <div class="card ledger-card">
+    <!-- Chart View -->
+    <div class="card chart-card" *ngIf="viewMode() === 'chart'">
       <div class="card-header">
         <div>
-          <h3>Libro diario</h3>
+          <h3>📊 Tendencia Mensual</h3>
+          <p>Ingresos vs Egresos últimos 6 meses</p>
+        </div>
+      </div>
+      <div class="chart-container" *ngIf="chartData().length > 0">
+        <div class="chart-bars">
+          <div class="chart-bar-group" *ngFor="let point of chartData()">
+            <div class="bars">
+              <div class="bar income-bar" 
+                   [style.height.%]="getChartBarHeight(point.income)"
+                   [title]="'Ingresos: ' + (point.income | currency:'USD':'symbol':'1.2-2')">
+              </div>
+              <div class="bar expense-bar" 
+                   [style.height.%]="getChartBarHeight(point.expense)"
+                   [title]="'Egresos: ' + (point.expense | currency:'USD':'symbol':'1.2-2')">
+              </div>
+            </div>
+            <div class="bar-label">{{ point.label }}</div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color income"></span>
+            <span>Ingresos</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color expense"></span>
+            <span>Egresos</span>
+          </div>
+        </div>
+      </div>
+      <div class="empty" *ngIf="chartData().length === 0">
+        <p>No hay datos suficientes para mostrar el gráfico.</p>
+      </div>
+    </div>
+    
+    <!-- List View -->
+    <div class="card ledger-card" *ngIf="viewMode() === 'list'">
+      <div class="card-header">
+        <div>
+          <h3>📖 Libro diario</h3>
           <p>Registro de movimientos contables</p>
         </div>
       </div>
       <div class="ledger-list" *ngIf="entries().length > 0">
-        <article class="ledger-item" *ngFor="let entry of entries()">
-          <div>
-            <strong>{{ entry.description }}</strong>
-            <span>{{ entry.date | date:'dd/MM/yyyy' }} · {{ entry.categoryGroup }} / {{ entry.categoryName }}</span>
-            <small *ngIf="entry.source === 'Invoice'">Generado desde factura</small>
+        <article class="ledger-item" *ngFor="let entry of entries()" 
+                 [class.editing]="editingEntry()?.id === entry.id">
+          <div class="entry-content">
+            <div class="entry-header">
+              <strong>{{ entry.description }}</strong>
+              <div class="entry-actions">
+                <button class="btn-icon" (click)="editEntry(entry)" title="Editar">✏️</button>
+                <button class="btn-icon danger" (click)="confirmDelete(entry.id)" title="Eliminar">🗑️</button>
+              </div>
+            </div>
+            <span class="entry-meta">
+              {{ entry.date | date:'dd/MM/yyyy' }} · {{ entry.categoryGroup }} / {{ entry.categoryName }}
+            </span>
+            <small *ngIf="entry.source === 'Invoice'" class="entry-source">🧾 Generado desde factura</small>
+            <small class="entry-payment">💳 {{ entry.paymentMethod }}</small>
           </div>
           <div class="amount" [attr.data-type]="entry.type">
             {{ entry.type === 'Income' ? '+' : '-' }}{{ entry.amount | currency:'USD':'symbol':'1.2-2' }}
+          </div>
+          
+          <!-- Delete Confirmation -->
+          <div class="delete-confirm" *ngIf="showDeleteConfirm() === entry.id">
+            <p>¿Eliminar este movimiento?</p>
+            <div class="confirm-actions">
+              <button class="btn btn-sm btn-danger" (click)="deleteEntry(entry.id)">Eliminar</button>
+              <button class="btn btn-sm btn-outline" (click)="cancelDelete()">Cancelar</button>
+            </div>
           </div>
         </article>
       </div>
@@ -72,13 +151,13 @@
 
     <div class="sidebar">
       <div class="card form-card">
-        <h3>Nuevo movimiento</h3>
+        <h3>{{ editingEntry() ? '✏️ Editar movimiento' : '➕ Nuevo movimiento' }}</h3>
         <form [formGroup]="entryForm" (ngSubmit)="createEntry()">
           <label>
             Tipo
             <select class="input" formControlName="type">
-              <option value="Expense">Egreso</option>
-              <option value="Income">Ingreso</option>
+              <option value="Expense">💸 Egreso</option>
+              <option value="Income">💰 Ingreso</option>
             </select>
           </label>
           <label>
@@ -100,27 +179,34 @@
           </label>
           <label>
             Monto
-            <input class="input" type="number" formControlName="amount" step="0.01">
+            <input class="input" type="number" formControlName="amount" step="0.01" placeholder="0.00">
           </label>
           <label>
             Forma de pago
             <select class="input" formControlName="paymentMethod">
-              <option value="Cash">Efectivo</option>
-              <option value="Card">Tarjeta</option>
-              <option value="Transfer">Transferencia</option>
-              <option value="Other">Otro</option>
+              <option value="Cash">💵 Efectivo</option>
+              <option value="Card">💳 Tarjeta</option>
+              <option value="Transfer">🏦 Transferencia</option>
+              <option value="Other">📋 Otro</option>
             </select>
           </label>
           <label>
             Referencia
             <input class="input" type="text" formControlName="reference" placeholder="Opcional">
           </label>
-          <button class="btn btn-primary" type="submit">Registrar movimiento</button>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">
+              {{ editingEntry() ? 'Actualizar' : 'Registrar movimiento' }}
+            </button>
+            <button class="btn btn-outline" type="button" (click)="cancelEdit()" *ngIf="editingEntry()">
+              Cancelar
+            </button>
+          </div>
         </form>
       </div>
 
       <div class="card categories-card">
-        <h3>Plan financiero</h3>
+        <h3>📊 Plan financiero</h3>
         <div class="category-list">
           <div class="category-item" *ngFor="let category of categories()">
             <div>
@@ -128,10 +214,17 @@
               <span>{{ category.group }}</span>
             </div>
             <div class="category-meta">
-              <span>{{ categoryTotal(category) | currency:'USD':'symbol':'1.2-2' }}</span>
-              <div class="progress">
-                <div class="progress-bar" [style.width.%]="budgetPercent(category)"></div>
+              <span class="category-amount" [class.over-budget]="budgetPercent(category) > 100">
+                {{ categoryTotal(category) | currency:'USD':'symbol':'1.2-2' }}
+              </span>
+              <div class="progress" *ngIf="category.monthlyBudget">
+                <div class="progress-bar" 
+                     [style.width.%]="budgetPercent(category)"
+                     [class.over]="budgetPercent(category) > 100"></div>
               </div>
+              <small *ngIf="category.monthlyBudget" class="budget-info">
+                {{ budgetPercent(category) }}% de {{ category.monthlyBudget | currency:'USD':'symbol':'1.0-0' }}
+              </small>
             </div>
           </div>
         </div>

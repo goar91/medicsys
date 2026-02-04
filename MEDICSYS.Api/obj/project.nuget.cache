@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "H9dECEJmoeQ=",
+  "dgSpecHash": "aHviHvwsJF0=",
   "success": true,
-  "projectFilePath": "D:\\Programación\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
+  "projectFilePath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gerso\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.12\\microsoft.aspnetcore.authentication.jwtbearer.9.0.12.nupkg.sha512",
