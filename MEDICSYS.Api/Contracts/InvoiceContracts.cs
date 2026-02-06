@@ -1,33 +1,70 @@
+using System.ComponentModel.DataAnnotations;
 using MEDICSYS.Api.Models;
 
 namespace MEDICSYS.Api.Contracts;
 
 public class InvoiceItemRequest
 {
+    [Required]
+    [StringLength(200, MinimumLength = 2)]
     public string Description { get; set; } = string.Empty;
+
+    [Range(1, 10_000)]
     public int Quantity { get; set; }
+
+    [Range(0.01, 1_000_000)]
     public decimal UnitPrice { get; set; }
+
+    [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
 }
 
 public class InvoiceCreateRequest
 {
+    [Required]
+    [StringLength(5, MinimumLength = 2)]
     public string CustomerIdentificationType { get; set; } = "05";
+
+    [Required]
+    [StringLength(20, MinimumLength = 6)]
     public string CustomerIdentification { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200, MinimumLength = 2)]
     public string CustomerName { get; set; } = string.Empty;
+
+    [StringLength(200)]
     public string? CustomerAddress { get; set; }
+
+    [StringLength(20)]
     public string? CustomerPhone { get; set; }
+
+    [EmailAddress]
+    [StringLength(120)]
     public string? CustomerEmail { get; set; }
+
+    [StringLength(500)]
     public string? Observations { get; set; }
 
+    [Required]
+    [StringLength(20)]
     public string PaymentMethod { get; set; } = Models.PaymentMethod.Cash.ToString();
+
+    [StringLength(50)]
     public string? CardType { get; set; }
+
+    [Range(0, 100)]
     public decimal? CardFeePercent { get; set; }
+
+    [Range(1, 48)]
     public int? CardInstallments { get; set; }
+
+    [StringLength(120)]
     public string? PaymentReference { get; set; }
 
     public bool SendToSri { get; set; } = true;
 
+    [MinLength(1)]
     public List<InvoiceItemRequest> Items { get; set; } = new();
 }
 

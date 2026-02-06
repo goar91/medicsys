@@ -42,6 +42,27 @@ export interface AcademicReminder {
   createdAt: string;
 }
 
+export interface AcademicPatient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  idNumber: string;
+  dateOfBirth: string;
+  gender: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  bloodType?: string;
+  allergies?: string;
+  medicalConditions?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  createdByProfessorName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -127,5 +148,27 @@ export class AcademicService {
   // Recordatorios
   getReminders(params?: { appointmentId?: string }): Observable<AcademicReminder[]> {
     return this.http.get<AcademicReminder[]>(`${this.baseUrl}/reminders`, { params: params as any });
+  }
+
+  // Pacientes académicos
+  getPatients(search?: string): Observable<AcademicPatient[]> {
+    const params: any = search ? { search } : undefined;
+    return this.http.get<AcademicPatient[]>(`${this.baseUrl}/patients`, { params });
+  }
+
+  getPatientById(id: string): Observable<AcademicPatient> {
+    return this.http.get<AcademicPatient>(`${this.baseUrl}/patients/${id}`);
+  }
+
+  createPatient(data: Partial<AcademicPatient>): Observable<AcademicPatient> {
+    return this.http.post<AcademicPatient>(`${this.baseUrl}/patients`, data);
+  }
+
+  updatePatient(id: string, data: Partial<AcademicPatient>): Observable<AcademicPatient> {
+    return this.http.put<AcademicPatient>(`${this.baseUrl}/patients/${id}`, data);
+  }
+
+  deletePatient(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/patients/${id}`);
   }
 }

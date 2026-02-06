@@ -141,9 +141,32 @@ export class KardexComponent implements OnInit {
           unitPrice: item.averageCost || item.unitPrice
         });
       }
+    } else {
+      // Si no hay item seleccionado, resetear el formulario
+      this.movementForm.patchValue({
+        inventoryItemId: '',
+        quantity: null,
+        unitPrice: 0,
+        newQuantity: null,
+        reason: ''
+      });
     }
 
     this.showModal.set(true);
+  }
+
+  onItemSelected(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const itemId = select.value;
+    if (itemId) {
+      const item = this.items().find(i => i.id === itemId);
+      if (item) {
+        this.selectedItem.set(item);
+        this.movementForm.patchValue({
+          unitPrice: item.averageCost || item.unitPrice
+        });
+      }
+    }
   }
 
   closeModal() {
@@ -152,6 +175,7 @@ export class KardexComponent implements OnInit {
     this.editForm.reset();
     this.createForm.reset({ initialQuantity: 0, minimumQuantity: 0, unitPrice: 0 });
     this.kardexReport.set(null);
+    this.selectedItem.set(null);
   }
 
   saveMovement() {

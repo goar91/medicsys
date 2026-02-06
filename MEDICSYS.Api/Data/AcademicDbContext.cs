@@ -13,6 +13,7 @@ public class AcademicDbContext : IdentityDbContext<ApplicationUser, IdentityRole
     public DbSet<AcademicAppointment> AcademicAppointments => Set<AcademicAppointment>();
     public DbSet<AcademicClinicalHistory> AcademicClinicalHistories => Set<AcademicClinicalHistory>();
     public DbSet<AcademicReminder> AcademicReminders => Set<AcademicReminder>();
+    public DbSet<AcademicPatient> AcademicPatients => Set<AcademicPatient>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -66,6 +67,30 @@ public class AcademicDbContext : IdentityDbContext<ApplicationUser, IdentityRole
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => e.ScheduledAt);
             entity.HasIndex(e => e.Status);
+        });
+
+        // AcademicPatient
+        builder.Entity<AcademicPatient>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.IdNumber).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Gender).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.BloodType).HasMaxLength(10);
+            entity.Property(e => e.Allergies).HasMaxLength(1000);
+            entity.Property(e => e.MedicalConditions).HasMaxLength(1000);
+            entity.Property(e => e.EmergencyContact).HasMaxLength(100);
+            entity.Property(e => e.EmergencyPhone).HasMaxLength(20);
+            entity.HasOne(e => e.CreatedByProfessor)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByProfessorId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => e.IdNumber).IsUnique();
+            entity.HasIndex(e => e.CreatedByProfessorId);
         });
     }
 }

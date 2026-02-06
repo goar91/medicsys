@@ -2,7 +2,7 @@ import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { NgFor, NgIf, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
-import { AcademicService, AcademicClinicalHistory, AcademicAppointment } from '../../core/academic.service';
+import { AcademicService, AcademicClinicalHistory, AcademicAppointment, AcademicPatient } from '../../core/academic.service';
 import { AuthService } from '../../core/auth.service';
 
 interface DashboardMetric {
@@ -26,8 +26,10 @@ export class ProfessorDashboardComponent implements OnInit {
 
   readonly histories = signal<AcademicClinicalHistory[]>([]);
   readonly appointments = signal<AcademicAppointment[]>([]);
+  readonly patients = signal<AcademicPatient[]>([]);
   readonly loading = signal(true);
   readonly filter = signal<'all' | 'Draft' | 'Submitted' | 'Approved' | 'Rejected'>('all');
+  readonly showPatients = signal(false);
 
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
 
@@ -67,11 +69,11 @@ export class ProfessorDashboardComponent implements OnInit {
         icon: 'calendar'
       },
       {
-        label: 'Total Historias',
-        value: this.histories().length,
-        change: 'En el sistema',
+        label: 'Pacientes',
+        value: this.patients().length,
+        change: 'Registrados',
         trend: 'neutral' as const,
-        icon: 'file'
+        icon: 'users'
       }
     ];
   });
@@ -113,6 +115,16 @@ export class ProfessorDashboardComponent implements OnInit {
         this.appointments.set([]);
       }
     });
+
+    // Cargar pacientes
+    this.academicService.getPatients().subscribe({
+      next: items => {
+        this.patients.set(items);
+      },
+      error: () => {
+        this.patients.set([]);
+      }
+    });
   }
 
   setFilter(value: 'all' | 'Draft' | 'Submitted' | 'Approved' | 'Rejected') {
@@ -126,6 +138,24 @@ export class ProfessorDashboardComponent implements OnInit {
     this.academicService.deleteClinicalHistory(id).subscribe({
       next: () => {
         this.histories.set(this.histories().filter(item => item.id !== id));
+      },
+      error: () => {
+        // noop: could add toast
+      }
+    });
+  }
+
+  togglePatients() {
+    this.showPatients.set(!this.showPatients());
+  }
+
+  deletePatient(id: string) {
+    if (!confirm('¿Seguro que deseas eliminar este paciente?')) {
+      return;
+    }
+    this.academicService.deletePatient(id).subscribe({
+      next: () => {
+        this.patients.set(this.patients().filter(p => p.id !== id));
       },
       error: () => {
         // noop: could add toast

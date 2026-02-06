@@ -3,9 +3,30 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2.5rem;
-  background: white;
+  background: var(--surface-glass);
+  backdrop-filter: var(--blur-glass);
   border-bottom: 1px solid var(--stroke);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: var(--transition-smooth);
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+  }
 }
 
 .brand {
@@ -19,14 +40,20 @@
   text-transform: uppercase;
   color: var(--ink);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: var(--transition-smooth);
+  position: relative;
 
   svg {
     color: var(--accent);
+    transition: var(--transition-smooth);
   }
 
   &:hover {
-    opacity: 0.8;
+    color: var(--accent);
+    
+    svg {
+      transform: scale(1.1) rotate(5deg);
+    }
   }
 }
 
@@ -40,13 +67,27 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  background: var(--canvas);
-  border-radius: 12px;
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--stroke-light);
+  border-radius: 14px;
+  transition: var(--transition-smooth);
 
   svg {
     color: var(--accent);
     flex-shrink: 0;
+    transition: var(--transition-smooth);
+  }
+  
+  &:hover {
+    background: white;
+    border-color: var(--accent-light);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    
+    svg {
+      transform: scale(1.1);
+    }
   }
 }
 

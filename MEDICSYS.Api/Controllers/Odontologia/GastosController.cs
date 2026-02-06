@@ -29,12 +29,15 @@ public class GastosController : ControllerBase
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate,
         [FromQuery] string? category,
-        [FromQuery] string? paymentMethod)
+        [FromQuery] string? paymentMethod,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var odontologoId = GetOdontologoId();
 
         var query = _db.Expenses
-            .Where(e => e.OdontologoId == odontologoId);
+            .Where(e => e.OdontologoId == odontologoId)
+            .AsNoTracking();
 
         if (startDate.HasValue)
             query = query.Where(e => e.ExpenseDate >= startDate.Value);
@@ -48,8 +51,27 @@ public class GastosController : ControllerBase
         if (!string.IsNullOrEmpty(paymentMethod))
             query = query.Where(e => e.PaymentMethod == paymentMethod);
 
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderByDescending(e => e.ExpenseDate)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderByDescending(e => e.ExpenseDate);
+        }
+
         var expenses = await query
-            .OrderByDescending(e => e.ExpenseDate)
             .Select(e => new ExpenseDto(
                 e.Id,
                 e.OdontologoId,

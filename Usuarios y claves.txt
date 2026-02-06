@@ -9,3 +9,26 @@ Odontólogo:
 Alumno:
 - Email: alumno1@medicsys.local
 - Password: Alumno123!
+
+Credenciales de Usuarios del Sistema MEDICSYS
+👨‍🏫 Profesor
+Email: profesor@medicsys.com
+Password: Profesor123!
+Funcionalidades: Gestión de pacientes académicos, revisión de historias clínicas, agenda
+🦷 Odontólogo
+Email: odontologo@medicsys.com
+Password: Odontologo123!
+Funcionalidades: Gestión de pacientes odontológicos, historias clínicas, facturación, contabilidad, inventario
+👨‍🎓 Estudiantes (Alumnos)
+Estudiante 1:
+
+Email: estudiante1@medicsys.com
+Password: Estudiante123!
+Estudiante 2:
+
+Email: estudiante2@medicsys.com
+Password: Estudiante123!
+Estudiante 3:
+
+Email: estudiante3@medicsys.com
+Password: Estudiante123!

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 import { roleGuard } from './core/role.guard';
 import { LoginComponent } from './pages/login/login';
+import { RegisterComponent } from './pages/register/register';
 import { StudentDashboardComponent } from './pages/student-dashboard/student-dashboard';
 import { ProfessorDashboardComponent } from './pages/professor-dashboard/professor-dashboard';
 import { ClinicalHistoryFormComponent } from './pages/clinical-history-form/clinical-history-form';
@@ -15,10 +16,12 @@ import { OdontologoFacturaFormComponent } from './pages/odontologo/odontologo-fa
 import { OdontologoFacturaDetalleComponent } from './pages/odontologo/odontologo-factura-detalle/odontologo-factura-detalle';
 import { OdontologoContabilidadComponent } from './pages/odontologo/odontologo-contabilidad/odontologo-contabilidad';
 import { OdontologoInventarioComponent } from './pages/odontologo/odontologo-inventario/odontologo-inventario';
+import { ProfessorPatientsFormComponent } from './pages/professor-patients-form/professor-patients-form';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   {
     path: 'student',
     component: StudentDashboardComponent,
@@ -130,6 +133,24 @@ export const routes: Routes = [
   {
     path: 'professor',
     component: ProfessorDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor'] }
+  },
+  {
+    path: 'professor/dashboard',
+    component: ProfessorDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor'] }
+  },
+  {
+    path: 'professor/patients/new',
+    component: ProfessorPatientsFormComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor'] }
+  },
+  {
+    path: 'professor/patients/:id/edit',
+    component: ProfessorPatientsFormComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Profesor'] }
   },

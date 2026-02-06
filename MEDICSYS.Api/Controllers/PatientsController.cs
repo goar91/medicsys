@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
@@ -21,7 +22,7 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Patient>>> GetAll()
+    public async Task<ActionResult<IEnumerable<PatientDto>>> GetAll([FromQuery] int? page, [FromQuery] int? pageSize)
     {
         var userId = GetUserId();
         var isOdontologo = User.IsInRole(Roles.Odontologo);
@@ -33,16 +34,35 @@ public class PatientsController : ControllerBase
             query = query.Where(p => p.OdontologoId == userId);
         }
         
-        var patients = await query
-            .OrderBy(p => p.LastName)
-            .ThenBy(p => p.FirstName)
-            .ToListAsync();
-            
-        return Ok(patients);
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => p.LastName)
+                .ThenBy(p => p.FirstName);
+        }
+
+        var patients = await query.ToListAsync();
+        return Ok(patients.Select(Map));
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Patient>> GetById(Guid id)
+    public async Task<ActionResult<PatientDto>> GetById(Guid id)
     {
         var userId = GetUserId();
         var patient = await _db.Patients
@@ -60,11 +80,11 @@ public class PatientsController : ControllerBase
             return Forbid();
         }
         
-        return Ok(patient);
+        return Ok(Map(patient));
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult<IEnumerable<Patient>>> Search([FromQuery] string q)
+    public async Task<ActionResult<IEnumerable<PatientDto>>> Search([FromQuery] string q)
     {
         var userId = GetUserId();
         var isOdontologo = User.IsInRole(Roles.Odontologo);
@@ -93,11 +113,11 @@ public class PatientsController : ControllerBase
             .Take(20)
             .ToListAsync();
             
-        return Ok(patients);
+        return Ok(patients.Select(Map));
     }
 
     [HttpPost]
-    public async Task<ActionResult<Patient>> Create([FromBody] PatientCreateRequest request)
+    public async Task<ActionResult<PatientDto>> Create([FromBody] PatientCreateRequest request)
     {
         var userId = GetUserId();
         
@@ -117,11 +137,11 @@ public class PatientsController : ControllerBase
             FirstName = request.FirstName,
             LastName = request.LastName,
             IdNumber = request.IdNumber,
-            DateOfBirth = request.DateOfBirth,
+            DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth, DateTimeKind.Utc),
             Gender = request.Gender,
             Address = request.Address,
             Phone = request.Phone,
-            Email = request.Email,
+            Email = request.Email ?? string.Empty,
             EmergencyContact = request.EmergencyContact,
             EmergencyPhone = request.EmergencyPhone,
             Allergies = request.Allergies,
@@ -136,11 +156,11 @@ public class PatientsController : ControllerBase
         _db.Patients.Add(patient);
         await _db.SaveChangesAsync();
         
-        return CreatedAtAction(nameof(GetById), new { id = patient.Id }, patient);
+        return CreatedAtAction(nameof(GetById), new { id = patient.Id }, Map(patient));
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Patient>> Update(Guid id, [FromBody] PatientUpdateRequest request)
+    public async Task<ActionResult<PatientDto>> Update(Guid id, [FromBody] PatientUpdateRequest request)
     {
         var userId = GetUserId();
         var patient = await _db.Patients.FindAsync(id);
@@ -186,7 +206,7 @@ public class PatientsController : ControllerBase
         patient.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         
-        return Ok(patient);
+        return Ok(Map(patient));
     }
 
     [HttpDelete("{id:guid}")]
@@ -230,39 +250,29 @@ public class PatientsController : ControllerBase
         }
         return Guid.Parse(id);
     }
-}
 
-public class PatientCreateRequest
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string IdNumber { get; set; } = string.Empty;
-    public DateTime DateOfBirth { get; set; }
-    public string Gender { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string? EmergencyContact { get; set; }
-    public string? EmergencyPhone { get; set; }
-    public string? Allergies { get; set; }
-    public string? Medications { get; set; }
-    public string? Diseases { get; set; }
-    public string? BloodType { get; set; }
-    public string? Notes { get; set; }
-}
-
-public class PatientUpdateRequest
-{
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Address { get; set; }
-    public string? Phone { get; set; }
-    public string? Email { get; set; }
-    public string? EmergencyContact { get; set; }
-    public string? EmergencyPhone { get; set; }
-    public string? Allergies { get; set; }
-    public string? Medications { get; set; }
-    public string? Diseases { get; set; }
-    public string? BloodType { get; set; }
-    public string? Notes { get; set; }
+    private static PatientDto Map(Patient patient)
+    {
+        return new PatientDto
+        {
+            Id = patient.Id,
+            FirstName = patient.FirstName,
+            LastName = patient.LastName,
+            IdNumber = patient.IdNumber,
+            DateOfBirth = patient.DateOfBirth,
+            Gender = patient.Gender,
+            Address = patient.Address,
+            Phone = patient.Phone,
+            Email = patient.Email,
+            EmergencyContact = patient.EmergencyContact,
+            EmergencyPhone = patient.EmergencyPhone,
+            Allergies = patient.Allergies,
+            Medications = patient.Medications,
+            Diseases = patient.Diseases,
+            BloodType = patient.BloodType,
+            Notes = patient.Notes,
+            CreatedAt = patient.CreatedAt,
+            UpdatedAt = patient.UpdatedAt
+        };
+    }
 }

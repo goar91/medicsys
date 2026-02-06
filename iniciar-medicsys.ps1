@@ -6,6 +6,20 @@ Write-Host "   MEDICSYS - Inicio del Sistema" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Cargar variables de entorno desde .env si existe
+$envFile = Join-Path $PSScriptRoot ".env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -eq "" -or $line.StartsWith("#")) { return }
+        $parts = $line -split "=", 2
+        if ($parts.Length -eq 2) {
+            [Environment]::SetEnvironmentVariable($parts[0].Trim(), $parts[1].Trim(), "Process")
+        }
+    }
+    Write-Host "   Variables de entorno cargadas desde .env" -ForegroundColor Green
+}
+
 # Detener procesos existentes
 Write-Host "1. Deteniendo procesos existentes..." -ForegroundColor Yellow
 Get-Process | Where-Object { $_.ProcessName -match "dotnet|node" -and $_.Path -like "*MEDICSYS*" } | ForEach-Object {
@@ -20,7 +34,7 @@ Write-Host "   Asegúrate de que PostgreSQL esté iniciado en el puerto 5432." -
 
 # Compilar Backend
 Write-Host "`n3. Compilando Backend (.NET 9)..." -ForegroundColor Yellow
-Set-Location "d:\Programación\MEDICSYS\MEDICSYS.Api"
+Set-Location "C:\MEDICSYS\MEDICSYS\MEDICSYS.Api"
 dotnet build --configuration Release > $null 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Host "   ✅ Backend compilado exitosamente" -ForegroundColor Green
@@ -31,12 +45,12 @@ if ($LASTEXITCODE -eq 0) {
 
 # Iniciar Backend
 Write-Host "`n4. Iniciando Backend API..." -ForegroundColor Yellow
-Start-Process cmd -ArgumentList "/c", "cd /d `"d:\Programación\MEDICSYS\MEDICSYS.Api`" && dotnet run" -WindowStyle Minimized
+Start-Process cmd -ArgumentList "/c", "cd /d `"C:\MEDICSYS\MEDICSYS\MEDICSYS.Api`" && dotnet run" -WindowStyle Minimized
 Write-Host "   ✅ Backend iniciado en segundo plano" -ForegroundColor Green
 
 # Compilar Frontend
 Write-Host "`n5. Instalando dependencias del Frontend..." -ForegroundColor Yellow
-Set-Location "d:\Programación\MEDICSYS\MEDICSYS.Web"
+Set-Location "C:\MEDICSYS\MEDICSYS\MEDICSYS.Web"
 if (-not (Test-Path "node_modules")) {
     npm install > $null 2>&1
     Write-Host "   ✅ Dependencias instaladas" -ForegroundColor Green
@@ -46,7 +60,7 @@ if (-not (Test-Path "node_modules")) {
 
 # Iniciar Frontend
 Write-Host "`n6. Iniciando Frontend (Angular 21)..." -ForegroundColor Yellow
-Start-Process cmd -ArgumentList "/c", "cd /d `"d:\Programación\MEDICSYS\MEDICSYS.Web`" && npm start" -WindowStyle Minimized
+Start-Process cmd -ArgumentList "/c", "cd /d `"C:\MEDICSYS\MEDICSYS\MEDICSYS.Web`" && npm start" -WindowStyle Minimized
 Write-Host "   ✅ Frontend iniciado en segundo plano" -ForegroundColor Green
 
 # Esperar servicios

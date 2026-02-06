@@ -27,7 +27,11 @@ public class AgendaController : ControllerBase
 
     [Authorize]
     [HttpGet("appointments")]
-    public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAppointments([FromQuery] Guid? studentId, [FromQuery] Guid? professorId)
+    public async Task<ActionResult<IEnumerable<AppointmentDto>>> GetAppointments(
+        [FromQuery] Guid? studentId,
+        [FromQuery] Guid? professorId,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var userId = GetUserId();
         var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
@@ -51,7 +55,27 @@ public class AgendaController : ControllerBase
             query = query.Where(x => x.StudentId == userId);
         }
 
-        var items = await query.OrderBy(x => x.StartAt).ToListAsync();
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderBy(x => x.StartAt)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderBy(x => x.StartAt);
+        }
+
+        var items = await query.ToListAsync();
         return Ok(items.Select(Map));
     }
 

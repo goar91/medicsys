@@ -117,6 +117,86 @@ namespace MEDICSYS.Api.Migrations.Academico
                     b.ToTable("AcademicClinicalHistories");
                 });
 
+            modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicPatient", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Allergies")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("BloodType")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByProfessorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EmergencyContact")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EmergencyPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("IdNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("MedicalConditions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByProfessorId");
+
+                    b.HasIndex("IdNumber")
+                        .IsUnique();
+
+                    b.ToTable("AcademicPatients");
+                });
+
             modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicReminder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -400,6 +480,17 @@ namespace MEDICSYS.Api.Migrations.Academico
                     b.Navigation("ReviewedByProfessor");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicPatient", b =>
+                {
+                    b.HasOne("MEDICSYS.Api.Models.ApplicationUser", "CreatedByProfessor")
+                        .WithMany()
+                        .HasForeignKey("CreatedByProfessorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByProfessor");
                 });
 
             modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicReminder", b =>

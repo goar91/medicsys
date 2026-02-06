@@ -1,171 +1,104 @@
-<div class="auth-page">
-  <section class="auth-hero">
-    <div class="badge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-      </svg>
-      Plataforma universitaria
-    </div>
-    <h1>
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-      </svg>
-      MEDICSYS
-    </h1>
-    <p>
-      Historias clínicas digitales para estudiantes de salud. Captura rigurosa, revisión
-      docente y trazabilidad completa.
-    </p>
-    <div class="hero-grid">
-      <div class="hero-card">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+<div class="login-container">
+  <div class="login-brand">
+    <div class="brand-content">
+      <div class="logo-container">
+        <svg class="logo-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <path d="M12 18v-6"/>
+          <path d="M9 15h6"/>
         </svg>
-        <h3>Formulario integral</h3>
-        <p>Secciones completas, validaciones y guardado seguro.</p>
-      </div>
-      <div class="hero-card">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        <h3>Revisión docente</h3>
-        <p>Flujo de aprobación o rechazo con observaciones claras.</p>
-      </div>
-      <div class="hero-card">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        <h3>Auditoría</h3>
-        <p>Estado, fechas y evidencia para cada historia clínica.</p>
+        <h1 class="brand-title">MEDICSYS</h1>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="auth-panel">
-    <div class="card auth-card">
-      <div class="tabs">
-        <button
-          type="button"
-          class="tab"
-          [class.active]="mode() === 'login'"
-          (click)="switchMode('login')"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          Iniciar sesión
-        </button>
-        <button
-          type="button"
-          class="tab"
-          [class.active]="mode() === 'register'"
-          (click)="switchMode('register')"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
-          </svg>
-          Registro alumno
-        </button>
+  <div class="login-form-section">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Iniciar Sesión</h2>
       </div>
 
-      <form *ngIf="mode() === 'login'" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Tipo de usuario</span>
-            <select class="input" formControlName="userType">
-              <option value="Estudiante">Estudiante</option>
-              <option value="Profesor">Profes@r</option>
-              <option value="Odontologo">Odontólog@</option>
-            </select>
+      <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="auth-form">
+        <div class="form-group">
+          <label for="userType" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Tipo de Usuario
+          </label>
+          <div class="role-selector" role="radiogroup" aria-label="Tipo de usuario">
+            <button
+              type="button"
+              class="role-card"
+              *ngFor="let option of userTypes"
+              [class.active]="selectedUserType === option.value"
+              [attr.aria-pressed]="selectedUserType === option.value"
+              (click)="selectUserType(option.value)">
+              <span class="role-icon" [innerHTML]="option.svgIcon"></span>
+              <span class="role-meta">
+                <span class="role-label">{{ option.label }}</span>
+                <span class="role-desc">{{ option.description }}</span>
+              </span>
+            </button>
           </div>
-        </label>
+          <input type="hidden" id="userType" formControlName="userType">
+        </div>
 
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Correo institucional</span>
-            <input class="input" type="email" formControlName="email" placeholder="nombre@universidad.edu" />
-          </div>
-        </label>
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Contraseña</span>
-            <input class="input" type="password" formControlName="password" placeholder="********" />
-          </div>
-        </label>
-        <button class="btn btn-primary" type="submit" [disabled]="loading()">
-          <svg *ngIf="!loading()" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          {{ loading() ? 'Ingresando...' : 'Entrar' }}
-        </button>
+        <div class="form-group">
+          <label for="email" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Correo Electrónico
+          </label>
+          <input
+            pInputText
+            id="email"
+            type="email"
+            formControlName="email"
+            [placeholder]="emailPlaceholder"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Contraseña
+          </label>
+          <p-password
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            [style]="{'width': '100%'}"
+            [toggleMask]="true"
+            [feedback]="false">
+          </p-password>
+        </div>
+
+        <p-button
+          type="submit"
+          label="Iniciar Sesión"
+          icon="pi pi-sign-in"
+          [loading]="loading()"
+          [style]="{'width': '100%'}"
+          severity="primary"
+          size="large">
+        </p-button>
+
+        <p-message
+          *ngIf="error()"
+          severity="error"
+          [text]="error() || ''"
+          styleClass="error-message">
+        </p-message>
       </form>
-
-      <form *ngIf="mode() === 'register'" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Nombre completo</span>
-            <input class="input" type="text" formControlName="fullName" placeholder="Nombre y apellido" />
-          </div>
-        </label>
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7l-5-5z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="9" x2="14" y2="9"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Código universitario</span>
-            <input class="input" type="text" formControlName="universityId" placeholder="2026-001" />
-          </div>
-        </label>
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Correo institucional</span>
-            <input class="input" type="email" formControlName="email" placeholder="nombre@universidad.edu" />
-          </div>
-        </label>
-        <label class="field">
-          <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <div class="field-content">
-            <span class="field-label">Contraseña</span>
-            <input class="input" type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
-          </div>
-        </label>
-        <button class="btn btn-primary" type="submit" [disabled]="loading()">
-          <svg *ngIf="!loading()" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          {{ loading() ? 'Creando cuenta...' : 'Crear cuenta' }}
-        </button>
-      </form>
-
-      <p class="error" *ngIf="error()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        {{ error() }}
-      </p>
-      <p class="hint">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
-        </svg>
-        Profesores: usa tu correo asignado o solicita acceso.
-      </p>
     </div>
-  </section>
+  </div>
 </div>

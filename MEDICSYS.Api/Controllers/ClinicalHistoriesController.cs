@@ -27,7 +27,7 @@ public class ClinicalHistoriesController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ClinicalHistoryDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ClinicalHistoryDto>>> GetAll([FromQuery] int? page, [FromQuery] int? pageSize)
     {
         var userId = await ResolveUserIdAsync();
         var query = _db.ClinicalHistories
@@ -39,10 +39,27 @@ public class ClinicalHistoriesController : ControllerBase
             query = query.Where(x => x.StudentId == userId);
         }
 
-        var histories = await query
-            .OrderByDescending(x => x.UpdatedAt)
-            .ToListAsync();
+        var total = await query.CountAsync();
 
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderByDescending(x => x.UpdatedAt)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderByDescending(x => x.UpdatedAt);
+        }
+
+        var histories = await query.ToListAsync();
         return Ok(histories.Select(Map));
     }
 

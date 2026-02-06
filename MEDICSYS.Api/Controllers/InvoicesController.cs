@@ -28,7 +28,10 @@ public class InvoicesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAll([FromQuery] string? status)
+    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAll(
+        [FromQuery] string? status,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var query = _db.Invoices
             .Include(x => x.Items)
@@ -39,7 +42,27 @@ public class InvoicesController : ControllerBase
             query = query.Where(x => x.Status == parsed);
         }
 
-        var invoices = await query.OrderByDescending(x => x.IssuedAt).ToListAsync();
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderByDescending(x => x.IssuedAt)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderByDescending(x => x.IssuedAt);
+        }
+
+        var invoices = await query.ToListAsync();
         return Ok(invoices.Select(Map));
     }
 
@@ -205,7 +228,7 @@ public class InvoicesController : ControllerBase
         var entry = new AccountingEntry
         {
             Id = Guid.NewGuid(),
-            Date = invoice.IssuedAt,
+            Date = DateTime.SpecifyKind(invoice.IssuedAt.Date, DateTimeKind.Utc),
             Type = AccountingEntryType.Income,
             CategoryId = category.Id,
             Description = $"Factura {invoice.Number}",

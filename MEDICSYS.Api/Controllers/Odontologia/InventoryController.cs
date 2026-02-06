@@ -30,13 +30,36 @@ public class InventoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<InventoryItemDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<InventoryItemDto>>> GetAll(
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var odontologoId = GetOdontologoId();
-        var items = await _db.InventoryItems
+        var query = _db.InventoryItems
             .Where(i => i.OdontologoId == odontologoId)
-            .OrderBy(i => i.Name)
-            .ToListAsync();
+            .AsNoTracking();
+
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderBy(i => i.Name)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderBy(i => i.Name);
+        }
+
+        var items = await query.ToListAsync();
 
         return Ok(items.Select(MapToDto));
     }

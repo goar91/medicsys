@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "aHviHvwsJF0=",
+  "dgSpecHash": "W5hzEnPcCAI=",
   "success": true,
   "projectFilePath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
   "expectedPackageFiles": [
@@ -23,6 +23,7 @@
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.entityframeworkcore.design\\9.0.12\\microsoft.entityframeworkcore.design.9.0.12.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\9.0.12\\microsoft.entityframeworkcore.relational.9.0.12.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.extensions.dependencymodel\\9.0.12\\microsoft.extensions.dependencymodel.9.0.12.nupkg.sha512",
+    "C:\\Users\\gerso\\.nuget\\packages\\microsoft.extensions.diagnostics.healthchecks.entityframeworkcore\\9.0.12\\microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.9.0.12.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.0.1\\microsoft.identitymodel.abstractions.8.0.1.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.0.1\\microsoft.identitymodel.jsonwebtokens.8.0.1.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\microsoft.identitymodel.logging\\8.0.1\\microsoft.identitymodel.logging.8.0.1.nupkg.sha512",
@@ -33,9 +34,11 @@
     "C:\\Users\\gerso\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.4\\npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512",
-    "C:\\Users\\gerso\\.nuget\\packages\\serilog\\3.1.1\\serilog.3.1.1.nupkg.sha512",
+    "C:\\Users\\gerso\\.nuget\\packages\\serilog\\4.0.0\\serilog.4.0.0.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\serilog.aspnetcore\\8.0.3\\serilog.aspnetcore.8.0.3.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\serilog.enrichers.environment\\2.3.0\\serilog.enrichers.environment.2.3.0.nupkg.sha512",
+    "C:\\Users\\gerso\\.nuget\\packages\\serilog.enrichers.process\\3.0.0\\serilog.enrichers.process.3.0.0.nupkg.sha512",
+    "C:\\Users\\gerso\\.nuget\\packages\\serilog.enrichers.thread\\4.0.0\\serilog.enrichers.thread.4.0.0.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\serilog.extensions.hosting\\8.0.0\\serilog.extensions.hosting.8.0.0.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\serilog.extensions.logging\\8.0.0\\serilog.extensions.logging.8.0.0.nupkg.sha512",
     "C:\\Users\\gerso\\.nuget\\packages\\serilog.formatting.compact\\2.0.0\\serilog.formatting.compact.2.0.0.nupkg.sha512",

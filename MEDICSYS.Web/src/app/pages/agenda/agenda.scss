@@ -1,17 +1,19 @@
 .modern-agenda-page {
-  max-width: 1600px;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+  padding: var(--page-gutter);
+  background: transparent;
+  min-height: 100svh;
 }
 
 .modern-header {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
+  background: var(--surface-glass);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.5rem, 3vw, 2rem);
   margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--blur-glass);
 
   .header-content {
     display: flex;
@@ -25,7 +27,7 @@
     h1 {
       font-size: 2.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin: 0 0 0.5rem 0;
@@ -33,14 +35,14 @@
 
     p {
       font-size: 1.1rem;
-      color: #64748b;
+      color: var(--muted);
       margin: 0;
     }
   }
 
   .date-badge {
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     border-radius: 12px;
     font-weight: 600;
@@ -50,11 +52,13 @@
 }
 
 .filters-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface-glass);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--blur-glass);
 
   .filters-grid {
     display: grid;
@@ -72,26 +76,27 @@
     .filter-label {
       font-weight: 600;
       font-size: 0.95rem;
-      color: #1e293b;
+      color: var(--ink);
     }
   }
 
   .modern-select,
   .modern-input {
     padding: 0.875rem 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
+    border: 2px solid var(--stroke);
+    border-radius: 12px;
     font-size: 1rem;
     transition: all 0.2s ease;
+    background: white;
 
     &:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.12);
     }
 
     &:disabled {
-      background-color: #f1f5f9;
+      background-color: var(--stroke-light);
       cursor: not-allowed;
     }
   }
@@ -106,15 +111,17 @@
 
 .calendar-modern-card,
 .availability-modern-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface-glass);
+  border-radius: var(--radius-lg);
   padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--blur-glass);
 
   h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--ink);
     margin: 0 0 1.5rem 0;
   }
 }
@@ -128,7 +135,7 @@
   h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--ink);
     margin: 0;
     text-transform: capitalize;
   }
@@ -136,10 +143,10 @@
   .nav-btn {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--stroke-light);
+    color: var(--muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -147,7 +154,7 @@
     transition: all 0.2s ease;
 
     &:hover {
-      background: #667eea;
+      background: var(--gradient-primary);
       color: white;
       transform: scale(1.05);
     }
@@ -164,7 +171,7 @@
     text-align: center;
     font-weight: 600;
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--muted);
     padding: 0.5rem;
   }
 }
@@ -177,9 +184,9 @@
   .calendar-day {
     position: relative;
     aspect-ratio: 1;
-    border: 2px solid #f1f5f9;
-    border-radius: 12px;
-    background: white;
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    background: var(--surface);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -188,7 +195,7 @@
     transition: all 0.2s ease;
     font-size: 1rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--ink);
 
     &.empty {
       cursor: default;
@@ -196,22 +203,22 @@
     }
 
     &.today {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border-color: #f59e0b;
-      color: #92400e;
+      background: rgb(var(--accent-rgb) / 0.12);
+      border-color: var(--accent);
+      color: var(--accent-dark);
     }
 
     &.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: #667eea;
+      background: var(--gradient-primary);
+      border-color: var(--accent);
       color: white;
       transform: scale(1.05);
     }
 
     &:not(.empty):hover {
-      border-color: #667eea;
+      border-color: var(--accent);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      box-shadow: 0 4px 12px rgb(var(--accent-rgb) / 0.2);
     }
 
     .day-number {
@@ -224,7 +231,7 @@
       right: 4px;
       width: 20px;
       height: 20px;
-      background: #ef4444;
+      background: var(--danger);
       color: white;
       border-radius: 50%;
       font-size: 0.75rem;
@@ -236,7 +243,7 @@
 
     &.selected .day-indicator {
       background: white;
-      color: #667eea;
+      color: var(--accent);
     }
   }
 }
@@ -250,7 +257,7 @@
     h4 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--ink);
       margin: 0 0 1rem 0;
     }
   }
@@ -263,7 +270,7 @@
     .time-slot {
       padding: 0.875rem;
       border-radius: 10px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--stroke);
       background: white;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -275,24 +282,24 @@
       .slot-time {
         font-weight: 600;
         font-size: 1rem;
-        color: #1e293b;
+        color: var(--ink);
       }
 
       .slot-status {
         font-size: 0.813rem;
-        color: #64748b;
+        color: var(--muted);
       }
 
       &.available {
-        border-color: #10b981;
-        background: #d1fae5;
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.15);
 
         .slot-status {
           color: #065f46;
         }
 
         &:hover {
-          background: #10b981;
+          background: var(--success);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 
@@ -327,16 +334,18 @@
 
 .appointments-modern-card,
 .all-appointments-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface-glass);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--blur-glass);
 
   h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--ink);
     margin: 0 0 1.5rem 0;
   }
 }
@@ -351,15 +360,15 @@
     grid-template-columns: 120px 1fr auto;
     gap: 1.5rem;
     padding: 1.5rem;
-    background: #f8fafc;
-    border-radius: 12px;
-    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--stroke);
     transition: all 0.2s ease;
     align-items: start;
 
     &:hover {
-      border-color: #667eea;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-soft);
     }
   }
 
@@ -371,7 +380,7 @@
 
     .time-badge {
       padding: 0.75rem 1rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--gradient-primary);
       color: white;
       border-radius: 10px;
       font-weight: 700;
@@ -382,7 +391,7 @@
 
     .duration {
       font-size: 0.875rem;
-      color: #64748b;
+      color: var(--muted);
       font-weight: 600;
     }
   }
@@ -400,7 +409,7 @@
     h4 {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--ink);
       margin: 0;
     }
 
@@ -419,7 +428,7 @@
 
   .appointment-modern-reason {
     font-size: 1rem;
-    color: #475569;
+    color: var(--ink-light);
     margin: 0 0 0.75rem 0;
   }
 
@@ -427,7 +436,7 @@
     display: flex;
     gap: 0.75rem;
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--muted);
 
     span {
       font-weight: 500;
@@ -445,7 +454,7 @@
         display: block;
         font-weight: 600;
         font-size: 0.875rem;
-        color: #1e293b;
+        color: var(--ink);
         margin-bottom: 0.5rem;
       }
 
@@ -528,12 +537,12 @@
       &.btn-cancel {
         width: auto;
         padding: 0 1rem;
-        background: #94a3b8;
+        background: var(--muted-light);
         color: white;
         font-size: 0.95rem;
         font-weight: 600;
         &:hover {
-          background: #64748b;
+          background: var(--muted);
           transform: translateY(-2px);
         }
       }
@@ -551,21 +560,22 @@
     grid-template-columns: 40px 1fr auto;
     gap: 1rem;
     padding: 1.5rem;
-    background: #f8fafc;
-    border-radius: 12px;
-    border-left: 4px solid #667eea;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    border-left: 4px solid var(--accent);
     transition: all 0.2s ease;
 
     &:hover {
       background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-soft);
       transform: translateX(4px);
     }
 
     .timeline-marker {
       width: 16px;
       height: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--gradient-primary);
       border-radius: 50%;
       margin-top: 0.5rem;
     }
@@ -580,27 +590,27 @@
         h4 {
           font-size: 1.125rem;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--ink);
           margin: 0;
         }
 
         .timeline-date {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--muted);
           font-weight: 500;
         }
       }
 
       p {
         margin: 0 0 0.5rem 0;
-        color: #475569;
+        color: var(--ink-light);
       }
 
       .timeline-meta {
         display: flex;
         gap: 0.75rem;
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--muted);
       }
     }
 
@@ -613,13 +623,15 @@
         height: 36px;
         border-radius: 8px;
         border: none;
-        background: #e2e8f0;
+        background: var(--stroke-light);
+        color: var(--ink);
         cursor: pointer;
         font-size: 1.125rem;
         transition: all 0.2s ease;
 
         &:hover {
-          background: #667eea;
+          background: var(--accent);
+          color: white;
           transform: scale(1.1);
         }
       }
@@ -632,20 +644,28 @@
   padding: 4rem 2rem;
 
   .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--stroke-light);
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1rem;
   }
 
   h4 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--ink);
     margin: 0 0 0.5rem 0;
   }
 
   p {
     font-size: 1rem;
-    color: #64748b;
+    color: var(--muted);
     margin: 0;
   }
 }

@@ -34,13 +34,16 @@ public class ComprasController : ControllerBase
         [FromQuery] string? supplier,
         [FromQuery] DateTime? dateFrom,
         [FromQuery] DateTime? dateTo,
-        [FromQuery] string? status)
+        [FromQuery] string? status,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var odontologoId = GetOdontologoId();
         var query = _db.PurchaseOrders
             .Include(p => p.Items)
             .ThenInclude(i => i.InventoryItem)
-            .Where(p => p.OdontologoId == odontologoId);
+            .Where(p => p.OdontologoId == odontologoId)
+            .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(supplier))
         {
@@ -67,9 +70,27 @@ public class ComprasController : ControllerBase
             }
         }
 
-        var purchases = await query
-            .OrderByDescending(p => p.PurchaseDate)
-            .ToListAsync();
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderByDescending(p => p.PurchaseDate)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderByDescending(p => p.PurchaseDate);
+        }
+
+        var purchases = await query.ToListAsync();
 
         return Ok(purchases.Select(MapToDto));
     }

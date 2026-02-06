@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace MEDICSYS.Api.Contracts;
 
 public class PurchaseOrderDto
@@ -26,18 +28,36 @@ public class PurchaseItemDto
 
 public class CreatePurchaseOrderRequest
 {
+    [Required]
+    [StringLength(120, MinimumLength = 2)]
     public string Supplier { get; set; } = string.Empty;
+
+    [StringLength(60)]
     public string? InvoiceNumber { get; set; }
+
+    [Required]
     public DateTime PurchaseDate { get; set; }
+
+    [StringLength(500)]
     public string? Notes { get; set; }
+
+    [MinLength(1)]
     public List<CreatePurchaseItemRequest> Items { get; set; } = new();
+
+    [Required]
+    [StringLength(20)]
     public string Status { get; set; } = "Received"; // Auto-recibir por defecto
 }
 
 public class CreatePurchaseItemRequest
 {
+    [Required]
     public Guid InventoryItemId { get; set; }
+
+    [Range(1, 10_000)]
     public int Quantity { get; set; }
+
+    [Range(0.01, 1_000_000)]
     public decimal UnitPrice { get; set; }
     public DateTime? ExpirationDate { get; set; }
 }

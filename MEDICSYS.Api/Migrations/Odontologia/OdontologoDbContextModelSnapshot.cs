@@ -249,9 +249,6 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.Property<Guid>("InvoiceId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("InvoiceId1")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -273,8 +270,6 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.HasKey("Id");
 
                     b.HasIndex("InvoiceId");
-
-                    b.HasIndex("InvoiceId1");
 
                     b.ToTable("InvoiceItems");
                 });
@@ -762,15 +757,9 @@ namespace MEDICSYS.Api.Migrations.Odontologia
 
             modelBuilder.Entity("MEDICSYS.Api.Models.InvoiceItem", b =>
                 {
-                    b.HasOne("MEDICSYS.Api.Models.Invoice", null)
+                    b.HasOne("MEDICSYS.Api.Models.Invoice", "Invoice")
                         .WithMany("Items")
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MEDICSYS.Api.Models.Invoice", "Invoice")
-                        .WithMany()
-                        .HasForeignKey("InvoiceId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

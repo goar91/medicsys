@@ -5,7 +5,7 @@
   <header class="modern-header">
     <div class="header-content">
       <div class="title-section">
-        <h1>📅 Agenda Médica</h1>
+        <h1>Agenda Médica</h1>
         <p>Gestiona tus citas y horarios disponibles</p>
       </div>
       <div class="header-actions">
@@ -21,7 +21,7 @@
     <div class="filters-grid">
       <div class="filter-item">
         <label>
-          <span class="filter-label">{{ isOdontologo() ? '🦷 Odontólogo' : '👨‍🏫 Profesor' }}</span>
+          <span class="filter-label">{{ isOdontologo() ? 'Odontólogo' : 'Profesor' }}</span>
           <select class="modern-select" [disabled]="isProvider()" [value]="selectedProfessorId()" (change)="setProfessor($any($event.target).value)">
             <option value="">Seleccionar...</option>
             <option *ngFor="let prof of professors()" [value]="prof.id">{{ prof.fullName }}</option>
@@ -31,7 +31,7 @@
 
       <div class="filter-item">
         <label>
-          <span class="filter-label">📋 Motivo de consulta</span>
+          <span class="filter-label">Motivo de consulta</span>
           <input
             class="modern-input"
             type="text"
@@ -87,7 +87,7 @@
 
     <!-- Horarios disponibles modernos -->
     <div class="availability-modern-card">
-      <h3>⏰ Horarios Disponibles</h3>
+      <h3>Horarios Disponibles</h3>
       <div class="availability-content">
         <div class="availability-panel">
           <h4>{{ isOdontologo() ? 'Odontólogo' : 'Profesor' }}</h4>
@@ -111,7 +111,7 @@
 
   <!-- Citas del día seleccionado -->
   <div class="appointments-modern-card" *ngIf="appointmentsForSelectedDate().length > 0">
-    <h3>📋 Citas para {{ selectedDate() | date:'d MMMM yyyy' }}</h3>
+    <h3>Citas para {{ selectedDate() | date:'d MMMM yyyy' }}</h3>
     <div class="appointments-modern-list">
       <div *ngFor="let appt of appointmentsForSelectedDate()" class="appointment-modern-item" (click)="onAppointmentClick(appt)" style="cursor: pointer;">
         <div class="appointment-modern-time">
@@ -130,9 +130,9 @@
           </div>
           <p class="appointment-modern-reason">{{ appt.reason }}</p>
           <div class="appointment-modern-meta">
-            <span>👨‍⚕️ {{ appt.professorName }}</span>
+            <span>Profesor: {{ appt.professorName }}</span>
             <span>•</span>
-            <span>🎓 {{ appt.studentName }}</span>
+            <span>Estudiante: {{ appt.studentName }}</span>
           </div>
         </div>
 
@@ -159,7 +159,7 @@
 
   <!-- Todas las citas programadas -->
   <div class="all-appointments-card">
-    <h3>📅 Todas las Citas Programadas</h3>
+    <h3>Todas las Citas Programadas</h3>
     <div class="appointments-timeline" *ngIf="appointments().length > 0">
       <div *ngFor="let appt of appointments()" class="timeline-item" (click)="onAppointmentClick(appt)" style="cursor: pointer;">
         <div class="timeline-marker"></div>
@@ -170,9 +170,9 @@
           </div>
           <p>{{ appt.reason }}</p>
           <div class="timeline-meta">
-            <span>👨‍⚕️ {{ appt.professorName }}</span>
+            <span>Profesor: {{ appt.professorName }}</span>
             <span>•</span>
-            <span>{{ isOdontologo() ? '👤' : '🎓' }} {{ appt.studentName }}</span>
+            <span>{{ isOdontologo() ? 'Paciente' : 'Estudiante' }}: {{ appt.studentName }}</span>
           </div>
         </div>
         <div class="timeline-actions">
@@ -182,7 +182,7 @@
       </div>
     </div>
     <div class="empty-state" *ngIf="appointments().length === 0">
-      <div class="empty-icon">📭</div>
+      <div class="empty-icon">-</div>
       <h4>No hay citas programadas</h4>
       <p>Las citas agendadas aparecerán aquí</p>
     </div>

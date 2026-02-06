@@ -33,7 +33,13 @@ public class AccountingController : ControllerBase
     }
 
     [HttpGet("entries")]
-    public async Task<ActionResult<IEnumerable<AccountingEntryDto>>> GetEntries([FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] string? type, [FromQuery] Guid? categoryId)
+    public async Task<ActionResult<IEnumerable<AccountingEntryDto>>> GetEntries(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] string? type,
+        [FromQuery] Guid? categoryId,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
         var query = _db.AccountingEntries
             .Include(x => x.Category)
@@ -57,11 +63,31 @@ public class AccountingController : ControllerBase
             query = query.Where(x => x.CategoryId == categoryId.Value);
         }
 
-        var entries = await query
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.CreatedAt)
-            .Take(500)
-            .ToListAsync();
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 100, 1, 200);
+            query = query
+                .OrderByDescending(x => x.Date)
+                .ThenByDescending(x => x.CreatedAt)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query
+                .OrderByDescending(x => x.Date)
+                .ThenByDescending(x => x.CreatedAt)
+                .Take(500);
+        }
+
+        var entries = await query.ToListAsync();
 
         return Ok(entries.Select(MapEntry));
     }
@@ -87,10 +113,11 @@ public class AccountingController : ControllerBase
             paymentMethod = method;
         }
 
+        var entryDate = NormalizeToUtcDate(request.Date);
         var entry = new AccountingEntry
         {
             Id = Guid.NewGuid(),
-            Date = request.Date.Date,
+            Date = entryDate,
             Type = entryType,
             CategoryId = category.Id,
             Description = request.Description,
@@ -143,7 +170,7 @@ public class AccountingController : ControllerBase
             paymentMethod = method;
         }
 
-        entry.Date = request.Date.Date;
+        entry.Date = NormalizeToUtcDate(request.Date);
         entry.Type = entryType;
         entry.CategoryId = category.Id;
         entry.Description = request.Description;
@@ -244,5 +271,19 @@ public class AccountingController : ControllerBase
             Source = entry.Source,
             InvoiceId = entry.InvoiceId
         };
+    }
+
+    private static DateTime NormalizeToUtcDate(DateTime date)
+    {
+        var normalized = date.Kind switch
+        {
+            DateTimeKind.Utc => date,
+            DateTimeKind.Local => date.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(date, DateTimeKind.Utc)
+        };
+
+        // Mantener solo la fecha (00:00 UTC) para movimientos contables
+        var utcDate = normalized.Date;
+        return DateTime.SpecifyKind(utcDate, DateTimeKind.Utc);
     }
 }

@@ -1,12 +1,16 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Serilog.Context;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
@@ -24,37 +28,58 @@ try
         loggerConfiguration
             .ReadFrom.Configuration(context.Configuration)
             .ReadFrom.Services(services)
-            .Enrich.FromLogContext());
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "MEDICSYS.Api")
+            .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName));
 
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         });
     builder.Services.AddOpenApi();
 
-    // DbContext principal (historiales, agenda, pacientes, recordatorios)
-    builder.Services.AddDbContext<AppDbContext>(options =>
+    string GetRequiredConnectionString(string name)
     {
-        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+        var value = builder.Configuration.GetConnectionString(name);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException($"Connection string '{name}' is missing. Configure env var ConnectionStrings__{name}.");
+        }
+        return value;
+    }
+
+    Npgsql.NpgsqlDataSource BuildDataSource(string connectionString)
+    {
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
         dataSourceBuilder.EnableDynamicJson();
-        options.UseNpgsql(dataSourceBuilder.Build());
+        return dataSourceBuilder.Build();
+    }
+
+    builder.Services.AddSingleton(new AppDbDataSource(BuildDataSource(GetRequiredConnectionString("DefaultConnection"))));
+    builder.Services.AddSingleton(new AcademicDbDataSource(BuildDataSource(GetRequiredConnectionString("AcademicoConnection"))));
+    builder.Services.AddSingleton(new OdontologoDbDataSource(BuildDataSource(GetRequiredConnectionString("OdontologiaConnection"))));
+
+    // DbContext principal (historiales, agenda, pacientes, recordatorios)
+    builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+    {
+        var dataSource = sp.GetRequiredService<AppDbDataSource>().DataSource;
+        options.UseNpgsql(dataSource);
     });
 
     // DbContext para Sistema Académico (Profesor-Alumno)
-    builder.Services.AddDbContext<AcademicDbContext>(options =>
+    builder.Services.AddDbContext<AcademicDbContext>((sp, options) =>
     {
-        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("AcademicoConnection"));
-        dataSourceBuilder.EnableDynamicJson();
-        options.UseNpgsql(dataSourceBuilder.Build());
+        var dataSource = sp.GetRequiredService<AcademicDbDataSource>().DataSource;
+        options.UseNpgsql(dataSource);
     });
 
     // DbContext para Odontología (facturación, inventario, contabilidad)
-    builder.Services.AddDbContext<OdontologoDbContext>(options =>
+    builder.Services.AddDbContext<OdontologoDbContext>((sp, options) =>
     {
-        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("OdontologiaConnection"));
-        dataSourceBuilder.EnableDynamicJson();
-        options.UseNpgsql(dataSourceBuilder.Build());
+        var dataSource = sp.GetRequiredService<OdontologoDbDataSource>().DataSource;
+        options.UseNpgsql(dataSource);
     });
 
     // Identity usa el contexto académico
@@ -69,7 +94,11 @@ try
         .AddEntityFrameworkStores<AcademicDbContext>()
         .AddSignInManager();
 
-    var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt key missing.");
+    var jwtKey = builder.Configuration["Jwt:Key"];
+    if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    {
+        throw new InvalidOperationException("Jwt key missing or too short. Configure env var Jwt__Key with at least 32 characters.");
+    }
     var issuer = builder.Configuration["Jwt:Issuer"] ?? "MEDICSYS";
     var audience = builder.Configuration["Jwt:Audience"] ?? "MEDICSYS";
 
@@ -93,6 +122,41 @@ try
 
     builder.Services.AddAuthorization();
 
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<AppDbContext>("app-db")
+        .AddDbContextCheck<AcademicDbContext>("academic-db")
+        .AddDbContextCheck<OdontologoDbContext>("odontologia-db");
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        var permitLimit = builder.Configuration.GetValue<int?>("RateLimiting:PermitLimit") ?? 300;
+        var windowSeconds = builder.Configuration.GetValue<int?>("RateLimiting:WindowSeconds") ?? 60;
+        var queueLimit = builder.Configuration.GetValue<int?>("RateLimiting:QueueLimit") ?? 0;
+
+        permitLimit = Math.Clamp(permitLimit, 1, 10_000);
+        windowSeconds = Math.Clamp(windowSeconds, 1, 3_600);
+        queueLimit = Math.Max(0, queueLimit);
+
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        {
+            var key = context.User?.Identity?.IsAuthenticated == true
+                ? context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "auth"
+                : context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+
+            return RateLimitPartition.GetFixedWindowLimiter(
+                key,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = permitLimit,
+                    Window = TimeSpan.FromSeconds(windowSeconds),
+                    QueueLimit = queueLimit,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    AutoReplenishment = true
+                });
+        });
+    });
+
     var corsOrigin = builder.Configuration["Cors:Origin"] ?? "http://localhost:4200";
     builder.Services.AddCors(options =>
     {
@@ -114,6 +178,13 @@ try
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("TraceId", httpContext.TraceIdentifier);
+            diagnosticContext.Set("UserId", httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier));
+            diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress?.ToString());
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
+        };
     });
 
     if (app.Environment.IsDevelopment())
@@ -166,8 +237,19 @@ try
     app.UseCors("WebApp");
     app.UseStaticFiles();
     app.UseAuthentication();
+    app.Use(async (context, next) =>
+    {
+        using (LogContext.PushProperty("TraceId", context.TraceIdentifier))
+        using (LogContext.PushProperty("UserId", context.User?.FindFirstValue(ClaimTypes.NameIdentifier)))
+        using (LogContext.PushProperty("ClientIP", context.Connection.RemoteIpAddress?.ToString()))
+        {
+            await next();
+        }
+    });
+    app.UseRateLimiter();
     app.UseAuthorization();
 
+    app.MapHealthChecks("/health").DisableRateLimiting();
     app.MapControllers();
 
     await app.RunAsync();

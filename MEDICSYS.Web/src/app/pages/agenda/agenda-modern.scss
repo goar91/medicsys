@@ -25,7 +25,7 @@
     h1 {
       font-size: 2.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin: 0 0 0.5rem 0;
@@ -40,7 +40,7 @@
 
   .date-badge {
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
     color: white;
     border-radius: 12px;
     font-weight: 600;
@@ -86,8 +86,8 @@
 
     &:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.1);
     }
 
     &:disabled {
@@ -147,7 +147,7 @@
     transition: all 0.2s ease;
 
     &:hover {
-      background: #667eea;
+      background: var(--accent);
       color: white;
       transform: scale(1.05);
     }
@@ -202,16 +202,16 @@
     }
 
     &.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: #667eea;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      border-color: var(--accent);
       color: white;
       transform: scale(1.05);
     }
 
     &:not(.empty):hover {
-      border-color: #667eea;
+      border-color: var(--accent);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      box-shadow: 0 4px 12px rgb(var(--accent-rgb) / 0.2);
     }
 
     .day-number {
@@ -236,7 +236,7 @@
 
     &.selected .day-indicator {
       background: white;
-      color: #667eea;
+      color: var(--accent);
     }
   }
 }
@@ -358,8 +358,8 @@
     align-items: start;
 
     &:hover {
-      border-color: #667eea;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgb(var(--accent-rgb) / 0.1);
     }
   }
 
@@ -371,7 +371,7 @@
 
     .time-badge {
       padding: 0.75rem 1rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
       color: white;
       border-radius: 10px;
       font-weight: 700;
@@ -553,7 +553,7 @@
     padding: 1.5rem;
     background: #f8fafc;
     border-radius: 12px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--accent);
     transition: all 0.2s ease;
 
     &:hover {
@@ -565,7 +565,7 @@
     .timeline-marker {
       width: 16px;
       height: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
       border-radius: 50%;
       margin-top: 0.5rem;
     }
@@ -619,7 +619,7 @@
         transition: all 0.2s ease;
 
         &:hover {
-          background: #667eea;
+          background: var(--accent);
           transform: scale(1.1);
         }
       }

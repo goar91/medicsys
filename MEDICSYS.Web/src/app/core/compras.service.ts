@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PurchaseOrder } from './models';
+import { API_BASE_URL } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ComprasService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/odontologia/compras';
+  private readonly apiUrl = `${API_BASE_URL}/odontologia/compras`;
 
   getAll(filters?: any): Observable<PurchaseOrder[]> {
     return this.http.get<PurchaseOrder[]>(this.apiUrl, { params: filters });

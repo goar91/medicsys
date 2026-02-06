@@ -1,0 +1,237 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">{{ isEditMode() ? 'Editar' : 'Registrar' }} paciente</p>
+      <h2>{{ isEditMode() ? 'Modificar datos del paciente' : 'Nuevo paciente académico' }}</h2>
+      <p class="subtitle">Complete la información del paciente para su registro en el sistema.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" type="button" (click)="cancel()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Cancelar
+      </button>
+    </div>
+  </header>
+
+  <div class="card" style="max-width: 900px; margin: 0 auto;">
+    <div *ngIf="loading()" class="empty">
+      <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      Cargando...
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" *ngIf="!loading()">
+      <div *ngIf="error()" class="alert alert-error" style="background: #fee; border: 1px solid #fcc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; color: #c00;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error() }}
+      </div>
+
+      <!-- Información Personal -->
+      <fieldset style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <legend style="font-weight: 600; font-size: 1.125rem; padding: 0 0.5rem;">Información Personal</legend>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+          <div class="form-group">
+            <label for="firstName">Nombres *</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              formControlName="firstName" 
+              class="form-control"
+              [class.invalid]="form.get('firstName')?.touched && form.get('firstName')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('firstName')">{{ getFieldError('firstName') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Apellidos *</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              formControlName="lastName" 
+              class="form-control"
+              [class.invalid]="form.get('lastName')?.touched && form.get('lastName')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('lastName')">{{ getFieldError('lastName') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="idNumber">Cédula *</label>
+            <input 
+              type="text" 
+              id="idNumber" 
+              formControlName="idNumber" 
+              class="form-control"
+              placeholder="1234567890"
+              maxlength="10"
+              [class.invalid]="form.get('idNumber')?.touched && form.get('idNumber')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('idNumber')">{{ getFieldError('idNumber') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="dateOfBirth">Fecha de Nacimiento *</label>
+            <input 
+              type="date" 
+              id="dateOfBirth" 
+              formControlName="dateOfBirth" 
+              class="form-control"
+              [class.invalid]="form.get('dateOfBirth')?.touched && form.get('dateOfBirth')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('dateOfBirth')">{{ getFieldError('dateOfBirth') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="gender">Género *</label>
+            <select 
+              id="gender" 
+              formControlName="gender" 
+              class="form-control"
+              [class.invalid]="form.get('gender')?.touched && form.get('gender')?.invalid"
+            >
+              <option value="">Seleccione...</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <span class="error-message" *ngIf="getFieldError('gender')">{{ getFieldError('gender') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="bloodType">Tipo de Sangre</label>
+            <select id="bloodType" formControlName="bloodType" class="form-control">
+              <option value="">Seleccione...</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Contacto -->
+      <fieldset style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <legend style="font-weight: 600; font-size: 1.125rem; padding: 0 0.5rem;">Información de Contacto</legend>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+          <div class="form-group">
+            <label for="phone">Teléfono *</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              formControlName="phone" 
+              class="form-control"
+              placeholder="0987654321"
+              maxlength="10"
+              [class.invalid]="form.get('phone')?.touched && form.get('phone')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('phone')">{{ getFieldError('phone') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              formControlName="email" 
+              class="form-control"
+              placeholder="paciente@ejemplo.com"
+              [class.invalid]="form.get('email')?.touched && form.get('email')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('email')">{{ getFieldError('email') }}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Dirección</label>
+          <textarea 
+            id="address" 
+            formControlName="address" 
+            class="form-control"
+            rows="2"
+            placeholder="Dirección completa del paciente"
+          ></textarea>
+        </div>
+      </fieldset>
+
+      <!-- Información Médica -->
+      <fieldset style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <legend style="font-weight: 600; font-size: 1.125rem; padding: 0 0.5rem;">Información Médica</legend>
+        
+        <div class="form-group">
+          <label for="allergies">Alergias</label>
+          <textarea 
+            id="allergies" 
+            formControlName="allergies" 
+            class="form-control"
+            rows="2"
+            placeholder="Describa cualquier alergia conocida"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="medicalConditions">Condiciones Médicas</label>
+          <textarea 
+            id="medicalConditions" 
+            formControlName="medicalConditions" 
+            class="form-control"
+            rows="3"
+            placeholder="Enfermedades crónicas, tratamientos actuales, etc."
+          ></textarea>
+        </div>
+      </fieldset>
+
+      <!-- Contacto de Emergencia -->
+      <fieldset style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <legend style="font-weight: 600; font-size: 1.125rem; padding: 0 0.5rem;">Contacto de Emergencia</legend>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+          <div class="form-group">
+            <label for="emergencyContact">Nombre del Contacto *</label>
+            <input 
+              type="text" 
+              id="emergencyContact" 
+              formControlName="emergencyContact" 
+              class="form-control"
+              placeholder="Nombre completo"
+              [class.invalid]="form.get('emergencyContact')?.touched && form.get('emergencyContact')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('emergencyContact')">{{ getFieldError('emergencyContact') }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="emergencyPhone">Teléfono de Emergencia *</label>
+            <input 
+              type="tel" 
+              id="emergencyPhone" 
+              formControlName="emergencyPhone" 
+              class="form-control"
+              placeholder="0987654321"
+              maxlength="10"
+              [class.invalid]="form.get('emergencyPhone')?.touched && form.get('emergencyPhone')?.invalid"
+            />
+            <span class="error-message" *ngIf="getFieldError('emergencyPhone')">{{ getFieldError('emergencyPhone') }}</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Acciones -->
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <button type="button" class="btn btn-outline" (click)="cancel()" [disabled]="saving()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">
+          <svg *ngIf="saving()" class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          <svg *ngIf="!saving()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          {{ saving() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Registrar') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

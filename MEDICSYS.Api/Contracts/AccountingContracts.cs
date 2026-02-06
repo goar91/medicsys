@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace MEDICSYS.Api.Contracts;
 
 public class AccountingCategoryDto
@@ -12,12 +14,24 @@ public class AccountingCategoryDto
 
 public class AccountingEntryRequest
 {
+    [Required]
     public DateTime Date { get; set; }
+
+    [Required]
     public Guid CategoryId { get; set; }
+
+    [Required]
+    [StringLength(220, MinimumLength = 3)]
     public string Description { get; set; } = string.Empty;
+
+    [Range(0.01, 1_000_000)]
     public decimal Amount { get; set; }
+
+    [Required]
     public string Type { get; set; } = string.Empty;
     public string? PaymentMethod { get; set; }
+
+    [StringLength(120)]
     public string? Reference { get; set; }
 }
 

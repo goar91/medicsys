@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AgendaService, Appointment, AvailabilityResponse, TimeSlot, UserSummary } from '../../core/agenda.service';
 import { AuthService } from '../../core/auth.service';
@@ -18,10 +18,9 @@ interface CalendarDay {
   templateUrl: './agenda.html',
   styleUrl: './agenda.scss'
 })
-export class AgendaComponent implements OnInit, OnDestroy {
+export class AgendaComponent implements OnInit {
   private readonly agenda = inject(AgendaService);
   private readonly auth = inject(AuthService);
-  private cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
 
   readonly role = computed(() => this.auth.getRole());
   readonly isProfessor = computed(() => this.role() === 'Profesor');
@@ -55,47 +54,6 @@ export class AgendaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadUsers();
     this.loadReminders();
-    this.startAutoCleanup();
-  }
-
-  ngOnDestroy() {
-    if (this.cleanupIntervalId) {
-      clearInterval(this.cleanupIntervalId);
-      this.cleanupIntervalId = null;
-    }
-  }
-
-  startAutoCleanup() {
-    // Limpiar citas pasadas cada minuto
-    this.cleanupIntervalId = setInterval(() => {
-      this.cleanupPastAppointments();
-    }, 60000); // 60 segundos
-    // Ejecutar inmediatamente también
-    this.cleanupPastAppointments();
-  }
-
-  cleanupPastAppointments() {
-    const now = new Date();
-    const currentAppts = this.appointments();
-    const pastAppts = currentAppts.filter(appt => new Date(appt.endAt) < now);
-    
-    // Eliminar citas pasadas del servidor
-    pastAppts.forEach(appt => {
-      this.agenda.deleteAppointment(appt.id).subscribe({
-        next: () => {
-          console.log(`Cita pasada eliminada: ${appt.id}`);
-        },
-        error: (err) => {
-          console.error('Error al eliminar cita pasada:', err);
-        }
-      });
-    });
-
-    // Actualizar la lista local
-    if (pastAppts.length > 0) {
-      const updated = currentAppts.filter(appt => new Date(appt.endAt) >= now);
-      this.appointments.set(updated);
-    }
   }
 
   startEditAppointment(appt: Appointment) {

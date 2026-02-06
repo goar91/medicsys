@@ -73,8 +73,8 @@ public class OdontologoDbContext : DbContext
             entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
             entity.Property(e => e.CustomerIdentification).IsRequired().HasMaxLength(32);
             entity.HasMany(e => e.Items)
-                .WithOne()
-                .HasForeignKey("InvoiceId")
+                .WithOne(e => e.Invoice)
+                .HasForeignKey(e => e.InvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => e.IssuedAt);
         });
