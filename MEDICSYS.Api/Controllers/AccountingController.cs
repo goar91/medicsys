@@ -32,6 +32,41 @@ public class AccountingController : ControllerBase
         return Ok(categories.Select(MapCategory));
     }
 
+    [HttpPost("categories")]
+    public async Task<ActionResult<AccountingCategoryDto>> CreateCategory(AccountingCategoryRequest request)
+    {
+        if (!Enum.TryParse<AccountingEntryType>(request.Type, true, out var categoryType))
+        {
+            return BadRequest("Tipo de categoria invalido.");
+        }
+
+        var name = request.Name.Trim();
+        var group = request.Group.Trim();
+        var existing = await _db.AccountingCategories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name == name && x.Type == categoryType);
+
+        if (existing != null)
+        {
+            return Ok(MapCategory(existing));
+        }
+
+        var category = new AccountingCategory
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            Group = group,
+            Type = categoryType,
+            MonthlyBudget = request.MonthlyBudget,
+            IsActive = request.IsActive
+        };
+
+        _db.AccountingCategories.Add(category);
+        await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetCategories), new { id = category.Id }, MapCategory(category));
+    }
+
     [HttpGet("entries")]
     public async Task<ActionResult<IEnumerable<AccountingEntryDto>>> GetEntries(
         [FromQuery] DateTime? from,
@@ -45,14 +80,16 @@ public class AccountingController : ControllerBase
             .Include(x => x.Category)
             .AsNoTracking();
 
-        if (from.HasValue)
+        var fromUtc = ToUtcStartOfDay(from);
+        var toUtc = ToUtcEndOfDay(to);
+
+        if (fromUtc.HasValue)
         {
-            query = query.Where(x => x.Date >= from.Value.Date);
+            query = query.Where(x => x.Date >= fromUtc.Value);
         }
-        if (to.HasValue)
+        if (toUtc.HasValue)
         {
-            var end = to.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(x => x.Date <= end);
+            query = query.Where(x => x.Date <= toUtc.Value);
         }
         if (!string.IsNullOrWhiteSpace(type) && Enum.TryParse<AccountingEntryType>(type, true, out var parsed))
         {
@@ -207,8 +244,8 @@ public class AccountingController : ControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<AccountingSummaryDto>> GetSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        var rangeStart = from?.Date ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-        var rangeEnd = (to?.Date ?? rangeStart.AddMonths(1)).AddDays(1).AddTicks(-1);
+        var rangeStart = ToUtcStartOfDay(from) ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var rangeEnd = ToUtcEndOfDay(to) ?? rangeStart.AddMonths(1).AddTicks(-1);
 
         var entries = await _db.AccountingEntries
             .Include(x => x.Category)
@@ -285,5 +322,26 @@ public class AccountingController : ControllerBase
         // Mantener solo la fecha (00:00 UTC) para movimientos contables
         var utcDate = normalized.Date;
         return DateTime.SpecifyKind(utcDate, DateTimeKind.Utc);
+    }
+
+    private static DateTime? ToUtcStartOfDay(DateTime? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        var normalized = value.Value.Kind switch
+        {
+            DateTimeKind.Utc => value.Value,
+            DateTimeKind.Local => value.Value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+        };
+
+        return DateTime.SpecifyKind(normalized.Date, DateTimeKind.Utc);
+    }
+
+    private static DateTime? ToUtcEndOfDay(DateTime? value)
+    {
+        var start = ToUtcStartOfDay(value);
+        return start?.AddDays(1).AddTicks(-1);
     }
 }

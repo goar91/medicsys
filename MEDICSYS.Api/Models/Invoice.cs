@@ -70,6 +70,9 @@ public class Invoice
 
     public string? SriMessages { get; set; }
 
+    [MaxLength(20)]
+    public string SriEnvironment { get; set; } = "Pruebas";
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

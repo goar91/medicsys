@@ -413,6 +413,46 @@
     }
   }
 
+  .sri-environment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .sri-environment-card {
+    text-align: left;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: grid;
+    gap: 0.35rem;
+
+    strong {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    span {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      line-height: 1.35;
+    }
+
+    &:hover {
+      border-color: var(--primary);
+      background: var(--bg-secondary);
+    }
+
+    &.active {
+      border-color: var(--primary);
+      background: rgba(14, 116, 144, 0.08);
+      box-shadow: 0 0 0 1px rgba(14, 116, 144, 0.15);
+    }
+  }
+
   .switch-row {
     display: inline-flex;
     align-items: center;

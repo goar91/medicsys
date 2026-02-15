@@ -15,6 +15,8 @@ namespace MEDICSYS.Api.Controllers;
 public class InvoicesController : ControllerBase
 {
     private const decimal VatRate = 0.15m;
+    private const string SriEnvironmentPruebas = "Pruebas";
+    private const string SriEnvironmentProduccion = "Produccion";
 
     private readonly OdontologoDbContext _db;
     private readonly ISriService _sri;
@@ -153,6 +155,7 @@ public class InvoicesController : ControllerBase
             CardType = request.CardType,
             CardInstallments = request.CardInstallments,
             PaymentReference = request.PaymentReference,
+            SriEnvironment = ParseSriEnvironment(request.SriEnvironment),
             Status = InvoiceStatus.Pending,
             CreatedAt = issuedAt,
             UpdatedAt = issuedAt,
@@ -164,8 +167,10 @@ public class InvoicesController : ControllerBase
 
         await RegisterAccountingEntryAsync(invoice);
 
-        // NO enviar automáticamente al SRI
-        // El usuario debe enviar manualmente desde el módulo de autorización SRI
+        if (request.SendToSri)
+        {
+            await SendToSriInternalAsync(invoice);
+        }
 
         return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, Map(invoice));
     }
@@ -188,7 +193,7 @@ public class InvoicesController : ControllerBase
 
     private async Task SendToSriInternalAsync(Invoice invoice)
     {
-        var result = await _sri.SendInvoiceAsync(invoice);
+        var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
 
         invoice.SriAccessKey = result.AccessKey;
         invoice.SriAuthorizationNumber = result.AuthorizationNumber;
@@ -251,6 +256,16 @@ public class InvoicesController : ControllerBase
             : PaymentMethod.Cash;
     }
 
+    private static string ParseSriEnvironment(string? environment)
+    {
+        if (string.Equals(environment, SriEnvironmentProduccion, StringComparison.OrdinalIgnoreCase))
+        {
+            return SriEnvironmentProduccion;
+        }
+
+        return SriEnvironmentPruebas;
+    }
+
     private static InvoiceDto Map(Invoice invoice)
     {
         return new InvoiceDto
@@ -285,6 +300,7 @@ public class InvoicesController : ControllerBase
             SriAuthorizationNumber = invoice.SriAuthorizationNumber,
             SriAuthorizedAt = invoice.SriAuthorizedAt,
             SriMessages = invoice.SriMessages,
+            SriEnvironment = ParseSriEnvironment(invoice.SriEnvironment),
             Items = invoice.Items.Select(item => new InvoiceItemDto
             {
                 Id = item.Id,

@@ -12,6 +12,25 @@ public class AccountingCategoryDto
     public bool IsActive { get; set; }
 }
 
+public class AccountingCategoryRequest
+{
+    [Required]
+    [StringLength(100, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(160, MinimumLength = 2)]
+    public string Group { get; set; } = string.Empty;
+
+    [Required]
+    public string Type { get; set; } = string.Empty;
+
+    [Range(0, 1_000_000)]
+    public decimal MonthlyBudget { get; set; } = 0;
+
+    public bool IsActive { get; set; } = true;
+}
+
 public class AccountingEntryRequest
 {
     [Required]

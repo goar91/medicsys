@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClinicalHistoryService } from '../../../core/clinical-history.service';
 import { ClinicalHistory } from '../../../core/models';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
@@ -14,6 +15,7 @@ import { TopNavComponent } from '../../../shared/top-nav/top-nav';
   styleUrl: './odontologo-historias.scss'
 })
 export class OdontologoHistoriasComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   readonly histories = signal<ClinicalHistory[]>([]);
   readonly loading = signal(true);
   readonly searchTerm = signal('');
@@ -51,6 +53,11 @@ export class OdontologoHistoriasComponent implements OnInit {
         this.searchTerm.set(idNumber);
       }
     });
+
+    this.service.historyChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadHistories());
+
     this.loadHistories();
   }
 

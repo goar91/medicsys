@@ -28,8 +28,8 @@ public class ReportesController : ControllerBase
         [FromQuery] DateTime? endDate)
     {
         var odontologoId = GetOdontologoId();
-        var start = startDate ?? DateTime.UtcNow.AddMonths(-6);
-        var end = endDate ?? DateTime.UtcNow;
+        var start = ToUtcStartOfDay(startDate) ?? DateTime.UtcNow.AddMonths(-6);
+        var end = ToUtcEndOfDay(endDate) ?? DateTime.UtcNow;
 
         // Calcular ingresos totales basado en gastos negativos (simulado)
         // En una implementación real, aquí se obtendrían las ventas reales
@@ -132,8 +132,8 @@ public class ReportesController : ControllerBase
         [FromQuery] DateTime? endDate)
     {
         var odontologoId = GetOdontologoId();
-        var start = startDate ?? DateTime.UtcNow.AddMonths(-1);
-        var end = endDate ?? DateTime.UtcNow;
+        var start = ToUtcStartOfDay(startDate) ?? DateTime.UtcNow.AddMonths(-1);
+        var end = ToUtcEndOfDay(endDate) ?? DateTime.UtcNow;
 
         // TODO: Implementar con tabla de ventas correcta
         // Por ahora retornamos datos simulados
@@ -196,5 +196,26 @@ public class ReportesController : ControllerBase
             AverageExpenses = monthlyData.Average(m => m.Expenses),
             AverageProfit = monthlyData.Average(m => m.Profit)
         });
+    }
+
+    private static DateTime? ToUtcStartOfDay(DateTime? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        var normalized = value.Value.Kind switch
+        {
+            DateTimeKind.Utc => value.Value,
+            DateTimeKind.Local => value.Value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+        };
+
+        return DateTime.SpecifyKind(normalized.Date, DateTimeKind.Utc);
+    }
+
+    private static DateTime? ToUtcEndOfDay(DateTime? value)
+    {
+        var start = ToUtcStartOfDay(value);
+        return start?.AddDays(1).AddTicks(-1);
     }
 }

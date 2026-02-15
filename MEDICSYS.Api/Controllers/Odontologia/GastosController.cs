@@ -34,16 +34,18 @@ public class GastosController : ControllerBase
         [FromQuery] int? pageSize)
     {
         var odontologoId = GetOdontologoId();
+        var startUtc = ToUtcStartOfDay(startDate);
+        var endUtc = ToUtcEndOfDay(endDate);
 
         var query = _db.Expenses
             .Where(e => e.OdontologoId == odontologoId)
             .AsNoTracking();
 
-        if (startDate.HasValue)
-            query = query.Where(e => e.ExpenseDate >= startDate.Value);
+        if (startUtc.HasValue)
+            query = query.Where(e => e.ExpenseDate >= startUtc.Value);
 
-        if (endDate.HasValue)
-            query = query.Where(e => e.ExpenseDate <= endDate.Value);
+        if (endUtc.HasValue)
+            query = query.Where(e => e.ExpenseDate <= endUtc.Value);
 
         if (!string.IsNullOrEmpty(category))
             query = query.Where(e => e.Category == category);
@@ -271,5 +273,26 @@ public class GastosController : ControllerBase
         await _db.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private static DateTime? ToUtcStartOfDay(DateTime? value)
+    {
+        if (!value.HasValue)
+            return null;
+
+        var normalized = value.Value.Kind switch
+        {
+            DateTimeKind.Utc => value.Value,
+            DateTimeKind.Local => value.Value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+        };
+
+        return DateTime.SpecifyKind(normalized.Date, DateTimeKind.Utc);
+    }
+
+    private static DateTime? ToUtcEndOfDay(DateTime? value)
+    {
+        var start = ToUtcStartOfDay(value);
+        return start?.AddDays(1).AddTicks(-1);
     }
 }

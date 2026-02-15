@@ -29,19 +29,23 @@
             Tipo de Usuario
           </label>
           <div class="role-selector" role="radiogroup" aria-label="Tipo de usuario">
-            <button
-              type="button"
-              class="role-card"
-              *ngFor="let option of userTypes"
-              [class.active]="selectedUserType === option.value"
-              [attr.aria-pressed]="selectedUserType === option.value"
-              (click)="selectUserType(option.value)">
-              <span class="role-icon" [innerHTML]="option.svgIcon"></span>
-              <span class="role-meta">
-                <span class="role-label">{{ option.label }}</span>
-                <span class="role-desc">{{ option.description }}</span>
-              </span>
-            </button>
+            @for (option of userTypes; track option.value) {
+              <button
+                type="button"
+                class="role-card"
+                [class.active]="selectedUserType === option.value"
+                [attr.aria-pressed]="selectedUserType === option.value"
+                [attr.aria-label]="option.label + ': ' + option.description"
+                (click)="selectUserType(option.value)"
+                (keydown.enter)="selectUserType(option.value)"
+                (keydown.space)="selectUserType(option.value); $event.preventDefault()">
+                <span class="role-icon" [innerHTML]="option.svgIcon"></span>
+                <span class="role-meta">
+                  <span class="role-label">{{ option.label }}</span>
+                  <span class="role-desc">{{ option.description }}</span>
+                </span>
+              </button>
+            }
           </div>
           <input type="hidden" id="userType" formControlName="userType">
         </div>

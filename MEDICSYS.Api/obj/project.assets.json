@@ -15,39 +15,31 @@
           }
         }
       },
-      "Microsoft.AspNetCore.Authentication.JwtBearer/9.0.12": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/9.0.13": {
         "type": "package",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
         },
         "compile": {
-          "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {}
         },
         "runtime": {
-          "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
       },
-      "Microsoft.AspNetCore.Identity.EntityFrameworkCore/9.0.12": {
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore/9.0.13": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Relational": "9.0.12"
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.13"
         },
         "compile": {
-          "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {}
         },
         "runtime": {
-          "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {}
         }
       },
       "Microsoft.AspNetCore.OpenApi/9.0.9": {
@@ -410,43 +402,35 @@
           }
         }
       },
-      "Microsoft.EntityFrameworkCore/9.0.12": {
+      "Microsoft.EntityFrameworkCore/9.0.13": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Abstractions": "9.0.12",
-          "Microsoft.EntityFrameworkCore.Analyzers": "9.0.12"
+          "Microsoft.EntityFrameworkCore.Abstractions": "9.0.13",
+          "Microsoft.EntityFrameworkCore.Analyzers": "9.0.13"
         },
         "compile": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {}
         },
         "runtime": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {}
         },
         "build": {
           "buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Abstractions/9.0.12": {
+      "Microsoft.EntityFrameworkCore.Abstractions/9.0.13": {
         "type": "package",
         "compile": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {}
         },
         "runtime": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Analyzers/9.0.12": {
+      "Microsoft.EntityFrameworkCore.Analyzers/9.0.13": {
         "type": "package"
       },
-      "Microsoft.EntityFrameworkCore.Design/9.0.12": {
+      "Microsoft.EntityFrameworkCore.Design/9.0.13": {
         "type": "package",
         "dependencies": {
           "Humanizer.Core": "2.14.1",
@@ -455,70 +439,54 @@
           "Microsoft.CodeAnalysis.CSharp": "4.8.0",
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "4.8.0",
           "Microsoft.CodeAnalysis.Workspaces.MSBuild": "4.8.0",
-          "Microsoft.EntityFrameworkCore.Relational": "9.0.12",
-          "Microsoft.Extensions.DependencyModel": "9.0.12",
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.13",
+          "Microsoft.Extensions.DependencyModel": "9.0.13",
           "Mono.TextTemplating": "3.0.0"
         },
         "compile": {
-          "lib/net8.0/_._": {
-            "related": ".xml"
-          }
+          "lib/net8.0/_._": {}
         },
         "runtime": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.Design.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Design.dll": {}
         },
         "build": {
           "build/net8.0/Microsoft.EntityFrameworkCore.Design.props": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Relational/9.0.12": {
+      "Microsoft.EntityFrameworkCore.Relational/9.0.13": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "9.0.12"
+          "Microsoft.EntityFrameworkCore": "9.0.13"
         },
         "compile": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {}
         },
         "runtime": {
-          "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {
-            "related": ".xml"
-          }
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {}
         }
       },
-      "Microsoft.Extensions.DependencyModel/9.0.12": {
+      "Microsoft.Extensions.DependencyModel/9.0.13": {
         "type": "package",
         "compile": {
-          "lib/net9.0/Microsoft.Extensions.DependencyModel.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.Extensions.DependencyModel.dll": {}
         },
         "runtime": {
-          "lib/net9.0/Microsoft.Extensions.DependencyModel.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.Extensions.DependencyModel.dll": {}
         },
         "build": {
           "buildTransitive/net8.0/_._": {}
         }
       },
-      "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore/9.0.12": {
+      "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore/9.0.13": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore.Relational": "9.0.12"
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.13"
         },
         "compile": {
-          "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll": {}
         },
         "runtime": {
-          "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll": {
-            "related": ".xml"
-          }
+          "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll": {}
         }
       },
       "Microsoft.IdentityModel.Abstractions/8.0.1": {
@@ -1030,10 +998,10 @@
         "logo.png"
       ]
     },
-    "Microsoft.AspNetCore.Authentication.JwtBearer/9.0.12": {
-      "sha512": "pSkOsbo6ndjkQn9qBatx7g/SXRdl97ai3Sm948IDavVsg2UqtR1gOx/t0R8O3Y+XJMsHU72gTNsVYWFdxxJMAg==",
+    "Microsoft.AspNetCore.Authentication.JwtBearer/9.0.13": {
+      "sha512": "CGlxaW5m8Dx52yWVYlcT2qL3kmbdb6FMSSdzS7CCBCBfmL16PV/e2fZiMsiOHovvOkc774h5ULpkSsFKf7Yzqw==",
       "type": "package",
-      "path": "microsoft.aspnetcore.authentication.jwtbearer/9.0.12",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1041,23 +1009,21 @@
         "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll",
-        "lib/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.xml",
-        "microsoft.aspnetcore.authentication.jwtbearer.9.0.12.nupkg.sha512",
+        "microsoft.aspnetcore.authentication.jwtbearer.9.0.13.nupkg.sha512",
         "microsoft.aspnetcore.authentication.jwtbearer.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.Identity.EntityFrameworkCore/9.0.12": {
-      "sha512": "ioBoZYNM4CJnHlKz2gl6V1LhO3BDfMQWXxbSD14udisHNM81rI+OOpNivaeolgIhNb04a2AXe3o9q4uuaGXK5A==",
+    "Microsoft.AspNetCore.Identity.EntityFrameworkCore/9.0.13": {
+      "sha512": "Ad31DpyPd1NowhTBi2XH779c7TjeNAO6+jJ4dIODkGsIR0j8jQYtp3R6nsVGQ/lPLpbe3ylizvLyiaxsSGYlCw==",
       "type": "package",
-      "path": "microsoft.aspnetcore.identity.entityframeworkcore/9.0.12",
+      "path": "microsoft.aspnetcore.identity.entityframeworkcore/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll",
-        "lib/net9.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.xml",
-        "microsoft.aspnetcore.identity.entityframeworkcore.9.0.12.nupkg.sha512",
+        "microsoft.aspnetcore.identity.entityframeworkcore.9.0.13.nupkg.sha512",
         "microsoft.aspnetcore.identity.entityframeworkcore.nuspec"
       ]
     },
@@ -2059,10 +2025,10 @@
         "microsoft.codeanalysis.workspaces.msbuild.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore/9.0.12": {
-      "sha512": "+spirhtFAOq8N6maOlAyzk+ScBjYwptpY2xinRAl5ocW+CsE0hCJy91C2IH4Fi6voo2miQt/Whes4LDU+Gc/ig==",
+    "Microsoft.EntityFrameworkCore/9.0.13": {
+      "sha512": "irtGBQFEnjb17HRgxxbj3HgC14js48aYus9YhTpBEihqrdH50M7YqBtWippwpIJWwdMF7TFyQXpSTt4lFekPZw==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore/9.0.12",
+      "path": "microsoft.entityframeworkcore/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2070,44 +2036,42 @@
         "PACKAGE.md",
         "buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props",
         "lib/net8.0/Microsoft.EntityFrameworkCore.dll",
-        "lib/net8.0/Microsoft.EntityFrameworkCore.xml",
-        "microsoft.entityframeworkcore.9.0.12.nupkg.sha512",
+        "microsoft.entityframeworkcore.9.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Abstractions/9.0.12": {
-      "sha512": "PFuxE9HUWu7y9Bi6CWfhYTR4UULdFScLB/31XjhmP1qlOBCD6x+TLZ1YPs2CyUrwtijUVe2A51o3IGe9/tB4mw==",
+    "Microsoft.EntityFrameworkCore.Abstractions/9.0.13": {
+      "sha512": "baCHd+W1QEl2HmWodnFhJ50eElH/Z+ku+aKod4GN9AGhkItqBCcVkETMz/b9QtqxOgyM+Pu0Srv7atLTBdXSFg==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.abstractions/9.0.12",
+      "path": "microsoft.entityframeworkcore.abstractions/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "PACKAGE.md",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll",
-        "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.xml",
-        "microsoft.entityframeworkcore.abstractions.9.0.12.nupkg.sha512",
+        "microsoft.entityframeworkcore.abstractions.9.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.abstractions.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Analyzers/9.0.12": {
-      "sha512": "ut8XSV7+gZ7FunbZH4t6Hta2NXP12F23cTuvC1Pp4caCWs4yg8Ddc2QPGPPWVmxIMl8q44fB5IK8Q8IEwlXIvQ==",
+    "Microsoft.EntityFrameworkCore.Analyzers/9.0.13": {
+      "sha512": "GQE2qm6U45Zgouw7PSojGmkDnNq+IMjO/+BOm8OHqzK0h+uNjL6MQeuansNQZ6gIM2e3w9KZTLXQTHA0FcuknQ==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.analyzers/9.0.12",
+      "path": "microsoft.entityframeworkcore.analyzers/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll",
         "docs/PACKAGE.md",
-        "microsoft.entityframeworkcore.analyzers.9.0.12.nupkg.sha512",
+        "microsoft.entityframeworkcore.analyzers.9.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.analyzers.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Design/9.0.12": {
-      "sha512": "7Lge+YprsKyrLs+teI1R8ra0mneKEbkKEwFJoJlHfsylDfXtPLNSzOGBt2dRikxxFDDO1SA1t1zC2ZZV0NSd+w==",
+    "Microsoft.EntityFrameworkCore.Design/9.0.13": {
+      "sha512": "m6FLORcQ5K6qob11uegC4E2nEg+USeIZqhI+n4IY0xjxuZlA3qR9IbEbby6Zv67BKtWZ5/bPoT053vpDkc8jeQ==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.design/9.0.12",
+      "path": "microsoft.entityframeworkcore.design/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2115,30 +2079,28 @@
         "PACKAGE.md",
         "build/net8.0/Microsoft.EntityFrameworkCore.Design.props",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Design.dll",
-        "lib/net8.0/Microsoft.EntityFrameworkCore.Design.xml",
-        "microsoft.entityframeworkcore.design.9.0.12.nupkg.sha512",
+        "microsoft.entityframeworkcore.design.9.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.design.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Relational/9.0.12": {
-      "sha512": "XTiJy++Ut1KyMdAS4N58NzbxI+r5KFTPi6ATThKNnL9X6DgF1ioP/PUNfODzr6LibydMq0fac288ojh1AMVNXw==",
+    "Microsoft.EntityFrameworkCore.Relational/9.0.13": {
+      "sha512": "eQgG7yfe3ULgRk7YS8oIeljbmtV8AJ+lmzd5ezbA1ceEa1gRo9Y/d8+AvHq9NATp7QWZoe+qhyDFvCX8+ByI/A==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.relational/9.0.12",
+      "path": "microsoft.entityframeworkcore.relational/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "PACKAGE.md",
         "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll",
-        "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.xml",
-        "microsoft.entityframeworkcore.relational.9.0.12.nupkg.sha512",
+        "microsoft.entityframeworkcore.relational.9.0.13.nupkg.sha512",
         "microsoft.entityframeworkcore.relational.nuspec"
       ]
     },
-    "Microsoft.Extensions.DependencyModel/9.0.12": {
-      "sha512": "Uf6nB44TjuOyvxNP5CR3jdAMX5z0pqWQMJSvaoVlUX+dwUTuPhxHzKf8wh6Rx1so6hxnHFwS75CXKg7ZDGyZLw==",
+    "Microsoft.Extensions.DependencyModel/9.0.13": {
+      "sha512": "J/FV6t5FYYkM2+YZpQYV4EWsc5DJwvkHlMU7WtTBTucivPrrZuC5USULD+thpagqWcSMW7hc243bq8jrvkmoEw==",
       "type": "package",
-      "path": "microsoft.extensions.dependencymodel/9.0.12",
+      "path": "microsoft.extensions.dependencymodel/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2151,30 +2113,25 @@
         "buildTransitive/net8.0/_._",
         "buildTransitive/netcoreapp2.0/Microsoft.Extensions.DependencyModel.targets",
         "lib/net462/Microsoft.Extensions.DependencyModel.dll",
-        "lib/net462/Microsoft.Extensions.DependencyModel.xml",
         "lib/net8.0/Microsoft.Extensions.DependencyModel.dll",
-        "lib/net8.0/Microsoft.Extensions.DependencyModel.xml",
         "lib/net9.0/Microsoft.Extensions.DependencyModel.dll",
-        "lib/net9.0/Microsoft.Extensions.DependencyModel.xml",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyModel.dll",
-        "lib/netstandard2.0/Microsoft.Extensions.DependencyModel.xml",
-        "microsoft.extensions.dependencymodel.9.0.12.nupkg.sha512",
+        "microsoft.extensions.dependencymodel.9.0.13.nupkg.sha512",
         "microsoft.extensions.dependencymodel.nuspec",
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore/9.0.12": {
-      "sha512": "UeWqfCooknPmOFiKGyxwei6i/ZwtvaucUxvkSSj+Ua3o6dDPZyCEOyC4RawT8blF19jnV1lAkYuERkxOBDF/LA==",
+    "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore/9.0.13": {
+      "sha512": "yMpeTA9lpzbWQ43rVQHE4MQe2zcg7oO3xyIFztdBeHykSGbszeLMP7j1YZGxG2ORYd4Xg/KkAxz6Aol2Q28oSA==",
       "type": "package",
-      "path": "microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/9.0.12",
+      "path": "microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/9.0.13",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll",
-        "lib/net9.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.xml",
-        "microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.9.0.12.nupkg.sha512",
+        "microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.9.0.13.nupkg.sha512",
         "microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.nuspec"
       ]
     },
@@ -2878,32 +2835,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gerso\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/tmp/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
+      "projectUniqueName": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
       "projectName": "MEDICSYS.Api",
-      "projectPath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
-      "packagesPath": "C:\\Users\\gerso\\.nuget\\packages\\",
-      "outputPath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\obj\\",
+      "projectPath": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
+      "packagesPath": "/tmp/.nuget/packages/",
+      "outputPath": "/app/MEDICSYS.Api/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\gerso\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/tmp/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3010,7 +2959,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

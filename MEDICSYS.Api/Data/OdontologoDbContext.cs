@@ -72,6 +72,7 @@ public class OdontologoDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
             entity.Property(e => e.CustomerIdentification).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.SriEnvironment).IsRequired().HasMaxLength(20).HasDefaultValue("Pruebas");
             entity.HasMany(e => e.Items)
                 .WithOne(e => e.Invoice)
                 .HasForeignKey(e => e.InvoiceId)

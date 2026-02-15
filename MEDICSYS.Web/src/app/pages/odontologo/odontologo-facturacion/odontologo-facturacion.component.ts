@@ -38,6 +38,14 @@ export class OdontologoFacturacionComponent {
     return this.facturas().filter(f => f.status === 'Pending').length;
   });
 
+  readonly facturasPruebas = computed(() => {
+    return this.facturas().filter(f => f.sriEnvironment === 'Pruebas').length;
+  });
+
+  readonly facturasProduccion = computed(() => {
+    return this.facturas().filter(f => f.sriEnvironment === 'Produccion').length;
+  });
+
   constructor() {
     this.loadFacturas();
   }
@@ -97,5 +105,9 @@ export class OdontologoFacturacionComponent {
       default:
         return method;
     }
+  }
+
+  formatSriEnvironment(environment: Invoice['sriEnvironment']) {
+    return environment === 'Produccion' ? 'Producción' : 'Pruebas';
   }
 }

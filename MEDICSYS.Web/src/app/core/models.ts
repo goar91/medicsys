@@ -78,6 +78,7 @@ export interface Invoice {
   sriAuthorizationNumber?: string | null;
   sriAuthorizedAt?: string | null;
   sriMessages?: string | null;
+  sriEnvironment: 'Pruebas' | 'Produccion';
   items: InvoiceItem[];
 }
 

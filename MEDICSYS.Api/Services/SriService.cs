@@ -8,7 +8,7 @@ public record SriSendResult(string Status, string AccessKey, string? Authorizati
 
 public interface ISriService
 {
-    Task<SriSendResult> SendInvoiceAsync(Invoice invoice);
+    Task<SriSendResult> SendInvoiceAsync(Invoice invoice, string? environment = null);
 }
 
 public class SriOptions
@@ -34,9 +34,10 @@ public class SriService : ISriService
         _logger = logger;
     }
 
-    public Task<SriSendResult> SendInvoiceAsync(Invoice invoice)
+    public Task<SriSendResult> SendInvoiceAsync(Invoice invoice, string? environment = null)
     {
-        var accessKey = GenerateAccessKey(invoice.IssuedAt, invoice.Sequential);
+        var environmentValue = NormalizeEnvironment(environment ?? invoice.SriEnvironment);
+        var accessKey = GenerateAccessKey(invoice.IssuedAt, invoice.Sequential, environmentValue);
 
         if (_options.Mock)
         {
@@ -45,21 +46,31 @@ public class SriService : ISriService
             var authorization = authorized ? GenerateAuthorizationNumber() : null;
             var message = authorized ? null : "Monto inválido para autorización.";
 
-            _logger.LogInformation("SRI MOCK: {Status} para factura {Number}", status, invoice.Number);
+            _logger.LogInformation("SRI MOCK {Environment}: {Status} para factura {Number}", environmentValue, status, invoice.Number);
             return Task.FromResult(new SriSendResult(status, accessKey, authorization, authorized ? DateTime.UtcNow : null, message));
         }
 
-        _logger.LogWarning("SRI real no configurado. Se deja la factura en estado PENDIENTE.");
+        _logger.LogWarning("SRI {Environment} real no configurado. Se deja la factura en estado PENDIENTE.", environmentValue);
         return Task.FromResult(new SriSendResult("PENDIENTE", accessKey, null, null, "Envío real al SRI no configurado."));
     }
 
-    private string GenerateAccessKey(DateTime date, int sequential)
+    private static string NormalizeEnvironment(string? environment)
+    {
+        if (string.Equals(environment, "Produccion", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Produccion";
+        }
+
+        return "Pruebas";
+    }
+
+    private string GenerateAccessKey(DateTime date, int sequential, string environment)
     {
         var dia = date.Day.ToString().PadLeft(2, '0');
         var mes = date.Month.ToString().PadLeft(2, '0');
         var anio = date.Year.ToString();
         var tipoComprobante = "01";
-        var ambiente = _options.Ambiente.Equals("Produccion", StringComparison.OrdinalIgnoreCase) ? "2" : "1";
+        var ambiente = environment.Equals("Produccion", StringComparison.OrdinalIgnoreCase) ? "2" : "1";
         var establecimiento = _options.Establecimiento.PadLeft(3, '0');
         var puntoEmision = _options.PuntoEmision.PadLeft(3, '0');
         var secuencial = sequential.ToString().PadLeft(9, '0');

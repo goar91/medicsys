@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj": {}
+    "/app/MEDICSYS.Api/MEDICSYS.Api.csproj": {}
   },
   "projects": {
-    "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj": {
+    "/app/MEDICSYS.Api/MEDICSYS.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
+        "projectUniqueName": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
         "projectName": "MEDICSYS.Api",
-        "projectPath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
-        "packagesPath": "C:\\Users\\gerso\\.nuget\\packages\\",
-        "outputPath": "C:\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\obj\\",
+        "projectPath": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
+        "packagesPath": "/tmp/.nuget/packages/",
+        "outputPath": "/app/MEDICSYS.Api/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\gerso\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/tmp/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -133,7 +126,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

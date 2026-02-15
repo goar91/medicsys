@@ -16,6 +16,7 @@ export interface InvoiceCreatePayload {
   cardFeePercent?: number | null;
   cardInstallments?: number | null;
   paymentReference?: string | null;
+  sriEnvironment?: 'Pruebas' | 'Produccion';
   sendToSri: boolean;
   items: Array<{
     description: string;

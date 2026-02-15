@@ -105,6 +105,16 @@
         color: var(--primary);
       }
     }
+
+    &.info {
+      .metric-icon {
+        background: rgba(14, 116, 144, 0.12);
+        color: #0e7490;
+      }
+      .metric-value {
+        color: #0e7490;
+      }
+    }
   }
 
   .facturas-table {
@@ -236,6 +246,18 @@
       &.badge-payment {
         background: rgba(99, 102, 241, 0.1);
         color: #6366f1;
+      }
+
+      &.badge-environment {
+        &[data-environment="Pruebas"] {
+          background: rgba(14, 116, 144, 0.12);
+          color: #0e7490;
+        }
+
+        &[data-environment="Produccion"] {
+          background: rgba(180, 83, 9, 0.14);
+          color: #92400e;
+        }
       }
     }
 

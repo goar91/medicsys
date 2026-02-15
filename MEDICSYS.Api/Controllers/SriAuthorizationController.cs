@@ -46,6 +46,7 @@ public class SriAuthorizationController : ControllerBase
                 x.Total,
                 x.TotalToCharge,
                 Status = x.Status.ToString(),
+                x.SriEnvironment,
                 x.SriMessages,
                 x.SriAccessKey,
                 x.SriAuthorizationNumber
@@ -89,6 +90,7 @@ public class SriAuthorizationController : ControllerBase
                 x.CustomerName,
                 x.Total,
                 x.TotalToCharge,
+                x.SriEnvironment,
                 x.SriAccessKey,
                 x.SriAuthorizationNumber,
                 x.SriAuthorizedAt,
@@ -121,7 +123,7 @@ public class SriAuthorizationController : ControllerBase
 
         try
         {
-            var result = await _sri.SendInvoiceAsync(invoice);
+            var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
 
             invoice.SriAccessKey = result.AccessKey;
             invoice.SriAuthorizationNumber = result.AuthorizationNumber;
@@ -147,6 +149,7 @@ public class SriAuthorizationController : ControllerBase
                 invoice.Id,
                 invoice.Number,
                 Status = invoice.Status.ToString(),
+                invoice.SriEnvironment,
                 invoice.SriAccessKey,
                 invoice.SriAuthorizationNumber,
                 invoice.SriAuthorizedAt,
@@ -185,7 +188,7 @@ public class SriAuthorizationController : ControllerBase
         {
             try
             {
-                var result = await _sri.SendInvoiceAsync(invoice);
+                var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
 
                 invoice.SriAccessKey = result.AccessKey;
                 invoice.SriAuthorizationNumber = result.AuthorizationNumber;
@@ -208,6 +211,7 @@ public class SriAuthorizationController : ControllerBase
                 {
                     invoice.Id,
                     invoice.Number,
+                    invoice.SriEnvironment,
                     Status = invoice.Status.ToString(),
                     Success = invoice.Status == InvoiceStatus.Authorized
                 });
@@ -272,6 +276,7 @@ public class SriAuthorizationController : ControllerBase
                 invoice.Id,
                 invoice.Number,
                 Status = invoice.Status.ToString(),
+                invoice.SriEnvironment,
                 invoice.SriAccessKey,
                 invoice.SriAuthorizationNumber,
                 invoice.SriAuthorizedAt,

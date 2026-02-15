@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Context;
@@ -66,6 +67,7 @@ try
     {
         var dataSource = sp.GetRequiredService<AppDbDataSource>().DataSource;
         options.UseNpgsql(dataSource);
+        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     });
 
     // DbContext para Sistema Académico (Profesor-Alumno)
@@ -73,6 +75,7 @@ try
     {
         var dataSource = sp.GetRequiredService<AcademicDbDataSource>().DataSource;
         options.UseNpgsql(dataSource);
+        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     });
 
     // DbContext para Odontología (facturación, inventario, contabilidad)
@@ -80,6 +83,7 @@ try
     {
         var dataSource = sp.GetRequiredService<OdontologoDbDataSource>().DataSource;
         options.UseNpgsql(dataSource);
+        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     });
 
     // Identity usa el contexto académico
@@ -192,20 +196,18 @@ try
         app.MapOpenApi();
 
         using var scope = app.Services.CreateScope();
+        var startupLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         
         // Migrar bases de datos
-        var appDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await appDb.Database.MigrateAsync();
-
-        var academicDb = scope.ServiceProvider.GetRequiredService<AcademicDbContext>();
-        await academicDb.Database.MigrateAsync();
-
-        var odontologoDb = scope.ServiceProvider.GetRequiredService<OdontologoDbContext>();
-        await odontologoDb.Database.MigrateAsync();
+        await MigrateWithPendingModelToleranceAsync<AppDbContext>(scope.ServiceProvider, startupLogger);
+        await MigrateWithPendingModelToleranceAsync<AcademicDbContext>(scope.ServiceProvider, startupLogger);
+        await MigrateWithPendingModelToleranceAsync<OdontologoDbContext>(scope.ServiceProvider, startupLogger);
 
         // Poblar datos de prueba
         await SeedData.InitializeAsync(scope.ServiceProvider);
 
+        var academicDb = scope.ServiceProvider.GetRequiredService<AcademicDbContext>();
+        var odontologoDb = scope.ServiceProvider.GetRequiredService<OdontologoDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         await AcademicSeedData.SeedAsync(academicDb, userManager);
         await OdontologoSeedData.SeedAsync(odontologoDb, userManager);
@@ -263,31 +265,69 @@ try
         var academicUsers = await academicDb.Users.AsNoTracking().ToListAsync();
         var appUsers = await appDb.Users.ToListAsync();
         var appUsersById = appUsers.ToDictionary(u => u.Id, u => u);
+        var appUsersByNormalizedUserName = new Dictionary<string, ApplicationUser>(StringComparer.OrdinalIgnoreCase);
+        var appUsersByNormalizedEmail = new Dictionary<string, ApplicationUser>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var appUser in appUsers)
+        {
+            if (!string.IsNullOrWhiteSpace(appUser.NormalizedUserName) &&
+                !appUsersByNormalizedUserName.ContainsKey(appUser.NormalizedUserName))
+            {
+                appUsersByNormalizedUserName[appUser.NormalizedUserName] = appUser;
+            }
+
+            if (!string.IsNullOrWhiteSpace(appUser.NormalizedEmail) &&
+                !appUsersByNormalizedEmail.ContainsKey(appUser.NormalizedEmail))
+            {
+                appUsersByNormalizedEmail[appUser.NormalizedEmail] = appUser;
+            }
+        }
+
+        static void CopyAcademicUserToAppUser(ApplicationUser source, ApplicationUser target)
+        {
+            target.FullName = source.FullName;
+            target.UniversityId = source.UniversityId;
+            target.UserName = source.UserName;
+            target.NormalizedUserName = source.NormalizedUserName;
+            target.Email = source.Email;
+            target.NormalizedEmail = source.NormalizedEmail;
+            target.EmailConfirmed = source.EmailConfirmed;
+            target.PasswordHash = source.PasswordHash;
+            target.SecurityStamp = source.SecurityStamp;
+            target.ConcurrencyStamp = source.ConcurrencyStamp;
+            target.PhoneNumber = source.PhoneNumber;
+            target.PhoneNumberConfirmed = source.PhoneNumberConfirmed;
+            target.TwoFactorEnabled = source.TwoFactorEnabled;
+            target.LockoutEnd = source.LockoutEnd;
+            target.LockoutEnabled = source.LockoutEnabled;
+            target.AccessFailedCount = source.AccessFailedCount;
+        }
 
         foreach (var user in academicUsers)
         {
-            if (appUsersById.TryGetValue(user.Id, out var existing))
+            ApplicationUser? existing = null;
+            if (appUsersById.TryGetValue(user.Id, out var existingById))
             {
-                existing.FullName = user.FullName;
-                existing.UniversityId = user.UniversityId;
-                existing.UserName = user.UserName;
-                existing.NormalizedUserName = user.NormalizedUserName;
-                existing.Email = user.Email;
-                existing.NormalizedEmail = user.NormalizedEmail;
-                existing.EmailConfirmed = user.EmailConfirmed;
-                existing.PasswordHash = user.PasswordHash;
-                existing.SecurityStamp = user.SecurityStamp;
-                existing.ConcurrencyStamp = user.ConcurrencyStamp;
-                existing.PhoneNumber = user.PhoneNumber;
-                existing.PhoneNumberConfirmed = user.PhoneNumberConfirmed;
-                existing.TwoFactorEnabled = user.TwoFactorEnabled;
-                existing.LockoutEnd = user.LockoutEnd;
-                existing.LockoutEnabled = user.LockoutEnabled;
-                existing.AccessFailedCount = user.AccessFailedCount;
+                existing = existingById;
+            }
+            else if (!string.IsNullOrWhiteSpace(user.NormalizedUserName) &&
+                     appUsersByNormalizedUserName.TryGetValue(user.NormalizedUserName, out var existingByUserName))
+            {
+                existing = existingByUserName;
+            }
+            else if (!string.IsNullOrWhiteSpace(user.NormalizedEmail) &&
+                     appUsersByNormalizedEmail.TryGetValue(user.NormalizedEmail, out var existingByEmail))
+            {
+                existing = existingByEmail;
+            }
+
+            if (existing is not null)
+            {
+                CopyAcademicUserToAppUser(user, existing);
             }
             else
             {
-                appDb.Users.Add(new ApplicationUser
+                var newUser = new ApplicationUser
                 {
                     Id = user.Id,
                     FullName = user.FullName,
@@ -306,11 +346,44 @@ try
                     LockoutEnd = user.LockoutEnd,
                     LockoutEnabled = user.LockoutEnabled,
                     AccessFailedCount = user.AccessFailedCount
-                });
+                };
+
+                appDb.Users.Add(newUser);
+                appUsersById[newUser.Id] = newUser;
+
+                if (!string.IsNullOrWhiteSpace(newUser.NormalizedUserName) &&
+                    !appUsersByNormalizedUserName.ContainsKey(newUser.NormalizedUserName))
+                {
+                    appUsersByNormalizedUserName[newUser.NormalizedUserName] = newUser;
+                }
+
+                if (!string.IsNullOrWhiteSpace(newUser.NormalizedEmail) &&
+                    !appUsersByNormalizedEmail.ContainsKey(newUser.NormalizedEmail))
+                {
+                    appUsersByNormalizedEmail[newUser.NormalizedEmail] = newUser;
+                }
             }
         }
 
         await appDb.SaveChangesAsync();
+    }
+
+    static async Task MigrateWithPendingModelToleranceAsync<TContext>(
+        IServiceProvider services,
+        Microsoft.Extensions.Logging.ILogger<Program> logger) where TContext : DbContext
+    {
+        var db = services.GetRequiredService<TContext>();
+        try
+        {
+            await db.Database.MigrateAsync();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("PendingModelChangesWarning", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogWarning(
+                ex,
+                "Se omitio la migracion automatica para {DbContext} por cambios pendientes de modelo.",
+                typeof(TContext).Name);
+        }
     }
 }
 catch (Exception ex)

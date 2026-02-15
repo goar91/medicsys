@@ -5,6 +5,8 @@ import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } fr
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 import { InvoiceService } from '../../../core/invoice.service';
 
+type SriEnvironment = 'Pruebas' | 'Produccion';
+
 interface FacturaItem {
   cantidad: number;
   descripcion: string;
@@ -37,6 +39,18 @@ export class OdontologoFacturaFormComponent {
   readonly loading = signal(false);
   readonly showClienteForm = signal(false);
   readonly esConsumidorFinal = signal(false);
+  readonly sriEnvironments = signal<Array<{ value: SriEnvironment; title: string; description: string }>>([
+    {
+      value: 'Pruebas',
+      title: 'Pruebas SRI',
+      description: 'Ideal para validaciones internas y entrenamiento.'
+    },
+    {
+      value: 'Produccion',
+      title: 'Producción SRI',
+      description: 'Usa este ambiente para facturación oficial.'
+    }
+  ]);
 
   readonly facturaForm: FormGroup = this.fb.group({
     cliente: this.fb.group({
@@ -53,6 +67,7 @@ export class OdontologoFacturaFormComponent {
     cardFeePercent: [null],
     cardInstallments: [null],
     paymentReference: [''],
+    sriEnvironment: ['Pruebas', Validators.required],
     sendToSri: [true],
     observaciones: ['']
   });
@@ -240,6 +255,7 @@ export class OdontologoFacturaFormComponent {
       cardFeePercent: this.facturaForm.get('cardFeePercent')?.value ?? null,
       cardInstallments: this.facturaForm.get('cardInstallments')?.value ?? null,
       paymentReference: this.facturaForm.get('paymentReference')?.value ?? null,
+      sriEnvironment: (this.facturaForm.get('sriEnvironment')?.value ?? 'Pruebas') as SriEnvironment,
       sendToSri: this.facturaForm.get('sendToSri')?.value ?? true,
       items: this.items.controls.map(item => ({
         description: item.get('descripcion')?.value,
@@ -251,9 +267,11 @@ export class OdontologoFacturaFormComponent {
 
     this.invoicesApi.createInvoice(payload).subscribe({
       next: invoice => {
-        const message = invoice.status === 'Authorized'
-          ? 'Factura creada y autorizada por el SRI.'
-          : 'Factura creada y enviada al SRI.';
+        const message = payload.sendToSri
+          ? (invoice.status === 'Authorized'
+              ? `Factura creada y autorizada por el SRI (${invoice.sriEnvironment}).`
+              : `Factura creada y enviada al SRI (${invoice.sriEnvironment}).`)
+          : `Factura creada en ambiente ${invoice.sriEnvironment}, pendiente de envío al SRI.`;
         alert(message);
         this.router.navigate(['/odontologo/facturacion', invoice.id]);
         this.loading.set(false);
@@ -277,5 +295,9 @@ export class OdontologoFacturaFormComponent {
       cardType: option.type,
       cardFeePercent: option.percent
     });
+  }
+
+  seleccionarAmbiente(value: SriEnvironment) {
+    this.facturaForm.patchValue({ sriEnvironment: value });
   }
 }

@@ -5,7 +5,7 @@
     <div>
       <p class="eyebrow">Facturación Electrónica</p>
       <h2>Gestión de Facturas</h2>
-      <p class="subtitle">Emite y controla tus comprobantes electrónicos con envío automático al SRI</p>
+      <p class="subtitle">Controla tus comprobantes y elige ambiente SRI: Pruebas o Producción</p>
     </div>
     <div class="header-actions">
       <button class="btn btn-outline" type="button">
@@ -50,6 +50,16 @@
         <h3 class="metric-value">{{ totalFacturado() | currency:'USD':'symbol':'1.2-2' }}</h3>
       </div>
     </div>
+
+    <div class="metric-card info">
+      <div class="metric-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
+      </div>
+      <div class="metric-content">
+        <p class="metric-label">Ambiente SRI</p>
+        <h3 class="metric-value">{{ facturasPruebas() }} P / {{ facturasProduccion() }} PRD</h3>
+      </div>
+    </div>
   </div>
 
   <!-- Tabla de facturas -->
@@ -80,6 +90,7 @@
             <th>IVA</th>
             <th>Total</th>
             <th>Forma Pago</th>
+            <th>Ambiente</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -99,6 +110,11 @@
             <td><strong>{{ factura.totalToCharge | currency:'USD':'symbol':'1.2-2' }}</strong></td>
             <td>
               <span class="badge badge-payment">{{ formatPayment(factura.paymentMethod) }}</span>
+            </td>
+            <td>
+              <span class="badge badge-environment" [attr.data-environment]="factura.sriEnvironment">
+                {{ formatSriEnvironment(factura.sriEnvironment) }}
+              </span>
             </td>
             <td>
               <span class="badge" [attr.data-status]="factura.status">

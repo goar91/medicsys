@@ -204,6 +204,13 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.Property<DateTime?>("SriAuthorizedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SriEnvironment")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pruebas");
+
                     b.Property<string>("SriMessages")
                         .HasColumnType("text");
 

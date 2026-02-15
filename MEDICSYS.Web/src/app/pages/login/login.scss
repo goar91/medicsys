@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 .login-container {
   --login-accent: #f97316;
   --login-accent-dark: #ea580c;
+  --login-accent-light: #fdba74;
   --login-ink: #0b1220;
   --login-muted: #6b7280;
   --login-border: #e2e8f0;
@@ -13,7 +14,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   background: var(--login-bg);
-  font-family: 'Manrope', var(--font-body);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   position: relative;
   overflow: hidden;
 }
@@ -77,11 +78,12 @@
 }
 
 .logo-container .brand-title {
-  font-family: 'Fraunces', var(--font-display);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: clamp(2rem, 3.2vw, 3rem);
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .brand-description {
@@ -185,10 +187,12 @@
 }
 
 .form-header h2 {
-  font-family: 'Fraunces', var(--font-display);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  font-weight: 700;
   margin-bottom: 0.35rem;
   color: var(--login-ink);
+  letter-spacing: -0.02em;
 }
 
 .form-header p {
@@ -242,30 +246,67 @@
   grid-template-columns: 48px 1fr;
   gap: 0.9rem;
   align-items: center;
-  padding: 0.95rem 1.1rem;
-  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
   border: 2px solid var(--login-border);
   background: #f9fafb;
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  min-height: 92px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 78px;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .role-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   border-color: rgba(249, 115, 22, 0.5);
-  box-shadow: 0 10px 22px rgba(249, 115, 22, 0.12);
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.15);
+  background: #fff;
+}
+
+.role-card:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
 }
 
 .role-card.active {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(249, 115, 22, 0.04));
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.06));
   border-color: var(--login-accent);
-  box-shadow: 0 14px 28px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 14px 32px rgba(249, 115, 22, 0.2);
+}
+
+.role-card.active::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--login-accent);
+  display: grid;
+  place-items: center;
+}
+
+.role-card.active::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
 }
 
 .role-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--login-accent) 0%, var(--login-accent-dark) 100%);
   display: grid;
@@ -286,32 +327,40 @@
 }
 
 .role-label {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-weight: 700;
   color: var(--login-ink);
-  font-size: 0.98rem;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
 }
 
 .role-desc {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--login-muted);
-  line-height: 1.35;
-  max-width: 22ch;
+  line-height: 1.4;
+  max-width: 24ch;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1.1rem;
   border: 2px solid var(--login-border);
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
   background: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--login-accent);
   box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+}
+
+.form-input::placeholder {
+  color: var(--login-muted);
+  opacity: 0.7;
 }
 
 .form-footer {
@@ -425,11 +474,13 @@
 
     input {
       width: 100%;
-      padding: 0.85rem 1rem;
+      padding: 0.9rem 1.1rem;
       border: 2px solid var(--login-border);
-      border-radius: 12px;
-      font-size: 0.95rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
       background: #fff;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     input:focus {
@@ -439,20 +490,46 @@
   }
 
   .p-button {
-    border-radius: 12px;
-    padding: 0.85rem 1.5rem;
+    border-radius: 14px;
+    padding: 0.95rem 1.75rem;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
     border: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .p-button.p-button-primary {
     background: linear-gradient(135deg, var(--login-accent) 0%, var(--login-accent-dark) 100%);
-    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.35);
   }
 
   .p-button.p-button-primary:hover {
-    box-shadow: 0 14px 26px rgba(249, 115, 22, 0.35);
-    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .p-button.p-button-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
+    transition-duration: 0.1s;
+  }
+
+  .p-button:focus-visible {
+    outline: 2px solid var(--login-accent);
+    outline-offset: 2px;
+  }
+
+  /* Responsive buttons for smaller screens */
+  @media (max-width: 640px) {
+    .p-button {
+      padding: 1rem 1.5rem;
+      font-size: 0.95rem;
+      width: 100%;
+      justify-content: center;
+    }
   }
 }

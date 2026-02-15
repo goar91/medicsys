@@ -47,6 +47,10 @@
             <span>Forma de pago</span>
             <strong>{{ formatPayment(factura.paymentMethod) }}</strong>
           </div>
+          <div>
+            <span>Ambiente SRI</span>
+            <strong>{{ factura.sriEnvironment }}</strong>
+          </div>
           <div *ngIf="factura.cardType">
             <span>Tarjeta</span>
             <strong>{{ factura.cardType }}</strong>
@@ -129,6 +133,10 @@
     <div class="card sri-card">
       <h4>Estado SRI</h4>
       <div class="sri-grid">
+        <div>
+          <span>Ambiente</span>
+          <strong>{{ factura.sriEnvironment }}</strong>
+        </div>
         <div>
           <span>Estado</span>
           <strong>{{ formatStatus(factura.status) }}</strong>

@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: medicsys-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "030762"
+      POSTGRES_DB: medicsys
+    ports:
+      - "5433:5432"
+    volumes:
+      - medicsys_pg18data:/var/lib/postgresql
+      - ./docker/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/10-init-multiple-dbs.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d medicsys"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - medicsys-net
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    container_name: medicsys-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /app
+    user: "${LOCAL_UID:-501}:${LOCAL_GID:-20}"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5154
+      DOTNET_CLI_HOME: /tmp
+      HOME: /tmp
+      ConnectionStrings__DefaultConnection: Host=medicsys-postgres;Port=5432;Database=medicsys;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
+      ConnectionStrings__OdontologiaConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_odontologia;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
+      ConnectionStrings__AcademicoConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_academico;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
+      Jwt__Key: MEDICSYS_LOCAL_DEV_KEY_1234567890_ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    command: >
+      sh -c "dotnet restore MEDICSYS.Api/MEDICSYS.Api.csproj --nologo &&
+             dotnet run --no-restore --project MEDICSYS.Api/MEDICSYS.Api.csproj --urls http://0.0.0.0:5154"
+    volumes:
+      - ./:/app
+    ports:
+      - "5154:5154"
+    networks:
+      - medicsys-net
+
+  web:
+    image: node:22
+    container_name: medicsys-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    working_dir: /app/MEDICSYS.Web
+    environment:
+      HOME: /tmp
+      CHOKIDAR_USEPOLLING: "true"
+    command: >
+      sh -c "LOCK_HASH=$$(sha256sum package-lock.json | awk '{print $$1}');
+             PREV_HASH=$$(cat node_modules/.lockhash 2>/dev/null || true);
+             if [ \"$$LOCK_HASH\" != \"$$PREV_HASH\" ]; then
+               npm ci --no-audit --no-fund &&
+               echo \"$$LOCK_HASH\" > node_modules/.lockhash;
+             fi &&
+             npm start -- --host 0.0.0.0 --port 4200"
+    volumes:
+      - ./:/app
+      - medicsys_web_node_modules:/app/MEDICSYS.Web/node_modules
+    ports:
+      - "4200:4200"
+    networks:
+      - medicsys-net
+
+networks:
+  medicsys-net:
+    name: medicsys-net
+
+volumes:
+  medicsys_pg18data:
+  medicsys_web_node_modules:

@@ -62,6 +62,9 @@ public class InvoiceCreateRequest
     [StringLength(120)]
     public string? PaymentReference { get; set; }
 
+    [StringLength(20)]
+    public string? SriEnvironment { get; set; }
+
     public bool SendToSri { get; set; } = true;
 
     [MinLength(1)]
@@ -119,6 +122,7 @@ public class InvoiceDto
     public string? SriAuthorizationNumber { get; set; }
     public DateTime? SriAuthorizedAt { get; set; }
     public string? SriMessages { get; set; }
+    public string SriEnvironment { get; set; } = "Pruebas";
 
     public List<InvoiceItemDto> Items { get; set; } = new();
 }

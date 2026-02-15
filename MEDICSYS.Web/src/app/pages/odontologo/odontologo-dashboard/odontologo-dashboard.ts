@@ -1,5 +1,5 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 import { AgendaService, Appointment } from '../../../core/agenda.service';
@@ -7,6 +7,9 @@ import { PatientService } from '../../../core/patient.service';
 import { AuthService } from '../../../core/auth.service';
 import { InventoryService, InventoryAlert } from '../../../core/inventory.service';
 import { AccountingService } from '../../../core/accounting.service';
+import { ClinicalHistoryService } from '../../../core/clinical-history.service';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface DashboardMetric {
   label: string;
@@ -32,15 +35,18 @@ interface QuickAction {
 })
 export class OdontologoDashboardComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly agendaService = inject(AgendaService);
   private readonly patientService = inject(PatientService);
   private readonly auth = inject(AuthService);
   private readonly inventoryService = inject(InventoryService);
   private readonly accountingService = inject(AccountingService);
+  private readonly clinicalHistoryService = inject(ClinicalHistoryService);
 
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
   readonly appointments = signal<Appointment[]>([]);
   readonly totalPatients = signal<number>(0);
+  readonly totalClinicalHistories = signal<number>(0);
   readonly totalInvoices = signal<number>(0);
   readonly monthlyRevenue = signal<number>(0);
   readonly inventoryAlerts = signal<InventoryAlert[]>([]);
@@ -84,6 +90,13 @@ export class OdontologoDashboardComponent implements OnInit {
         icon: 'calendar'
       },
       {
+        label: 'Historias Clínicas',
+        value: this.totalClinicalHistories(),
+        change: 'Total registradas',
+        trend: 'up' as const,
+        icon: 'history'
+      },
+      {
         label: 'Pacientes Activos',
         value: this.totalPatients(),
         change: 'Total registrados',
@@ -93,7 +106,7 @@ export class OdontologoDashboardComponent implements OnInit {
       {
         label: 'Ingresos del Mes',
         value: `$${this.monthlyRevenue().toFixed(2)}`,
-        change: 'Febrero 2026',
+        change: this.currentMonthLabel(),
         trend: 'up' as const,
         icon: 'dollar'
       },
@@ -129,6 +142,21 @@ export class OdontologoDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadDashboardData();
+
+    this.clinicalHistoryService.historyChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadClinicalHistories());
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((event) => {
+        if (event.urlAfterRedirects.startsWith('/odontologo/dashboard')) {
+          this.loadDashboardData();
+        }
+      });
   }
 
   private loadDashboardData() {
@@ -155,6 +183,8 @@ export class OdontologoDashboardComponent implements OnInit {
         console.error('❌ Error al cargar pacientes:', err);
       }
     });
+
+    this.loadClinicalHistories();
 
     // Cargar alertas de inventario
     this.inventoryService.getAlerts(false).subscribe({
@@ -183,6 +213,26 @@ export class OdontologoDashboardComponent implements OnInit {
         this.monthlyRevenue.set(0);
       }
     });
+  }
+
+  refreshDashboard() {
+    this.loadDashboardData();
+  }
+
+  private loadClinicalHistories() {
+    this.clinicalHistoryService.getAll().subscribe({
+      next: (histories) => {
+        this.totalClinicalHistories.set(histories.length);
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar historias clínicas:', err);
+        this.totalClinicalHistories.set(0);
+      }
+    });
+  }
+
+  private currentMonthLabel() {
+    return new Date().toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
   }
 
   private getAlertTypeClass(type: string): string {

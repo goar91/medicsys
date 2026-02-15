@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 
@@ -16,7 +16,6 @@ import { Message } from 'primeng/message';
   imports: [
     ReactiveFormsModule,
     CommonModule,
-    RouterLink,
     InputText,
     Password,
     Button,
@@ -43,19 +42,19 @@ export class LoginComponent {
     {
       label: 'Estudiante',
       value: 'Alumno',
-      description: 'Acceso para estudiantes de medicina/odontolog韆',
+      description: 'Acceso para estudiantes de medicina/odontolog铆a',
       svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'
     },
     {
       label: 'Profesor',
       value: 'Profesor',
-      description: 'Supervisi髇 y revisi髇 acad閙ica',
+      description: 'Supervisi贸n y revisi贸n acad茅mica',
       svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>'
     },
     {
-      label: 'Odont髄ogo',
+      label: 'Odont贸logo',
       value: 'Odontologo',
-      description: 'Gesti髇 de pacientes y tratamientos',
+      description: 'Gesti贸n de pacientes y tratamientos',
       svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M12 12v10"/><path d="M9 12v5l-1.5 5M15 12v5l1.5 5"/></svg>'
     }
   ];
@@ -91,17 +90,19 @@ export class LoginComponent {
     const { email, password, userType } = this.loginForm.getRawValue();
     this.auth.login(email!, password!).subscribe({
       next: response => {
-        this.auth.setSession(response);
         this.loading.set(false);
+        // Verificar si el rol seleccionado coincide con el rol del usuario
         if (!this.isRoleMatch(userType, response.user.role)) {
-          this.error.set(`Tu usuario pertenece al rol ${response.user.role}. Selecciona ese rol para continuar.`);
+          this.error.set(`Tu usuario pertenece al rol "${response.user.role}". Selecciona ese rol para continuar.`);
           return;
         }
+        // Solo guardar la sesi贸n si el rol coincide
+        this.auth.setSession(response);
         this.redirectByRole(response.user.role);
       },
       error: () => {
         this.loading.set(false);
-        this.error.set('Credenciales invalidas.');
+        this.error.set('Credenciales inv谩lidas. Verifica tu correo y contrase帽a.');
       }
     });
   }

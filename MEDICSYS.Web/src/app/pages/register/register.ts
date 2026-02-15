@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 
 // PrimeNG imports
-import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { Button } from 'primeng/button';
@@ -18,7 +17,6 @@ import { Message } from 'primeng/message';
     ReactiveFormsModule,
     CommonModule,
     RouterLink,
-    Select,
     InputText,
     Password,
     Button,
