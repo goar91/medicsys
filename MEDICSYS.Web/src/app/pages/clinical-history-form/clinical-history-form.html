@@ -3,7 +3,7 @@
 <section class="page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Historia clinica</p>
+      <p class="eyebrow">Historia clínica</p>
       <h2>{{ isProfessorEditor() ? 'Revisión clínica' : (isStudent() ? 'Formulario del estudiante' : 'Formulario clínico') }}</h2>
       <p class="subtitle">
         {{ isStudent() ? 'Completa cada sección con precisión y envía para revisión.' : 'Registra y actualiza la historia clínica del paciente.' }}
@@ -17,7 +17,7 @@
       </button>
       <button *ngIf="isStudent() && !isProfessorEditor()" class="btn btn-primary" type="button" (click)="submit()" [disabled]="readonly() || saving()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Enviar a revision
+        Enviar a revisión
       </button>
     </div>
   </header>
@@ -32,7 +32,7 @@
 
   <div *ngIf="loading()" class="empty">
     <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-    Cargando historia clinica...
+    Cargando historia clínica...
   </div>
 
   <div *ngIf="!loading()" class="tabs">
@@ -79,7 +79,7 @@
           <input class="input" formControlName="idNumber" />
         </label>
         <label class="field">
-          Genero
+          Género
           <select class="input" formControlName="gender">
             <option value="">Selecciona</option>
             <option value="Femenino">Femenino</option>
@@ -96,15 +96,15 @@
           <input class="input" formControlName="ageRange" />
         </label>
         <label class="field">
-          N° historia clinica
+          N° historia clínica
           <input class="input" formControlName="clinicalHistoryNumber" />
         </label>
         <label class="field">
-          Direccion
+          Dirección
           <input class="input" formControlName="address" />
         </label>
         <label class="field">
-          Telefono
+          Teléfono
           <input class="input" formControlName="phone" />
         </label>
         <label class="field">
@@ -136,19 +136,19 @@
         <label><input type="checkbox" formControlName="tuberculosis" /> Tuberculosis</label>
         <label><input type="checkbox" formControlName="asma" /> Asma</label>
         <label><input type="checkbox" formControlName="diabetes" /> Diabetes</label>
-        <label><input type="checkbox" formControlName="hipertension" /> Hipertension</label>
-        <label><input type="checkbox" formControlName="cardiaca" /> Enf. cardiaca</label>
+        <label><input type="checkbox" formControlName="hipertension" /> Hipertensión</label>
+        <label><input type="checkbox" formControlName="cardiaca" /> Enf. cardíaca</label>
         <label><input type="checkbox" formControlName="otros" /> Otros</label>
       </div>
 
       <div class="form-divider">Signos vitales</div>
       <div class="grid" formGroupName="vitalSigns">
         <label class="field">
-          Presion arterial
+          Presión arterial
           <input class="input" formControlName="bloodPressure" />
         </label>
         <label class="field">
-          Frecuencia cardiaca
+          Frecuencia cardíaca
           <input class="input" formControlName="heartRate" />
         </label>
         <label class="field">
@@ -161,7 +161,7 @@
         </label>
       </div>
 
-      <div class="form-divider">Examen del sistema estomatognatico</div>
+      <div class="form-divider">Examen del sistema estomatognático</div>
       <div class="check-grid" formGroupName="estomatognatico">
         <label><input type="checkbox" formControlName="labios" (change)="onEstomatognaticoChange('labios', $event)" /> Labios</label>
         <label><input type="checkbox" formControlName="mejillas" (change)="onEstomatognaticoChange('mejillas', $event)" /> Mejillas</label>
@@ -171,8 +171,8 @@
         <label><input type="checkbox" formControlName="paladar" (change)="onEstomatognaticoChange('paladar', $event)" /> Paladar</label>
         <label><input type="checkbox" formControlName="piso" (change)="onEstomatognaticoChange('piso', $event)" /> Piso</label>
         <label><input type="checkbox" formControlName="carrillos" (change)="onEstomatognaticoChange('carrillos', $event)" /> Carrillos</label>
-        <label><input type="checkbox" formControlName="glandulasSalivales" (change)="onEstomatognaticoChange('glandulasSalivales', $event)" /> Glandulas salivales</label>
-        <label><input type="checkbox" formControlName="orofaringe" (change)="onEstomatognaticoChange('orofaringe', $event)" /> Oro faringe</label>
+        <label><input type="checkbox" formControlName="glandulasSalivales" (change)="onEstomatognaticoChange('glandulasSalivales', $event)" /> Glándulas salivales</label>
+        <label><input type="checkbox" formControlName="orofaringe" (change)="onEstomatognaticoChange('orofaringe', $event)" /> Orofaringe</label>
         <label><input type="checkbox" formControlName="atm" (change)="onEstomatognaticoChange('atm', $event)" /> A.T.M.</label>
         <label><input type="checkbox" formControlName="ganglios" (change)="onEstomatognaticoChange('ganglios', $event)" /> Ganglios</label>
       </div>
@@ -192,7 +192,7 @@
                             estomatognaticoSelected() === 'piso' ? 'Piso' :
                             estomatognaticoSelected() === 'carrillos' ? 'Carrillos' :
                             estomatognaticoSelected() === 'glandulasSalivales' ? 'Glándulas salivales' :
-                            estomatognaticoSelected() === 'orofaringe' ? 'Oro faringe' :
+                            estomatognaticoSelected() === 'orofaringe' ? 'Orofaringe' :
                             estomatognaticoSelected() === 'atm' ? 'A.T.M.' :
                             estomatognaticoSelected() === 'ganglios' ? 'Ganglios' : '' }}
             </h3>
@@ -203,9 +203,9 @@
           <div class="modal-body">
             <label class="field">
               Descripción de hallazgos
-              <textarea 
-                class="input" 
-                rows="4" 
+              <textarea
+                class="input"
+                rows="4"
                 placeholder="Describe los hallazgos encontrados..."
                 [formControlName]="estomatognaticoSelected()!"></textarea>
             </label>
@@ -339,7 +339,7 @@
           <input class="input" formControlName="enfermedadPeriodontal" />
         </label>
         <label class="field">
-          Mal oclusion
+          Mal oclusión
           <input class="input" formControlName="maloclusion" />
         </label>
         <label class="field">
@@ -347,7 +347,7 @@
           <input class="input" formControlName="fluorosis" />
         </label>
         <label class="field">
-          Indice CPO-ceo
+          Índice CPO-ceo
           <input class="input" formControlName="indiceCpo" />
         </label>
       </div>
@@ -371,7 +371,7 @@
       <h3>Medios de apoyo</h3>
       <div class="grid">
         <label class="field">
-          Descripcion general
+          Descripción general
           <textarea class="input" rows="3" formControlName="imagenes"></textarea>
         </label>
         <label class="field">

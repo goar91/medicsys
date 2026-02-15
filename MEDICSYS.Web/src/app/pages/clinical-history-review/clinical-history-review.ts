@@ -176,12 +176,12 @@ export class ClinicalHistoryReviewComponent implements OnInit {
           { label: 'Apellidos', value: data?.personal?.lastName ?? '-' },
           { label: 'Nombres', value: data?.personal?.firstName ?? '-' },
           { label: 'C.I.', value: data?.personal?.idNumber ?? '-' },
-          { label: 'Genero', value: data?.personal?.gender ?? '-' },
+          { label: 'Género', value: data?.personal?.gender ?? '-' },
           { label: 'Edad', value: data?.personal?.age ?? '-' },
           { label: 'Rango de edad', value: data?.personal?.ageRange ?? '-' },
-          { label: 'N° historia clinica', value: data?.personal?.clinicalHistoryNumber ?? '-' },
-          { label: 'Direccion', value: data?.personal?.address ?? '-' },
-          { label: 'Telefono', value: data?.personal?.phone ?? '-' },
+          { label: 'N° historia clínica', value: data?.personal?.clinicalHistoryNumber ?? '-' },
+          { label: 'Dirección', value: data?.personal?.address ?? '-' },
+          { label: 'Teléfono', value: data?.personal?.phone ?? '-' },
           { label: 'Fecha', value: data?.personal?.date ?? '-' }
         ]
       },
@@ -190,8 +190,8 @@ export class ClinicalHistoryReviewComponent implements OnInit {
         items: [
           { label: 'Motivo de consulta', value: data?.consultation?.reason ?? '-' },
           { label: 'Problema actual', value: data?.consultation?.currentIssue ?? '-' },
-          { label: 'Presion arterial', value: data?.consultation?.vitalSigns?.bloodPressure ?? '-' },
-          { label: 'Frecuencia cardiaca', value: data?.consultation?.vitalSigns?.heartRate ?? '-' },
+          { label: 'Presión arterial', value: data?.consultation?.vitalSigns?.bloodPressure ?? '-' },
+          { label: 'Frecuencia cardíaca', value: data?.consultation?.vitalSigns?.heartRate ?? '-' },
           { label: 'Temperatura', value: data?.consultation?.vitalSigns?.temperature ?? '-' },
           { label: 'Frecuencia respiratoria', value: data?.consultation?.vitalSigns?.respiratoryRate ?? '-' },
           { label: 'Observaciones', value: data?.consultation?.notes ?? '-' }
@@ -202,9 +202,9 @@ export class ClinicalHistoryReviewComponent implements OnInit {
         items: [
           { label: 'Higiene oral', value: data?.indicators?.higieneOral ?? '-' },
           { label: 'Enfermedad periodontal', value: data?.indicators?.enfermedadPeriodontal ?? '-' },
-          { label: 'Mal oclusion', value: data?.indicators?.maloclusion ?? '-' },
+          { label: 'Mal oclusión', value: data?.indicators?.maloclusion ?? '-' },
           { label: 'Fluorosis', value: data?.indicators?.fluorosis ?? '-' },
-          { label: 'Indice CPO-ceo', value: data?.indicators?.indiceCpo ?? '-' }
+          { label: 'Índice CPO-ceo', value: data?.indicators?.indiceCpo ?? '-' }
         ]
       },
       {

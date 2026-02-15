@@ -350,8 +350,8 @@ public class AgendaController : ControllerBase
     private static List<TimeSlotDto> BuildSlots(DateTime dayStart, List<Appointment> appointments)
     {
         var slots = new List<TimeSlotDto>();
-        var start = dayStart.AddHours(7);  // 7:00 AM
-        var end = dayStart.AddHours(19);   // 7:00 PM
+        var start = dayStart.AddHours(6);  // 6:00 AM
+        var end = dayStart.AddHours(18);   // 6:00 PM
         var cursor = start;
         while (cursor < end)
         {

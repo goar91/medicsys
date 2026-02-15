@@ -43,7 +43,7 @@
       <div class="card-content">
         <p>Ingresos</p>
         <h3>{{ summary.totalIncome | currency:'USD':'symbol':'1.2-2' }}</h3>
-        <span>Periodo seleccionado</span>
+        <span>Período seleccionado</span>
       </div>
     </div>
     <div class="card summary-card expense">
@@ -59,7 +59,7 @@
       <div class="card-content">
         <p>Utilidad</p>
         <h3 [class.negative]="summary.net < 0">{{ summary.net | currency:'USD':'symbol':'1.2-2' }}</h3>
-        <span>Saldo del periodo</span>
+        <span>Saldo del período</span>
       </div>
     </div>
   </div>
@@ -77,11 +77,11 @@
         <div class="chart-bars">
           <div class="chart-bar-group" *ngFor="let point of chartData()">
             <div class="bars">
-              <div class="bar income-bar" 
+              <div class="bar income-bar"
                    [style.height.%]="getChartBarHeight(point.income)"
                    [title]="'Ingresos: ' + (point.income | currency:'USD':'symbol':'1.2-2')">
               </div>
-              <div class="bar expense-bar" 
+              <div class="bar expense-bar"
                    [style.height.%]="getChartBarHeight(point.expense)"
                    [title]="'Egresos: ' + (point.expense | currency:'USD':'symbol':'1.2-2')">
               </div>
@@ -104,7 +104,7 @@
         <p>No hay datos suficientes para mostrar el gráfico.</p>
       </div>
     </div>
-    
+
     <!-- List View -->
     <div class="card ledger-card" *ngIf="viewMode() === 'list'">
       <div class="card-header">
@@ -114,7 +114,7 @@
         </div>
       </div>
       <div class="ledger-list" *ngIf="entries().length > 0">
-        <article class="ledger-item" *ngFor="let entry of entries()" 
+        <article class="ledger-item" *ngFor="let entry of entries()"
                  [class.editing]="editingEntry()?.id === entry.id">
           <div class="entry-content">
             <div class="entry-header">
@@ -133,7 +133,7 @@
           <div class="amount" [attr.data-type]="entry.type">
             {{ entry.type === 'Income' ? '+' : '-' }}{{ entry.amount | currency:'USD':'symbol':'1.2-2' }}
           </div>
-          
+
           <!-- Delete Confirmation -->
           <div class="delete-confirm" *ngIf="showDeleteConfirm() === entry.id">
             <p>¿Eliminar este movimiento?</p>
@@ -145,7 +145,7 @@
         </article>
       </div>
       <div class="empty" *ngIf="entries().length === 0">
-        <p>No hay movimientos en este periodo.</p>
+        <p>No hay movimientos en este período.</p>
       </div>
     </div>
 
@@ -218,7 +218,7 @@
                 {{ categoryTotal(category) | currency:'USD':'symbol':'1.2-2' }}
               </span>
               <div class="progress" *ngIf="category.monthlyBudget">
-                <div class="progress-bar" 
+                <div class="progress-bar"
                      [style.width.%]="budgetPercent(category)"
                      [class.over]="budgetPercent(category) > 100"></div>
               </div>
