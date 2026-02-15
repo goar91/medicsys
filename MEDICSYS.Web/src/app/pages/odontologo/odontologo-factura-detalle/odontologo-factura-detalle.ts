@@ -84,4 +84,40 @@ export class OdontologoFacturaDetalleComponent {
         return method;
     }
   }
+
+  /**
+   * Divide la clave de acceso de 49 dígitos en grupos de 7 para mejor legibilidad
+   */
+  splitAccessKey(accessKey: string | null | undefined): string[] {
+    if (!accessKey) return [];
+    const groups: string[] = [];
+    for (let i = 0; i < accessKey.length; i += 7) {
+      groups.push(accessKey.slice(i, i + 7));
+    }
+    return groups;
+  }
+
+  /**
+   * Genera segmentos para el código de barras visual basado en la clave de acceso
+   */
+  getAccessKeySegments(accessKey: string | null | undefined): { width: number; opacity: number }[] {
+    if (!accessKey) return [];
+    const segments: { width: number; opacity: number }[] = [];
+
+    for (let i = 0; i < accessKey.length; i++) {
+      const digit = parseInt(accessKey[i], 10) || 0;
+      // Ancho basado en el dígito (2-4px)
+      const width = 2 + (digit % 3);
+      // Opacidad alterna para crear patrón visual
+      const opacity = digit % 2 === 0 ? 1 : 0.7;
+      segments.push({ width, opacity });
+
+      // Agregar espacio entre dígitos
+      if (i < accessKey.length - 1) {
+        segments.push({ width: 1, opacity: 0 });
+      }
+    }
+
+    return segments;
+  }
 }

@@ -34,10 +34,14 @@ services:
       ASPNETCORE_URLS: http://0.0.0.0:5154
       DOTNET_CLI_HOME: /tmp
       HOME: /tmp
-      ConnectionStrings__DefaultConnection: Host=medicsys-postgres;Port=5432;Database=medicsys;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
-      ConnectionStrings__OdontologiaConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_odontologia;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
-      ConnectionStrings__AcademicoConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_academico;Username=postgres;Password=030762;Pooling=true;MinPoolSize=0;MaxPoolSize=20
+      ConnectionStrings__DefaultConnection: Host=medicsys-postgres;Port=5432;Database=medicsys;Username=postgres;Password=030762;Pooling=true;MinPoolSize=5;MaxPoolSize=100
+      ConnectionStrings__OdontologiaConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_odontologia;Username=postgres;Password=030762;Pooling=true;MinPoolSize=5;MaxPoolSize=100
+      ConnectionStrings__AcademicoConnection: Host=medicsys-postgres;Port=5432;Database=medicsys_academico;Username=postgres;Password=030762;Pooling=true;MinPoolSize=5;MaxPoolSize=100
       Jwt__Key: MEDICSYS_LOCAL_DEV_KEY_1234567890_ABCDEFGHIJKLMNOPQRSTUVWXYZ
+      # Aumentar rate limiting para pruebas de carga
+      RateLimiting__PermitLimit: "5000"
+      RateLimiting__WindowSeconds: "60"
+      RateLimiting__QueueLimit: "100"
     command: >
       sh -c "dotnet restore MEDICSYS.Api/MEDICSYS.Api.csproj --nologo &&
              dotnet run --no-restore --project MEDICSYS.Api/MEDICSYS.Api.csproj --urls http://0.0.0.0:5154"
