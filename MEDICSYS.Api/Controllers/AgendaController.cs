@@ -200,10 +200,15 @@ public class AgendaController : ControllerBase
             professorId ??= userId;
         }
 
-        var dayStart = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+        // Usar la fecha tal como se recibe (hora local del negocio)
+        var dayStart = date.Date;
         var dayEnd = dayStart.AddDays(1);
 
-        var query = _db.Appointments.AsNoTracking().Where(x => x.StartAt >= dayStart && x.StartAt < dayEnd);
+        // Convertir a UTC para consultar la base de datos
+        var dayStartUtc = DateTime.SpecifyKind(dayStart, DateTimeKind.Utc);
+        var dayEndUtc = DateTime.SpecifyKind(dayEnd, DateTimeKind.Utc);
+
+        var query = _db.Appointments.AsNoTracking().Where(x => x.StartAt >= dayStartUtc && x.StartAt < dayEndUtc);
         if (professorId.HasValue)
         {
             query = query.Where(x => x.ProfessorId == professorId.Value);
@@ -356,9 +361,13 @@ public class AgendaController : ControllerBase
         while (cursor < end)
         {
             var slotEnd = cursor.AddHours(1);
+            // Comparar con citas (que están en UTC) ajustando timezone
+            var cursorUtc = DateTime.SpecifyKind(cursor, DateTimeKind.Utc);
+            var slotEndUtc = DateTime.SpecifyKind(slotEnd, DateTimeKind.Utc);
             var occupied = appointments.Any(a =>
-                (cursor >= a.StartAt && cursor < a.EndAt) ||
-                (slotEnd > a.StartAt && slotEnd <= a.EndAt));
+                (cursorUtc >= a.StartAt && cursorUtc < a.EndAt) ||
+                (slotEndUtc > a.StartAt && slotEndUtc <= a.EndAt));
+            // Retornar slots sin timezone suffix para que el frontend los muestre como hora local
             slots.Add(new TimeSlotDto
             {
                 StartAt = cursor,

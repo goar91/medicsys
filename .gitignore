@@ -55,4 +55,7 @@ package-lock.json
 # Uploads
 **/wwwroot/uploads/
 
+# Facturacion electronica (solo versionar estructura de carpetas)
+MEDICSYS.Api/storage/facturacion/**/*.xml
+
 .fake
