@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models.Odontologia;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -73,8 +74,8 @@ public class OdontologoPatientsController : ControllerBase
             Address = request.Address,
             Phone = request.Phone,
             Email = request.Email,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.OdontologoPatients.Add(patient);
@@ -101,7 +102,7 @@ public class OdontologoPatientsController : ControllerBase
         patient.Address = request.Address;
         patient.DateOfBirth = request.DateOfBirth;
         patient.Gender = request.Gender;
-        patient.UpdatedAt = DateTime.UtcNow;
+        patient.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

@@ -8,6 +8,7 @@ using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers;
 
@@ -99,8 +100,8 @@ public class ClinicalHistoriesController : ControllerBase
             PatientId = request.PatientId,
             Data = json,
             Status = ClinicalHistoryStatus.Draft,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.ClinicalHistories.Add(history);
@@ -137,7 +138,7 @@ public class ClinicalHistoriesController : ControllerBase
 
         history.Data = JsonSerializer.Serialize(request.Data);
         history.PatientId = request.PatientId;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTimeHelper.Now();
 
         if (!isProfessor && history.Status == ClinicalHistoryStatus.Rejected)
         {
@@ -215,8 +216,8 @@ public class ClinicalHistoriesController : ControllerBase
         }
 
         history.Status = ClinicalHistoryStatus.Submitted;
-        history.SubmittedAt = DateTime.UtcNow;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.SubmittedAt = DateTimeHelper.Now();
+        history.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -290,13 +291,13 @@ public class ClinicalHistoriesController : ControllerBase
             ["fileName"] = file.FileName,
             ["url"] = url,
             ["contentType"] = contentType,
-            ["uploadedAt"] = DateTime.UtcNow
+            ["uploadedAt"] = DateTimeHelper.Now()
         });
 
         medios["assets"] = assets;
         root["medios"] = medios;
         history.Data = root.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -323,10 +324,10 @@ public class ClinicalHistoriesController : ControllerBase
         }
 
         history.Status = request.Approved ? ClinicalHistoryStatus.Approved : ClinicalHistoryStatus.Rejected;
-        history.ReviewedAt = DateTime.UtcNow;
+        history.ReviewedAt = DateTimeHelper.Now();
         history.ReviewedById = userId;
         history.ReviewNotes = request.Notes;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

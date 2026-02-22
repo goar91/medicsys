@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
+using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Models.Odontologia;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -130,7 +132,7 @@ public class ComprasController : ControllerBase
         }
 
         var purchaseDate = DateTime.SpecifyKind(request.PurchaseDate, DateTimeKind.Utc);
-        var now = DateTime.UtcNow;
+        var now = DateTimeHelper.Now();
 
         var purchase = new PurchaseOrder
         {
@@ -190,6 +192,12 @@ public class ComprasController : ControllerBase
         _db.PurchaseOrders.Add(purchase);
         await _db.SaveChangesAsync();
 
+        // Registrar asiento contable si la compra está recibida
+        if (purchase.Status == PurchaseStatus.Received)
+        {
+            await SyncAccountingEntryAsync(purchase);
+        }
+
         // Cargar los datos relacionados para el DTO
         await _db.Entry(purchase)
             .Collection(p => p.Items)
@@ -223,7 +231,7 @@ public class ComprasController : ControllerBase
         purchase.InvoiceNumber = request.InvoiceNumber;
         purchase.PurchaseDate = DateTime.SpecifyKind(request.PurchaseDate, DateTimeKind.Utc);
         purchase.Notes = request.Notes;
-        purchase.UpdatedAt = DateTime.UtcNow;
+        purchase.UpdatedAt = DateTimeHelper.Now();
 
         // Actualizar items (simplificado: eliminar y recrear)
         _db.PurchaseItems.RemoveRange(purchase.Items);
@@ -279,6 +287,14 @@ public class ComprasController : ControllerBase
             return BadRequest("No se puede eliminar una compra ya recibida. El inventario ya fue actualizado.");
         }
 
+        // Eliminar asiento contable asociado
+        var accountingEntry = await _db.AccountingEntries
+            .FirstOrDefaultAsync(e => e.Source == "Purchase" && e.Reference == purchase.Id.ToString());
+        if (accountingEntry != null)
+        {
+            _db.AccountingEntries.Remove(accountingEntry);
+        }
+
         _db.PurchaseOrders.Remove(purchase);
         await _db.SaveChangesAsync();
 
@@ -304,7 +320,7 @@ public class ComprasController : ControllerBase
             return BadRequest("Esta compra ya fue recibida");
         }
 
-        var now = DateTime.UtcNow;
+        var now = DateTimeHelper.Now();
         purchase.Status = PurchaseStatus.Received;
         purchase.UpdatedAt = now;
 
@@ -330,7 +346,62 @@ public class ComprasController : ControllerBase
 
         await _db.SaveChangesAsync();
 
+        // Registrar asiento contable al recibir la compra
+        await SyncAccountingEntryAsync(purchase);
+
         return Ok(MapToDto(purchase));
+    }
+
+    private async Task SyncAccountingEntryAsync(PurchaseOrder purchase)
+    {
+        var category = await _db.AccountingCategories
+            .FirstOrDefaultAsync(c => c.Name == "Compra de Materias Primas o Mercadería" && c.Type == AccountingEntryType.Expense);
+
+        if (category == null)
+        {
+            category = new AccountingCategory
+            {
+                Id = Guid.NewGuid(),
+                Name = "Compra de Materias Primas o Mercadería",
+                Group = "Gastos Generales de Inicio",
+                Type = AccountingEntryType.Expense,
+                MonthlyBudget = 0,
+                IsActive = true
+            };
+            _db.AccountingCategories.Add(category);
+            await _db.SaveChangesAsync();
+        }
+
+        // Buscar si ya existe un asiento para esta compra
+        var existingEntry = await _db.AccountingEntries
+            .FirstOrDefaultAsync(e => e.Source == "Purchase" && e.Reference == purchase.Id.ToString());
+
+        if (existingEntry != null)
+        {
+            existingEntry.Date = purchase.PurchaseDate;
+            existingEntry.Amount = purchase.Total;
+            existingEntry.Description = $"Compra a {purchase.Supplier}" +
+                (!string.IsNullOrWhiteSpace(purchase.InvoiceNumber) ? $" - Fact. {purchase.InvoiceNumber}" : "");
+        }
+        else
+        {
+            var entry = new AccountingEntry
+            {
+                Id = Guid.NewGuid(),
+                Date = purchase.PurchaseDate,
+                Type = AccountingEntryType.Expense,
+                CategoryId = category.Id,
+                Description = $"Compra a {purchase.Supplier}" +
+                    (!string.IsNullOrWhiteSpace(purchase.InvoiceNumber) ? $" - Fact. {purchase.InvoiceNumber}" : ""),
+                Amount = purchase.Total,
+                Reference = purchase.Id.ToString(),
+                Source = "Purchase",
+                CreatedAt = DateTimeHelper.Now()
+            };
+            _db.AccountingEntries.Add(entry);
+        }
+
+        await _db.SaveChangesAsync();
     }
 
     private static PurchaseOrderDto MapToDto(PurchaseOrder purchase)

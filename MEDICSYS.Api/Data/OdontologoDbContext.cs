@@ -21,6 +21,7 @@ public class OdontologoDbContext : DbContext
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<InvoiceConfig> InvoiceConfigs => Set<InvoiceConfig>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -177,6 +178,14 @@ public class OdontologoDbContext : DbContext
             entity.HasIndex(e => e.OdontologoId);
             entity.HasIndex(e => e.ExpenseDate);
             entity.HasIndex(e => e.Category);
+        });
+
+        // InvoiceConfig
+        builder.Entity<InvoiceConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EstablishmentCode).IsRequired().HasMaxLength(3).HasDefaultValue("001");
+            entity.Property(e => e.EmissionPoint).IsRequired().HasMaxLength(3).HasDefaultValue("002");
         });
 
         // InventoryMovement

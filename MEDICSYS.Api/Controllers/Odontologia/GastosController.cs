@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
+using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Models.Odontologia;
 using System.Security.Claims;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -97,7 +99,7 @@ public class GastosController : ControllerBase
     public async Task<ActionResult<ExpenseSummaryDto>> GetSummary()
     {
         var odontologoId = GetOdontologoId();
-        var now = DateTime.UtcNow;
+        var now = DateTimeHelper.Now();
         var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var weekStart = now.AddDays(-7);
 
@@ -193,11 +195,13 @@ public class GastosController : ControllerBase
             InvoiceNumber = request.InvoiceNumber,
             Supplier = request.Supplier,
             Notes = request.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         _db.Expenses.Add(expense);
         await _db.SaveChangesAsync();
+
+        await SyncAccountingEntryAsync(expense);
 
         var dto = new ExpenseDto(
             expense.Id,
@@ -236,9 +240,11 @@ public class GastosController : ControllerBase
         expense.InvoiceNumber = request.InvoiceNumber;
         expense.Supplier = request.Supplier;
         expense.Notes = request.Notes;
-        expense.UpdatedAt = DateTime.UtcNow;
+        expense.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
+
+        await SyncAccountingEntryAsync(expense);
 
         var dto = new ExpenseDto(
             expense.Id,
@@ -269,10 +275,100 @@ public class GastosController : ControllerBase
         if (expense == null)
             return NotFound();
 
+        // Eliminar el asiento contable asociado
+        var accountingEntry = await _db.AccountingEntries
+            .FirstOrDefaultAsync(e => e.Source == "Expense" && e.Reference == expense.Id.ToString());
+        if (accountingEntry != null)
+        {
+            _db.AccountingEntries.Remove(accountingEntry);
+        }
+
         _db.Expenses.Remove(expense);
         await _db.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private async Task SyncAccountingEntryAsync(Expense expense)
+    {
+        // Mapear categoría del gasto a la categoría contable más adecuada
+        var categoryName = MapExpenseCategoryToAccountingCategory(expense.Category);
+        var category = await _db.AccountingCategories
+            .FirstOrDefaultAsync(c => c.Name == categoryName && c.Type == AccountingEntryType.Expense);
+
+        if (category == null)
+        {
+            category = new AccountingCategory
+            {
+                Id = Guid.NewGuid(),
+                Name = categoryName,
+                Group = "Gastos Operativos",
+                Type = AccountingEntryType.Expense,
+                MonthlyBudget = 0,
+                IsActive = true
+            };
+            _db.AccountingCategories.Add(category);
+            await _db.SaveChangesAsync();
+        }
+
+        // Mapear el método de pago
+        PaymentMethod? paymentMethod = expense.PaymentMethod switch
+        {
+            "Efectivo" => Models.PaymentMethod.Cash,
+            "Tarjeta" => Models.PaymentMethod.Card,
+            "Transferencia" => Models.PaymentMethod.Transfer,
+            _ => null
+        };
+
+        // Buscar si ya existe un asiento contable para este gasto
+        var existingEntry = await _db.AccountingEntries
+            .FirstOrDefaultAsync(e => e.Source == "Expense" && e.Reference == expense.Id.ToString());
+
+        if (existingEntry != null)
+        {
+            // Actualizar el asiento existente
+            existingEntry.Date = expense.ExpenseDate;
+            existingEntry.CategoryId = category.Id;
+            existingEntry.Description = expense.Description;
+            existingEntry.Amount = expense.Amount;
+            existingEntry.PaymentMethod = paymentMethod;
+        }
+        else
+        {
+            // Crear nuevo asiento contable
+            var entry = new AccountingEntry
+            {
+                Id = Guid.NewGuid(),
+                Date = expense.ExpenseDate,
+                Type = AccountingEntryType.Expense,
+                CategoryId = category.Id,
+                Description = expense.Description,
+                Amount = expense.Amount,
+                PaymentMethod = paymentMethod,
+                Reference = expense.Id.ToString(),
+                Source = "Expense",
+                CreatedAt = DateTimeHelper.Now()
+            };
+            _db.AccountingEntries.Add(entry);
+        }
+
+        await _db.SaveChangesAsync();
+    }
+
+    private static string MapExpenseCategoryToAccountingCategory(string category)
+    {
+        return category switch
+        {
+            "Supplies" => "Suministros varios",
+            "Equipment" => "Compra de Materias Primas o Mercadería",
+            "Maintenance" => "Suministros varios",
+            "Utilities" => "Suministros varios",
+            "Rent" => "Cánones /Arrendamiento",
+            "Salaries" => "Sueldos y Salarios",
+            "Marketing" => "Publicidad",
+            "Professional" => "Honorarios Profesionales",
+            _ => "Otros"
+        };
     }
 
     private static DateTime? ToUtcStartOfDay(DateTime? value)

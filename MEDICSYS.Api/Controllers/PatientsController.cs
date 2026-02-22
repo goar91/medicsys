@@ -6,6 +6,7 @@ using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers;
 
@@ -149,8 +150,8 @@ public class PatientsController : ControllerBase
             Diseases = request.Diseases,
             BloodType = request.BloodType,
             Notes = request.Notes,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
         
         _db.Patients.Add(patient);
@@ -203,7 +204,7 @@ public class PatientsController : ControllerBase
         if (request.Notes != null)
             patient.Notes = request.Notes;
             
-        patient.UpdatedAt = DateTime.UtcNow;
+        patient.UpdatedAt = DateTimeHelper.Now();
         await _db.SaveChangesAsync();
         
         return Ok(Map(patient));

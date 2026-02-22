@@ -66,6 +66,8 @@ export class OdontologoFacturaDetalleComponent {
         return 'Autorizada SRI';
       case 'Rejected':
         return 'Rechazada';
+      case 'AwaitingAuthorization':
+        return 'En espera de autorización';
       default:
         return 'Pendiente';
     }

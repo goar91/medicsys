@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 
 export interface DashboardStats {
@@ -38,22 +38,30 @@ export class DashboardService {
   constructor(private readonly http: HttpClient) {}
 
   getDashboardStats(params?: { from?: string; to?: string }): Observable<DashboardStats> {
-    const queryString = params 
+    const queryString = params
       ? `?from=${params.from || ''}&to=${params.to || ''}`
       : '';
 
     return forkJoin({
-      accounting: this.http.get<any>(`${this.baseUrl}/accounting/summary${queryString}`),
-      invoices: this.http.get<any>(`${this.baseUrl}/sri/stats${queryString}`),
-      expenses: this.http.get<any>(`${this.baseUrl}/odontologia/gastos/summary`),
-      inventory: this.http.get<any>(`${this.baseUrl}/odontologia/kardex/items`)
+      accounting: this.http.get<any>(`${this.baseUrl}/accounting/summary${queryString}`).pipe(
+        catchError(() => of(null))
+      ),
+      invoices: this.http.get<any>(`${this.baseUrl}/sri/stats${queryString}`).pipe(
+        catchError(() => of(null))
+      ),
+      expenses: this.http.get<any>(`${this.baseUrl}/odontologia/gastos/summary`).pipe(
+        catchError(() => of(null))
+      ),
+      inventory: this.http.get<any>(`${this.baseUrl}/odontologia/kardex/items`).pipe(
+        catchError(() => of([]))
+      )
     }).pipe(
       map(data => ({
         accounting: {
           totalIncome: data.accounting?.totalIncome || 0,
           totalExpense: data.accounting?.totalExpense || 0,
           profit: (data.accounting?.totalIncome || 0) - (data.accounting?.totalExpense || 0),
-          profitMargin: data.accounting?.totalIncome 
+          profitMargin: data.accounting?.totalIncome
             ? (((data.accounting.totalIncome - data.accounting.totalExpense) / data.accounting.totalIncome) * 100)
             : 0
         },
@@ -74,7 +82,7 @@ export class DashboardService {
           totalItems: data.inventory?.length || 0,
           lowStockItems: data.inventory?.filter((i: any) => i.isLowStock).length || 0,
           expiringItems: data.inventory?.filter((i: any) => i.isExpiringSoon).length || 0,
-          totalValue: data.inventory?.reduce((sum: number, i: any) => 
+          totalValue: data.inventory?.reduce((sum: number, i: any) =>
             sum + (i.quantity * (i.averageCost || i.unitPrice)), 0) || 0
         }
       }))

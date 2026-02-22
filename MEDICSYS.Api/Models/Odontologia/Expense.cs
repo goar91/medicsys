@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Models.Odontologia;
 
@@ -38,7 +39,7 @@ public class Expense
     [StringLength(500)]
     public string? Notes { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
 
     public DateTime? UpdatedAt { get; set; }
 }

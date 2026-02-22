@@ -84,6 +84,22 @@ export class ContabilidadDashboardComponent {
       color: 'cyan'
     },
     {
+      id: 'espera-sri',
+      title: 'Doc. Espera SRI',
+      description: 'Revisa comprobantes sin respuesta del SRI en 30 segundos y reenvíalos en lote o individual.',
+      icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <path d="M8 2v4"/>
+        <path d="M16 2v4"/>
+        <path d="M3 10h18"/>
+        <path d="M12 13v4"/>
+        <path d="M12 13l2-2"/>
+        <path d="M12 13l-2-2"/>
+      </svg>`,
+      route: '/odontologo/contabilidad/documentos-espera-autorizacion',
+      color: 'teal'
+    },
+    {
       id: 'reportes',
       title: 'Reportes Financieros',
       description: 'Genera reportes detallados de estado de resultados, flujo de caja y más.',

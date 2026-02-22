@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Models;
 
@@ -29,5 +30,5 @@ public class AccountingEntry
     [MaxLength(32)]
     public string Source { get; set; } = "Manual";
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
 }

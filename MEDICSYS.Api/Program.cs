@@ -175,7 +175,14 @@ try
     builder.Services.AddScoped<TokenService>();
     builder.Services.AddHostedService<ReminderWorker>();
     builder.Services.Configure<SriOptions>(builder.Configuration.GetSection("Sri"));
+    builder.Services.AddHttpClient("SRI", client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+        client.DefaultRequestHeaders.Add("Accept", "text/xml");
+    });
     builder.Services.AddScoped<ISriService, SriService>();
+    builder.Services.AddScoped<IRideService, RideService>();
+    builder.Services.AddHostedService<SriAuthorizationPollingService>();
 
     var app = builder.Build();
 

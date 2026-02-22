@@ -36,7 +36,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <div class="metric-content">
-        <p class="metric-label">Pendientes de Envío</p>
+        <p class="metric-label">Pendientes / En Espera</p>
         <h3 class="metric-value">{{ facturasPendientes() }}</h3>
       </div>
     </div>
@@ -74,6 +74,7 @@
           <option value="">Todos los estados</option>
           <option value="Authorized">Autorizadas</option>
           <option value="Pending">Pendientes</option>
+          <option value="AwaitingAuthorization">En espera de autorización</option>
           <option value="Rejected">Rechazadas</option>
         </select>
       </div>
@@ -129,7 +130,7 @@
                 <button class="btn-icon" type="button" (click)="descargarPDF(factura.id)" title="Descargar PDF">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
-                <button class="btn-icon" type="button" *ngIf="factura.status === 'Pending'" (click)="reenviarSRI(factura.id)" title="Enviar al SRI">
+                <button class="btn-icon" type="button" *ngIf="factura.status === 'Pending' || factura.status === 'AwaitingAuthorization'" (click)="reenviarSRI(factura.id)" title="Enviar al SRI">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>

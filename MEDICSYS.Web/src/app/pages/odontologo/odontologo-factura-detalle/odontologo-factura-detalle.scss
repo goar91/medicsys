@@ -100,6 +100,11 @@
     color: #f97316;
   }
 
+  .status[data-status="AwaitingAuthorization"] {
+    background: rgba(14, 116, 144, 0.14);
+    color: #0e7490;
+  }
+
   .status[data-status="Rejected"] {
     background: rgba(239, 68, 68, 0.12);
     color: #dc2626;
@@ -393,6 +398,13 @@
     print-color-adjust: exact;
   }
 
+  .invoice-number .status[data-status="AwaitingAuthorization"] {
+    background: #dbeafe !important;
+    color: #1e3a8a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .invoice-number .status[data-status="Rejected"] {
     background: #f8d7da !important;
     color: #721c24 !important;
@@ -564,6 +576,13 @@
     print-color-adjust: exact;
   }
 
+  .sri-status[data-status="AwaitingAuthorization"] {
+    background: #dbeafe !important;
+    color: #1e3a8a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .sri-status[data-status="Rejected"] {
     background: #f8d7da !important;
     color: #721c24 !important;
@@ -678,6 +697,12 @@
     background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.08));
     color: #ea580c;
     border: 1px solid rgba(251, 146, 60, 0.3);
+  }
+
+  &[data-status="AwaitingAuthorization"] {
+    background: linear-gradient(135deg, rgba(14, 116, 144, 0.16), rgba(14, 116, 144, 0.08));
+    color: #0e7490;
+    border: 1px solid rgba(14, 116, 144, 0.3);
   }
 
   &[data-status="Rejected"] {

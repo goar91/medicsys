@@ -6,6 +6,7 @@ using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models.Odontologia;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -96,8 +97,8 @@ public class InventoryController : ControllerBase
             ExpirationDate = request.ExpirationDate.HasValue 
                 ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
                 : null,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.InventoryItems.Add(item);
@@ -130,7 +131,7 @@ public class InventoryController : ControllerBase
         item.ExpirationDate = request.ExpirationDate.HasValue 
             ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
             : null;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -187,7 +188,7 @@ public class InventoryController : ControllerBase
             return NotFound();
 
         alert.IsResolved = true;
-        alert.ResolvedAt = DateTime.UtcNow;
+        alert.ResolvedAt = DateTimeHelper.Now();
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Alert {AlertId} resolved for Odontologo {OdontologoId}", alertId, odontologoId);
@@ -227,7 +228,7 @@ public class InventoryController : ControllerBase
             foreach (var alert in stockAlerts)
             {
                 alert.IsResolved = true;
-                alert.ResolvedAt = DateTime.UtcNow;
+                alert.ResolvedAt = DateTimeHelper.Now();
             }
         }
 
@@ -244,7 +245,7 @@ public class InventoryController : ControllerBase
                 OdontologoId = item.OdontologoId,
                 Type = AlertType.OutOfStock,
                 Message = $"El artículo '{item.Name}' está agotado. Stock: 0",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             });
         }
         // Alerta de stock bajo
@@ -257,14 +258,14 @@ public class InventoryController : ControllerBase
                 OdontologoId = item.OdontologoId,
                 Type = AlertType.LowStock,
                 Message = $"Stock bajo de '{item.Name}'. Stock actual: {item.Quantity}, Mínimo: {item.MinimumQuantity}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             });
         }
 
         // Alerta de expiración
         if (item.ExpirationDate.HasValue)
         {
-            if (item.ExpirationDate.Value <= DateTime.UtcNow && !existingAlerts.Any(a => a.Type == AlertType.Expired && !a.IsResolved))
+            if (item.ExpirationDate.Value <= DateTimeHelper.Now() && !existingAlerts.Any(a => a.Type == AlertType.Expired && !a.IsResolved))
             {
                 alertsToCreate.Add(new InventoryAlert
                 {
@@ -273,12 +274,12 @@ public class InventoryController : ControllerBase
                     OdontologoId = item.OdontologoId,
                     Type = AlertType.Expired,
                     Message = $"El artículo '{item.Name}' expiró el {item.ExpirationDate.Value:dd/MM/yyyy}",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.Now()
                 });
             }
             else if (item.IsExpiringSoon && !existingAlerts.Any(a => a.Type == AlertType.ExpirationWarning && !a.IsResolved))
             {
-                var daysUntilExpiration = (item.ExpirationDate.Value - DateTime.UtcNow).Days;
+                var daysUntilExpiration = (item.ExpirationDate.Value - DateTimeHelper.Now()).Days;
                 alertsToCreate.Add(new InventoryAlert
                 {
                     Id = Guid.NewGuid(),
@@ -286,7 +287,7 @@ public class InventoryController : ControllerBase
                     OdontologoId = item.OdontologoId,
                     Type = AlertType.ExpirationWarning,
                     Message = $"El artículo '{item.Name}' expirará en {daysUntilExpiration} días ({item.ExpirationDate.Value:dd/MM/yyyy})",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.Now()
                 });
             }
         }

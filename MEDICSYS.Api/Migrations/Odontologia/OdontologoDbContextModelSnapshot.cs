@@ -18,7 +18,7 @@ namespace MEDICSYS.Api.Migrations.Odontologia
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.12")
+                .HasAnnotation("ProductVersion", "9.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -237,6 +237,34 @@ namespace MEDICSYS.Api.Migrations.Odontologia
                     b.HasIndex("IssuedAt");
 
                     b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.InvoiceConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EmissionPoint")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("002");
+
+                    b.Property<string>("EstablishmentCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("001");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InvoiceConfigs");
                 });
 
             modelBuilder.Entity("MEDICSYS.Api.Models.InvoiceItem", b =>

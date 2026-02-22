@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models.Odontologia;
 using System.Security.Claims;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -166,7 +167,7 @@ public class KardexController : ControllerBase
         {
             OdontologoId = odontologoId,
             InventoryItemId = request.InventoryItemId,
-            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTime.UtcNow, DateTimeKind.Utc),
+            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTimeHelper.Now(), DateTimeKind.Utc),
             MovementType = "Entry",
             Quantity = request.Quantity,
             UnitPrice = request.UnitPrice,
@@ -175,12 +176,12 @@ public class KardexController : ControllerBase
             StockAfter = stockAfter,
             Reference = request.Reference,
             Notes = request.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         item.Quantity = stockAfter;
         item.AverageCost = newAverageCost;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTimeHelper.Now();
 
         _db.InventoryMovements.Add(movement);
         await _db.SaveChangesAsync();
@@ -209,7 +210,7 @@ public class KardexController : ControllerBase
         {
             OdontologoId = odontologoId,
             InventoryItemId = request.InventoryItemId,
-            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTime.UtcNow, DateTimeKind.Utc),
+            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTimeHelper.Now(), DateTimeKind.Utc),
             MovementType = "Exit",
             Quantity = request.Quantity,
             UnitPrice = item.AverageCost ?? item.UnitPrice,
@@ -218,11 +219,11 @@ public class KardexController : ControllerBase
             StockAfter = stockAfter,
             Reference = request.Reference,
             Notes = request.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         item.Quantity = stockAfter;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTimeHelper.Now();
 
         _db.InventoryMovements.Add(movement);
         await _db.SaveChangesAsync();
@@ -249,7 +250,7 @@ public class KardexController : ControllerBase
         {
             OdontologoId = odontologoId,
             InventoryItemId = request.InventoryItemId,
-            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTime.UtcNow, DateTimeKind.Utc),
+            MovementDate = DateTime.SpecifyKind(request.MovementDate ?? DateTimeHelper.Now(), DateTimeKind.Utc),
             MovementType = "Adjustment",
             Quantity = Math.Abs(difference),
             UnitPrice = item.AverageCost ?? item.UnitPrice,
@@ -258,11 +259,11 @@ public class KardexController : ControllerBase
             StockAfter = stockAfter,
             Reference = request.Reason,
             Notes = request.Notes,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         item.Quantity = stockAfter;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTimeHelper.Now();
 
         _db.InventoryMovements.Add(movement);
         await _db.SaveChangesAsync();
@@ -294,8 +295,8 @@ public class KardexController : ControllerBase
             ExpirationDate = request.ExpirationDate.HasValue 
                 ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
                 : null,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.InventoryItems.Add(item);
@@ -349,7 +350,7 @@ public class KardexController : ControllerBase
         item.ExpirationDate = request.ExpirationDate.HasValue 
             ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc) 
             : null;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

@@ -237,6 +237,11 @@
         color: #fb923c;
       }
 
+      &[data-status="AwaitingAuthorization"] {
+        background: rgba(14, 116, 144, 0.14);
+        color: #0e7490;
+      }
+
       &[data-status="rechazada"],
       &[data-status="Rejected"] {
         background: rgba(239, 68, 68, 0.1);

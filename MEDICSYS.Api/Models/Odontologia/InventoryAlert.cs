@@ -1,3 +1,5 @@
+using MEDICSYS.Api.Services;
+
 namespace MEDICSYS.Api.Models.Odontologia;
 
 public enum AlertType
@@ -16,7 +18,7 @@ public class InventoryAlert
     public AlertType Type { get; set; }
     public string Message { get; set; } = string.Empty;
     public bool IsResolved { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
     public DateTime? ResolvedAt { get; set; }
 
     public InventoryItem? InventoryItem { get; set; }

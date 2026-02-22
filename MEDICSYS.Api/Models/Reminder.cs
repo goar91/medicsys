@@ -1,3 +1,5 @@
+using MEDICSYS.Api.Services;
+
 namespace MEDICSYS.Api.Models;
 
 public class Reminder
@@ -11,5 +13,5 @@ public class Reminder
     public DateTime ScheduledAt { get; set; }
     public DateTime? SentAt { get; set; }
     public string Status { get; set; } = "Pending";
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
 }

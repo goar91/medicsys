@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Models;
 
@@ -73,8 +74,8 @@ public class Invoice
     [MaxLength(20)]
     public string SriEnvironment { get; set; } = "Pruebas";
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
+    public DateTime UpdatedAt { get; set; } = DateTimeHelper.Now();
 
     public List<InvoiceItem> Items { get; set; } = new();
 }

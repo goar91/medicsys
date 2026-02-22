@@ -1,0 +1,88 @@
+<app-top-nav></app-top-nav>
+
+<section class="page espera-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Contabilidad</p>
+      <h2>Documentos en Espera de Autorización</h2>
+      <p class="subtitle">Comprobantes que no recibieron respuesta definitiva del SRI en 30 segundos.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline" (click)="loadDocumentos()" [disabled]="loading() || sendingAll()">
+        Actualizar
+      </button>
+      <button type="button" class="btn btn-primary" (click)="reenviarTodos()" [disabled]="loading() || sendingAll() || totalDocumentos() === 0">
+        {{ sendingAll() ? 'Enviando...' : 'Enviar todos a autorizar' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="metrics-row">
+    <div class="metric-card">
+      <p class="label">Documentos en espera</p>
+      <h3>{{ totalDocumentos() }}</h3>
+    </div>
+    <div class="metric-card">
+      <p class="label">Monto total</p>
+      <h3>{{ totalMonto() | currency:'USD':'symbol':'1.2-2' }}</h3>
+    </div>
+  </div>
+
+  <div class="message" *ngIf="summaryMessage()">
+    {{ summaryMessage() }}
+  </div>
+
+  <div class="table-card" *ngIf="!loading() && documentos().length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Ambiente</th>
+          <th>Estado</th>
+          <th>Mensaje SRI</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doc of documentos()">
+          <td class="mono">{{ doc.number }}</td>
+          <td>{{ doc.issuedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ doc.customer.name }}</td>
+          <td>{{ doc.totalToCharge | currency:'USD':'symbol':'1.2-2' }}</td>
+          <td>{{ formatSriEnvironment(doc.sriEnvironment) }}</td>
+          <td>
+            <span class="badge" [attr.data-status]="doc.status">
+              {{ formatStatus(doc.status) }}
+            </span>
+          </td>
+          <td class="message-cell">{{ doc.sriMessages || 'Sin detalle del SRI' }}</td>
+          <td>
+            <div class="actions">
+              <button type="button" class="btn-icon" (click)="verDetalle(doc.id)">Ver</button>
+              <button
+                type="button"
+                class="btn-icon primary"
+                (click)="reenviarDocumento(doc)"
+                [disabled]="sendingAll() || isSending(doc.id)">
+                {{ isSending(doc.id) ? 'Enviando...' : 'Enviar' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty" *ngIf="!loading() && documentos().length === 0">
+    <h3>No hay documentos en espera</h3>
+    <p>Cuando un comprobante exceda 30 segundos sin respuesta definitiva del SRI aparecerá aquí.</p>
+    <a class="btn btn-outline" routerLink="/odontologo/facturacion">Ir a facturación</a>
+  </div>
+
+  <div class="empty" *ngIf="loading()">
+    <h3>Cargando documentos...</h3>
+  </div>
+</section>

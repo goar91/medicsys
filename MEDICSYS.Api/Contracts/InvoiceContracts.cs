@@ -99,6 +99,8 @@ public class InvoiceDto
     public Guid Id { get; set; }
     public string Number { get; set; } = string.Empty;
     public int Sequential { get; set; }
+    public string EstablishmentCode { get; set; } = "001";
+    public string EmissionPoint { get; set; } = "002";
     public DateTime IssuedAt { get; set; }
 
     public InvoiceCustomerDto Customer { get; set; } = new();
@@ -125,4 +127,25 @@ public class InvoiceDto
     public string SriEnvironment { get; set; } = "Pruebas";
 
     public List<InvoiceItemDto> Items { get; set; } = new();
+}
+
+public class InvoiceConfigDto
+{
+    public string EstablishmentCode { get; set; } = "001";
+    public string EmissionPoint { get; set; } = "002";
+    public int NextSequential { get; set; }
+    public string NextNumber { get; set; } = string.Empty;
+}
+
+public class InvoiceConfigUpdateRequest
+{
+    [Required]
+    [StringLength(3, MinimumLength = 1)]
+    [RegularExpression(@"^\d{1,3}$", ErrorMessage = "Solo se permiten dígitos.")]
+    public string EstablishmentCode { get; set; } = "001";
+
+    [Required]
+    [StringLength(3, MinimumLength = 1)]
+    [RegularExpression(@"^\d{1,3}$", ErrorMessage = "Solo se permiten dígitos.")]
+    public string EmissionPoint { get; set; } = "002";
 }

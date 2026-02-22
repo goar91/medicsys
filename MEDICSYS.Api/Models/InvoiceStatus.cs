@@ -4,5 +4,6 @@ public enum InvoiceStatus
 {
     Pending,
     Authorized,
-    Rejected
+    Rejected,
+    AwaitingAuthorization
 }

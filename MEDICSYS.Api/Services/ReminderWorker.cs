@@ -22,7 +22,7 @@ public class ReminderWorker : BackgroundService
             {
                 using var scope = _services.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var now = DateTime.UtcNow;
+                var now = DateTimeHelper.Now();
                 var due = await db.Reminders
                     .Where(r => r.Status == "Pending" && r.ScheduledAt <= now)
                     .ToListAsync(stoppingToken);

@@ -35,7 +35,7 @@ export class OdontologoFacturacionComponent {
   });
 
   readonly facturasPendientes = computed(() => {
-    return this.facturas().filter(f => f.status === 'Pending').length;
+    return this.facturas().filter(f => f.status === 'Pending' || f.status === 'AwaitingAuthorization').length;
   });
 
   readonly facturasPruebas = computed(() => {
@@ -89,6 +89,8 @@ export class OdontologoFacturacionComponent {
         return 'Autorizada SRI';
       case 'Rejected':
         return 'Rechazada';
+      case 'AwaitingAuthorization':
+        return 'En espera de autorización';
       default:
         return 'Pendiente';
     }

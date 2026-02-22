@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgFor, NgIf, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
-import { InvoiceService } from '../../../core/invoice.service';
+import { InvoiceService, InvoiceConfig } from '../../../core/invoice.service';
 
 type SriEnvironment = 'Pruebas' | 'Produccion';
 
@@ -31,7 +31,7 @@ interface Cliente {
   templateUrl: './odontologo-factura-form.html',
   styleUrl: './odontologo-factura-form.scss'
 })
-export class OdontologoFacturaFormComponent {
+export class OdontologoFacturaFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly invoicesApi = inject(InvoiceService);
@@ -39,6 +39,9 @@ export class OdontologoFacturaFormComponent {
   readonly loading = signal(false);
   readonly showClienteForm = signal(false);
   readonly esConsumidorFinal = signal(false);
+  readonly editingConfig = signal(false);
+  readonly savingConfig = signal(false);
+  readonly invoiceConfig = signal<InvoiceConfig | null>(null);
   readonly sriEnvironments = signal<Array<{ value: SriEnvironment; title: string; description: string }>>([
     {
       value: 'Pruebas',
@@ -115,6 +118,11 @@ export class OdontologoFacturaFormComponent {
     { type: 'Diners', percent: 6.0 }
   ]);
 
+  readonly configForm: FormGroup = this.fb.group({
+    establishmentCode: ['001', [Validators.required, Validators.pattern(/^\d{1,3}$/)]],
+    emissionPoint: ['002', [Validators.required, Validators.pattern(/^\d{1,3}$/)]]
+  });
+
   get items(): FormArray {
     return this.facturaForm.get('items') as FormArray;
   }
@@ -162,6 +170,58 @@ export class OdontologoFacturaFormComponent {
           cardInstallments: null,
           paymentReference: ''
         });
+      }
+    });
+  }
+
+  ngOnInit() {
+    this.loadConfig();
+  }
+
+  loadConfig() {
+    this.invoicesApi.getConfig().subscribe({
+      next: config => {
+        this.invoiceConfig.set(config);
+        this.configForm.patchValue({
+          establishmentCode: config.establishmentCode,
+          emissionPoint: config.emissionPoint
+        });
+      },
+      error: () => {
+        // fallback: use defaults
+        this.invoiceConfig.set({
+          establishmentCode: '001',
+          emissionPoint: '002',
+          nextSequential: 1,
+          nextNumber: '001-002-000000001'
+        });
+      }
+    });
+  }
+
+  toggleEditConfig() {
+    this.editingConfig.set(!this.editingConfig());
+  }
+
+  guardarConfig() {
+    if (this.configForm.invalid) {
+      this.configForm.markAllAsTouched();
+      return;
+    }
+    this.savingConfig.set(true);
+    const data = this.configForm.getRawValue();
+    this.invoicesApi.updateConfig({
+      establishmentCode: data.establishmentCode,
+      emissionPoint: data.emissionPoint
+    }).subscribe({
+      next: config => {
+        this.invoiceConfig.set(config);
+        this.editingConfig.set(false);
+        this.savingConfig.set(false);
+      },
+      error: () => {
+        this.savingConfig.set(false);
+        alert('Error al guardar la configuración');
       }
     });
   }
@@ -270,7 +330,9 @@ export class OdontologoFacturaFormComponent {
         const message = payload.sendToSri
           ? (invoice.status === 'Authorized'
               ? `Factura creada y autorizada por el SRI (${invoice.sriEnvironment}).`
-              : `Factura creada y enviada al SRI (${invoice.sriEnvironment}).`)
+              : invoice.status === 'AwaitingAuthorization'
+                ? `Factura enviada al SRI (${invoice.sriEnvironment}) y movida a "Documentos en Espera de Autorización".`
+                : `Factura creada y enviada al SRI (${invoice.sriEnvironment}).`)
           : `Factura creada en ambiente ${invoice.sriEnvironment}, pendiente de envío al SRI.`;
         alert(message);
         this.router.navigate(['/odontologo/facturacion', invoice.id]);

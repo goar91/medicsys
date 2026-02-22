@@ -32,7 +32,7 @@ export interface ClinicalHistoryReviewRequest {
   notes?: string | null;
 }
 
-export type InvoiceStatus = 'Pending' | 'Authorized' | 'Rejected';
+export type InvoiceStatus = 'Pending' | 'Authorized' | 'Rejected' | 'AwaitingAuthorization';
 
 export interface InvoiceCustomer {
   identificationType: string;
@@ -59,6 +59,8 @@ export interface Invoice {
   id: string;
   number: string;
   sequential: number;
+  establishmentCode: string;
+  emissionPoint: string;
   issuedAt: string;
   customer: InvoiceCustomer;
   subtotal: number;

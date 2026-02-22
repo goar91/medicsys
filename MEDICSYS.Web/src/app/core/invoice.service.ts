@@ -26,6 +26,33 @@ export interface InvoiceCreatePayload {
   }>;
 }
 
+export interface InvoiceConfig {
+  establishmentCode: string;
+  emissionPoint: string;
+  nextSequential: number;
+  nextNumber: string;
+}
+
+export interface InvoiceConfigUpdate {
+  establishmentCode: string;
+  emissionPoint: string;
+}
+
+export interface SendAwaitingSriResponse {
+  total: number;
+  authorized: number;
+  rejected: number;
+  awaitingAuthorization: number;
+  pending: number;
+  errors: number;
+  results: Array<{
+    id: string;
+    number: string;
+    status: string;
+    error?: string;
+  }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
   private readonly baseUrl = `${API_BASE_URL}/invoices`;
@@ -40,6 +67,10 @@ export class InvoiceService {
     return this.http.get<Invoice[]>(this.baseUrl, { params });
   }
 
+  getAwaitingAuthorizationDocuments() {
+    return this.http.get<Invoice[]>(`${this.baseUrl}/awaiting-authorization`);
+  }
+
   getInvoice(id: string) {
     return this.http.get<Invoice>(`${this.baseUrl}/${id}`);
   }
@@ -50,5 +81,17 @@ export class InvoiceService {
 
   sendToSri(id: string) {
     return this.http.post<Invoice>(`${this.baseUrl}/${id}/send-sri`, {});
+  }
+
+  sendAwaitingToSri() {
+    return this.http.post<SendAwaitingSriResponse>(`${this.baseUrl}/send-awaiting-sri`, {});
+  }
+
+  getConfig() {
+    return this.http.get<InvoiceConfig>(`${this.baseUrl}/config`);
+  }
+
+  updateConfig(data: InvoiceConfigUpdate) {
+    return this.http.put<InvoiceConfig>(`${this.baseUrl}/config`, data);
   }
 }

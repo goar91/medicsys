@@ -1,3 +1,5 @@
+using MEDICSYS.Api.Services;
+
 namespace MEDICSYS.Api.Models.Odontologia;
 
 public class InventoryItem
@@ -17,11 +19,11 @@ public class InventoryItem
     public string? Location { get; set; }            // Kardex: Ubicación física
     public string? Batch { get; set; }               // Kardex: Lote
     public DateTime? ExpirationDate { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
+    public DateTime UpdatedAt { get; set; } = DateTimeHelper.Now();
 
     // Computed properties
     public bool IsLowStock => Quantity <= MinimumQuantity;
-    public bool IsExpiringSoon => ExpirationDate.HasValue && ExpirationDate.Value <= DateTime.UtcNow.AddMonths(1);
+    public bool IsExpiringSoon => ExpirationDate.HasValue && ExpirationDate.Value <= DateTimeHelper.Now().AddMonths(1);
     public bool NeedsReorder => ReorderPoint.HasValue && Quantity <= ReorderPoint.Value;
 }

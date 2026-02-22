@@ -1,25 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "/app/MEDICSYS.Api/MEDICSYS.Api.csproj": {}
+    "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj": {}
   },
   "projects": {
-    "/app/MEDICSYS.Api/MEDICSYS.Api.csproj": {
+    "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
+        "projectUniqueName": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
         "projectName": "MEDICSYS.Api",
-        "projectPath": "/app/MEDICSYS.Api/MEDICSYS.Api.csproj",
-        "packagesPath": "/tmp/.nuget/packages/",
-        "outputPath": "/app/MEDICSYS.Api/obj/",
+        "projectPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
+        "packagesPath": "/Users/gerson/.nuget/packages/",
+        "outputPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/tmp/.nuget/NuGet/NuGet.Config"
+          "/Users/gerson/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "/usr/local/Cellar/dotnet/10.0.103/libexec/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -74,6 +75,10 @@
               "target": "Package",
               "version": "[9.*, )"
             },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2025.*, )"
+            },
             "Serilog.AspNetCore": {
               "target": "Package",
               "version": "[8.*, )"
@@ -105,6 +110,18 @@
             "Serilog.Sinks.File": {
               "target": "Package",
               "version": "[5.*, )"
+            },
+            "SkiaSharp": {
+              "target": "Package",
+              "version": "[3.*, )"
+            },
+            "System.Security.Cryptography.Xml": {
+              "target": "Package",
+              "version": "[10.0.3, )"
+            },
+            "ZXing.Net": {
+              "target": "Package",
+              "version": "[0.16.*, )"
             }
           },
           "imports": [
@@ -126,7 +143,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.103/libexec/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

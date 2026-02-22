@@ -34,7 +34,10 @@ public class SriAuthorizationController : ControllerBase
     public async Task<ActionResult<IEnumerable<object>>> GetPendingInvoices()
     {
         var pendingInvoices = await _db.Invoices
-            .Where(x => x.Status == InvoiceStatus.Pending || x.Status == InvoiceStatus.Rejected)
+            .Where(x =>
+                x.Status == InvoiceStatus.Pending ||
+                x.Status == InvoiceStatus.Rejected ||
+                x.Status == InvoiceStatus.AwaitingAuthorization)
             .OrderByDescending(x => x.IssuedAt)
             .Select(x => new
             {
@@ -124,18 +127,7 @@ public class SriAuthorizationController : ControllerBase
         try
         {
             var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
-
-            invoice.SriAccessKey = result.AccessKey;
-            invoice.SriAuthorizationNumber = result.AuthorizationNumber;
-            invoice.SriAuthorizedAt = result.AuthorizedAt;
-            invoice.SriMessages = result.Messages;
-            invoice.Status = result.Status switch
-            {
-                "AUTORIZADO" => InvoiceStatus.Authorized,
-                "RECHAZADO" => InvoiceStatus.Rejected,
-                _ => InvoiceStatus.Pending
-            };
-            invoice.UpdatedAt = DateTime.UtcNow;
+            ApplySriResultToInvoice(invoice, result);
 
             await _db.SaveChangesAsync();
 
@@ -177,7 +169,9 @@ public class SriAuthorizationController : ControllerBase
         var invoices = await _db.Invoices
             .Include(x => x.Items)
             .Where(x => invoiceIds.Contains(x.Id) && 
-                       (x.Status == InvoiceStatus.Pending || x.Status == InvoiceStatus.Rejected))
+                       (x.Status == InvoiceStatus.Pending ||
+                        x.Status == InvoiceStatus.Rejected ||
+                        x.Status == InvoiceStatus.AwaitingAuthorization))
             .ToListAsync();
 
         var results = new List<object>();
@@ -189,18 +183,7 @@ public class SriAuthorizationController : ControllerBase
             try
             {
                 var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
-
-                invoice.SriAccessKey = result.AccessKey;
-                invoice.SriAuthorizationNumber = result.AuthorizationNumber;
-                invoice.SriAuthorizedAt = result.AuthorizedAt;
-                invoice.SriMessages = result.Messages;
-                invoice.Status = result.Status switch
-                {
-                    "AUTORIZADO" => InvoiceStatus.Authorized,
-                    "RECHAZADO" => InvoiceStatus.Rejected,
-                    _ => InvoiceStatus.Pending
-                };
-                invoice.UpdatedAt = DateTime.UtcNow;
+                ApplySriResultToInvoice(invoice, result);
 
                 if (invoice.Status == InvoiceStatus.Authorized)
                     successful++;
@@ -317,12 +300,13 @@ public class SriAuthorizationController : ControllerBase
             .Select(g => new
             {
                 Total = g.Count(),
-                Pending = g.Count(x => x.Status == InvoiceStatus.Pending),
+                Pending = g.Count(x => x.Status == InvoiceStatus.Pending || x.Status == InvoiceStatus.AwaitingAuthorization),
+                AwaitingAuthorization = g.Count(x => x.Status == InvoiceStatus.AwaitingAuthorization),
                 Authorized = g.Count(x => x.Status == InvoiceStatus.Authorized),
                 Rejected = g.Count(x => x.Status == InvoiceStatus.Rejected),
                 TotalAmount = g.Sum(x => x.Total),
                 AuthorizedAmount = g.Where(x => x.Status == InvoiceStatus.Authorized).Sum(x => x.Total),
-                PendingAmount = g.Where(x => x.Status == InvoiceStatus.Pending).Sum(x => x.Total)
+                PendingAmount = g.Where(x => x.Status == InvoiceStatus.Pending || x.Status == InvoiceStatus.AwaitingAuthorization).Sum(x => x.Total)
             })
             .FirstOrDefaultAsync();
 
@@ -330,11 +314,36 @@ public class SriAuthorizationController : ControllerBase
         {
             Total = 0,
             Pending = 0,
+            AwaitingAuthorization = 0,
             Authorized = 0,
             Rejected = 0,
             TotalAmount = 0m,
             AuthorizedAmount = 0m,
             PendingAmount = 0m
         });
+    }
+
+    private static void ApplySriResultToInvoice(Invoice invoice, SriSendResult result)
+    {
+        invoice.SriAccessKey = result.AccessKey;
+        invoice.SriAuthorizationNumber = result.AuthorizationNumber;
+        invoice.SriAuthorizedAt = result.AuthorizedAt;
+        invoice.SriMessages = result.Messages;
+        invoice.Status = MapSriStatusToInvoiceStatus(result.Status);
+        invoice.UpdatedAt = DateTimeHelper.Now();
+    }
+
+    private static InvoiceStatus MapSriStatusToInvoiceStatus(string? sriStatus)
+    {
+        return sriStatus?.ToUpperInvariant() switch
+        {
+            "AUTORIZADO" => InvoiceStatus.Authorized,
+            "RECHAZADO" => InvoiceStatus.Rejected,
+            "NO AUTORIZADO" => InvoiceStatus.Rejected,
+            "ERROR" => InvoiceStatus.Rejected,
+            "EN_ESPERA_AUTORIZACION" => InvoiceStatus.AwaitingAuthorization,
+            "EN PROCESO" => InvoiceStatus.AwaitingAuthorization,
+            _ => InvoiceStatus.Pending
+        };
     }
 }

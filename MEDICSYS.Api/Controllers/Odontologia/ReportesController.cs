@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Data;
+using MEDICSYS.Api.Services;
 using System.Security.Claims;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
@@ -28,8 +29,8 @@ public class ReportesController : ControllerBase
         [FromQuery] DateTime? endDate)
     {
         var odontologoId = GetOdontologoId();
-        var start = ToUtcStartOfDay(startDate) ?? DateTime.UtcNow.AddMonths(-6);
-        var end = ToUtcEndOfDay(endDate) ?? DateTime.UtcNow;
+        var start = ToUtcStartOfDay(startDate) ?? DateTimeHelper.Now().AddMonths(-6);
+        var end = ToUtcEndOfDay(endDate) ?? DateTimeHelper.Now();
 
         // Calcular ingresos totales basado en gastos negativos (simulado)
         // En una implementación real, aquí se obtendrían las ventas reales
@@ -132,8 +133,8 @@ public class ReportesController : ControllerBase
         [FromQuery] DateTime? endDate)
     {
         var odontologoId = GetOdontologoId();
-        var start = ToUtcStartOfDay(startDate) ?? DateTime.UtcNow.AddMonths(-1);
-        var end = ToUtcEndOfDay(endDate) ?? DateTime.UtcNow;
+        var start = ToUtcStartOfDay(startDate) ?? DateTimeHelper.Now().AddMonths(-1);
+        var end = ToUtcEndOfDay(endDate) ?? DateTimeHelper.Now();
 
         // TODO: Implementar con tabla de ventas correcta
         // Por ahora retornamos datos simulados
@@ -157,7 +158,7 @@ public class ReportesController : ControllerBase
         [FromQuery] int months = 12)
     {
         var odontologoId = GetOdontologoId();
-        var startDate = DateTime.UtcNow.AddMonths(-months);
+        var startDate = DateTimeHelper.Now().AddMonths(-months);
 
         // TODO: Usar tabla de ingresos correcta
         var expenses = await _db.Expenses
@@ -167,7 +168,7 @@ public class ReportesController : ControllerBase
         var monthlyData = Enumerable.Range(0, months)
             .Select(i =>
             {
-                var month = DateTime.UtcNow.AddMonths(-i);
+                var month = DateTimeHelper.Now().AddMonths(-i);
                 var monthKey = $"{month.Year}-{month.Month:D2}";
 
                 var monthIncome = 0m; // TODO: Calcular ingresos reales

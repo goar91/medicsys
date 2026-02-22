@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models.Academico;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Academico;
 
@@ -87,8 +88,8 @@ public class AcademicPatientsController : ControllerBase
             EmergencyContact = request.EmergencyContact,
             EmergencyPhone = request.EmergencyPhone,
             CreatedByProfessorId = professorId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.AcademicPatients.Add(patient);
@@ -127,7 +128,7 @@ public class AcademicPatientsController : ControllerBase
         patient.MedicalConditions = request.MedicalConditions;
         patient.EmergencyContact = request.EmergencyContact;
         patient.EmergencyPhone = request.EmergencyPhone;
-        patient.UpdatedAt = DateTime.UtcNow;
+        patient.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

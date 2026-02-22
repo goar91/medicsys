@@ -6,6 +6,7 @@ using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Models.Academico;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Academico;
 
@@ -144,8 +145,8 @@ public class AcademicAppointmentsController : ControllerBase
             EndAt = request.EndAt,
             Notes = request.Notes,
             Status = isProfessor ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.AcademicAppointments.Add(appointment);
@@ -201,7 +202,7 @@ public class AcademicAppointmentsController : ControllerBase
         {
             appointment.Status = request.Status.Value;
         }
-        appointment.UpdatedAt = DateTime.UtcNow;
+        appointment.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -227,7 +228,7 @@ public class AcademicAppointmentsController : ControllerBase
         {
             appointment.Notes = request.Notes;
         }
-        appointment.UpdatedAt = DateTime.UtcNow;
+        appointment.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -272,7 +273,7 @@ public class AcademicAppointmentsController : ControllerBase
                 Status = "Pending",
                 Target = professor.Email!,
                 ScheduledAt = appointment.StartAt.AddHours(-24),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             },
             new()
             {
@@ -283,7 +284,7 @@ public class AcademicAppointmentsController : ControllerBase
                 Status = "Pending",
                 Target = student.Email!,
                 ScheduledAt = appointment.StartAt.AddHours(-2),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             }
         };
 

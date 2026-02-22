@@ -20,12 +20,14 @@ public class InvoicesController : ControllerBase
 
     private readonly OdontologoDbContext _db;
     private readonly ISriService _sri;
+    private readonly IRideService _ride;
     private readonly ILogger<InvoicesController> _logger;
 
-    public InvoicesController(OdontologoDbContext db, ISriService sri, ILogger<InvoicesController> logger)
+    public InvoicesController(OdontologoDbContext db, ISriService sri, IRideService ride, ILogger<InvoicesController> logger)
     {
         _db = db;
         _sri = sri;
+        _ride = ride;
         _logger = logger;
     }
 
@@ -84,6 +86,97 @@ public class InvoicesController : ControllerBase
         return Ok(Map(invoice));
     }
 
+    [HttpGet("{id:guid}/ride")]
+    public async Task<IActionResult> GetRide(Guid id)
+    {
+        var invoice = await _db.Invoices
+            .Include(x => x.Items)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (invoice == null)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            var pdf = _ride.GenerateRide(invoice);
+            var fileName = $"RIDE-{invoice.Number.Replace("-", "")}.pdf";
+            return File(pdf, "application/pdf", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al generar RIDE para factura {InvoiceId}", id);
+            return StatusCode(500, "Error al generar el RIDE del comprobante.");
+        }
+    }
+
+    [HttpGet("config")]
+    public async Task<ActionResult<InvoiceConfigDto>> GetConfig()
+    {
+        var config = await _db.InvoiceConfigs.FirstOrDefaultAsync();
+
+        if (config == null)
+        {
+            config = new InvoiceConfig
+            {
+                Id = Guid.NewGuid(),
+                EstablishmentCode = "001",
+                EmissionPoint = "002",
+                UpdatedAt = DateTimeHelper.Now()
+            };
+            _db.InvoiceConfigs.Add(config);
+            await _db.SaveChangesAsync();
+        }
+
+        var nextSeq = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
+
+        return Ok(new InvoiceConfigDto
+        {
+            EstablishmentCode = config.EstablishmentCode,
+            EmissionPoint = config.EmissionPoint,
+            NextSequential = nextSeq,
+            NextNumber = FormatInvoiceNumber(config.EstablishmentCode, config.EmissionPoint, nextSeq)
+        });
+    }
+
+    [HttpPut("config")]
+    public async Task<ActionResult<InvoiceConfigDto>> UpdateConfig(InvoiceConfigUpdateRequest request)
+    {
+        var config = await _db.InvoiceConfigs.FirstOrDefaultAsync();
+
+        if (config == null)
+        {
+            config = new InvoiceConfig
+            {
+                Id = Guid.NewGuid(),
+                EstablishmentCode = request.EstablishmentCode.PadLeft(3, '0'),
+                EmissionPoint = request.EmissionPoint.PadLeft(3, '0'),
+                UpdatedAt = DateTimeHelper.Now()
+            };
+            _db.InvoiceConfigs.Add(config);
+        }
+        else
+        {
+            config.EstablishmentCode = request.EstablishmentCode.PadLeft(3, '0');
+            config.EmissionPoint = request.EmissionPoint.PadLeft(3, '0');
+            config.UpdatedAt = DateTimeHelper.Now();
+        }
+
+        await _db.SaveChangesAsync();
+
+        var nextSeq = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
+
+        return Ok(new InvoiceConfigDto
+        {
+            EstablishmentCode = config.EstablishmentCode,
+            EmissionPoint = config.EmissionPoint,
+            NextSequential = nextSeq,
+            NextNumber = FormatInvoiceNumber(config.EstablishmentCode, config.EmissionPoint, nextSeq)
+        });
+    }
+
     [HttpPost]
     public async Task<ActionResult<InvoiceDto>> Create(InvoiceCreateRequest request)
     {
@@ -94,9 +187,14 @@ public class InvoicesController : ControllerBase
 
         var method = ParsePaymentMethod(request.PaymentMethod);
 
+        // Load invoice config for establishment code and emission point
+        var config = await _db.InvoiceConfigs.FirstOrDefaultAsync();
+        var establishment = config?.EstablishmentCode ?? "001";
+        var emissionPoint = config?.EmissionPoint ?? "002";
+
         var nextSequential = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
-        var issuedAt = DateTime.UtcNow;
-        var number = $"001-001-{nextSequential.ToString().PadLeft(9, '0')}";
+        var issuedAt = DateTimeHelper.Now();
+        var number = FormatInvoiceNumber(establishment, emissionPoint, nextSequential);
 
         var items = request.Items.Select(item =>
         {
@@ -135,6 +233,8 @@ public class InvoicesController : ControllerBase
         {
             Id = Guid.NewGuid(),
             Number = number,
+            EstablishmentCode = establishment,
+            EmissionPoint = emissionPoint,
             Sequential = nextSequential,
             IssuedAt = issuedAt,
             CustomerIdentificationType = request.CustomerIdentificationType,
@@ -191,23 +291,158 @@ public class InvoicesController : ControllerBase
         return Ok(Map(invoice));
     }
 
+    [HttpGet("awaiting-authorization")]
+    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAwaitingAuthorization(
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
+    {
+        var query = _db.Invoices
+            .Include(x => x.Items)
+            .AsNoTracking()
+            .Where(x =>
+                x.Status == InvoiceStatus.AwaitingAuthorization ||
+                (x.Status == InvoiceStatus.Pending &&
+                 x.SriAccessKey != null &&
+                 x.SriAccessKey != string.Empty &&
+                 x.SriAuthorizationNumber == null));
+
+        var total = await query.CountAsync();
+
+        if (page.HasValue || pageSize.HasValue)
+        {
+            var pageValue = Math.Max(1, page ?? 1);
+            var sizeValue = Math.Clamp(pageSize ?? 50, 1, 200);
+            query = query
+                .OrderByDescending(x => x.IssuedAt)
+                .Skip((pageValue - 1) * sizeValue)
+                .Take(sizeValue);
+
+            Response.Headers["X-Total-Count"] = total.ToString();
+            Response.Headers["X-Page"] = pageValue.ToString();
+            Response.Headers["X-Page-Size"] = sizeValue.ToString();
+        }
+        else
+        {
+            query = query.OrderByDescending(x => x.IssuedAt);
+        }
+
+        var invoices = await query.ToListAsync();
+        return Ok(invoices.Select(Map));
+    }
+
+    [HttpPost("send-awaiting-sri")]
+    public async Task<ActionResult<object>> SendAwaitingToSri()
+    {
+        var invoices = await _db.Invoices
+            .Include(x => x.Items)
+            .Where(x =>
+                x.Status == InvoiceStatus.AwaitingAuthorization ||
+                (x.Status == InvoiceStatus.Pending &&
+                 x.SriAccessKey != null &&
+                 x.SriAccessKey != string.Empty &&
+                 x.SriAuthorizationNumber == null))
+            .OrderBy(x => x.IssuedAt)
+            .ToListAsync();
+
+        var results = new List<object>();
+        var authorized = 0;
+        var rejected = 0;
+        var awaiting = 0;
+        var pending = 0;
+        var errors = 0;
+
+        foreach (var invoice in invoices)
+        {
+            try
+            {
+                var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
+                ApplySriResultToInvoice(invoice, result);
+
+                switch (invoice.Status)
+                {
+                    case InvoiceStatus.Authorized:
+                        authorized++;
+                        break;
+                    case InvoiceStatus.Rejected:
+                        rejected++;
+                        break;
+                    case InvoiceStatus.AwaitingAuthorization:
+                        awaiting++;
+                        break;
+                    default:
+                        pending++;
+                        break;
+                }
+
+                results.Add(new
+                {
+                    invoice.Id,
+                    invoice.Number,
+                    Status = invoice.Status.ToString(),
+                    invoice.SriEnvironment,
+                    invoice.SriAccessKey,
+                    invoice.SriAuthorizationNumber,
+                    invoice.SriMessages
+                });
+            }
+            catch (Exception ex)
+            {
+                errors++;
+                _logger.LogError(ex, "Error al reenviar factura {Number} al SRI", invoice.Number);
+                results.Add(new
+                {
+                    invoice.Id,
+                    invoice.Number,
+                    Status = "Error",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Total = invoices.Count,
+            Authorized = authorized,
+            Rejected = rejected,
+            AwaitingAuthorization = awaiting,
+            Pending = pending,
+            Errors = errors,
+            Results = results
+        });
+    }
+
     private async Task SendToSriInternalAsync(Invoice invoice)
     {
         var result = await _sri.SendInvoiceAsync(invoice, invoice.SriEnvironment);
+        ApplySriResultToInvoice(invoice, result);
 
+        await _db.SaveChangesAsync();
+    }
+
+    private static void ApplySriResultToInvoice(Invoice invoice, SriSendResult result)
+    {
         invoice.SriAccessKey = result.AccessKey;
         invoice.SriAuthorizationNumber = result.AuthorizationNumber;
         invoice.SriAuthorizedAt = result.AuthorizedAt;
         invoice.SriMessages = result.Messages;
-        invoice.Status = result.Status switch
+        invoice.Status = MapSriStatusToInvoiceStatus(result.Status);
+        invoice.UpdatedAt = DateTimeHelper.Now();
+    }
+
+    private static InvoiceStatus MapSriStatusToInvoiceStatus(string? sriStatus)
+    {
+        return sriStatus?.ToUpperInvariant() switch
         {
             "AUTORIZADO" => InvoiceStatus.Authorized,
             "RECHAZADO" => InvoiceStatus.Rejected,
+            "NO AUTORIZADO" => InvoiceStatus.Rejected,
+            "ERROR" => InvoiceStatus.Rejected,
+            "EN_ESPERA_AUTORIZACION" => InvoiceStatus.AwaitingAuthorization,
+            "EN PROCESO" => InvoiceStatus.AwaitingAuthorization,
             _ => InvoiceStatus.Pending
         };
-        invoice.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
     }
 
     private async Task RegisterAccountingEntryAsync(Invoice invoice)
@@ -242,7 +477,7 @@ public class InvoicesController : ControllerBase
             Reference = invoice.PaymentReference,
             InvoiceId = invoice.Id,
             Source = "Invoice",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         _db.AccountingEntries.Add(entry);
@@ -266,6 +501,11 @@ public class InvoicesController : ControllerBase
         return SriEnvironmentPruebas;
     }
 
+    private static string FormatInvoiceNumber(string establishment, string emissionPoint, int sequential)
+    {
+        return $"{establishment.PadLeft(3, '0')}-{emissionPoint.PadLeft(3, '0')}-{sequential.ToString().PadLeft(9, '0')}";
+    }
+
     private static InvoiceDto Map(Invoice invoice)
     {
         return new InvoiceDto
@@ -273,6 +513,8 @@ public class InvoicesController : ControllerBase
             Id = invoice.Id,
             Number = invoice.Number,
             Sequential = invoice.Sequential,
+            EstablishmentCode = invoice.EstablishmentCode,
+            EmissionPoint = invoice.EmissionPoint,
             IssuedAt = invoice.IssuedAt,
             Customer = new InvoiceCustomerDto
             {

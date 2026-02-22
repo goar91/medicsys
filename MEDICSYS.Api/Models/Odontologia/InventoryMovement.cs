@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Models.Odontologia;
 
@@ -45,7 +46,7 @@ public class InventoryMovement
 
     public Guid? PurchaseOrderId { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
 }
 
 public enum InventoryMovementType

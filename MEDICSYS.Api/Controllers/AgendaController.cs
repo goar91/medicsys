@@ -7,6 +7,7 @@ using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers;
 
@@ -170,8 +171,8 @@ public class AgendaController : ControllerBase
             EndAt = request.EndAt,
             Notes = request.Notes,
             Status = isProvider ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.Appointments.Add(appointment);
@@ -279,7 +280,7 @@ public class AgendaController : ControllerBase
             appointment.Status = request.Status.Value;
         }
 
-        appointment.UpdatedAt = DateTime.UtcNow;
+        appointment.UpdatedAt = DateTimeHelper.Now();
         await _db.SaveChangesAsync();
 
         return Ok(Map(appointment));
@@ -311,7 +312,7 @@ public class AgendaController : ControllerBase
         {
             appointment.Notes = request.Notes;
         }
-        appointment.UpdatedAt = DateTime.UtcNow;
+        appointment.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -399,7 +400,7 @@ public class AgendaController : ControllerBase
                 Message = $"Recordatorio: cita el {appointment.StartAt:dd/MM/yyyy HH:mm}",
                 ScheduledAt = time,
                 Status = "Pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             });
             reminders.Add(new Reminder
             {
@@ -410,7 +411,7 @@ public class AgendaController : ControllerBase
                 Message = $"Recordatorio: cita el {appointment.StartAt:dd/MM/yyyy HH:mm}",
                 ScheduledAt = time,
                 Status = "Pending",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.Now()
             });
         }
 

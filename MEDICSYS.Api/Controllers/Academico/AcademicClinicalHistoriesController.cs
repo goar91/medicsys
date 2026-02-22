@@ -8,6 +8,7 @@ using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Models.Academico;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Academico;
 
@@ -96,8 +97,8 @@ public class AcademicClinicalHistoriesController : ControllerBase
             StudentId = studentId,
             Data = request.Data,
             Status = ClinicalHistoryStatus.Draft,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.AcademicClinicalHistories.Add(history);
@@ -135,7 +136,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
         }
 
         history.Data = request.Data;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTimeHelper.Now();
 
         if (!isProfessor && history.Status == ClinicalHistoryStatus.Rejected)
         {
@@ -177,7 +178,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
         }
 
         history.Status = ClinicalHistoryStatus.Submitted;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 
@@ -200,8 +201,8 @@ public class AcademicClinicalHistoriesController : ControllerBase
         history.ReviewedByProfessorId = professorId;
         history.ProfessorComments = request.ReviewNotes;
         history.Status = request.Approved ? ClinicalHistoryStatus.Approved : ClinicalHistoryStatus.Rejected;
-        history.ReviewedAt = DateTime.UtcNow;
-        history.UpdatedAt = DateTime.UtcNow;
+        history.ReviewedAt = DateTimeHelper.Now();
+        history.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

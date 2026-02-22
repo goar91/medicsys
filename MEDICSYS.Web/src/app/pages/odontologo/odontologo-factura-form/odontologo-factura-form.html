@@ -13,6 +13,81 @@
   </header>
 
   <form [formGroup]="facturaForm" (ngSubmit)="guardarFactura()">
+    <!-- Sección Número de Factura -->
+    <div class="card form-section invoice-number-section">
+      <div class="section-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Número de Factura
+        </h3>
+        <button type="button" class="btn btn-sm btn-outline" (click)="toggleEditConfig()" *ngIf="!editingConfig()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Configurar
+        </button>
+      </div>
+
+      <!-- Preview del número de factura -->
+      <div class="invoice-number-preview" *ngIf="invoiceConfig() && !editingConfig()">
+        <div class="number-display">
+          <span class="number-label">Próxima factura:</span>
+          <span class="number-value">{{ invoiceConfig()!.nextNumber }}</span>
+        </div>
+        <div class="number-parts">
+          <div class="number-part">
+            <span class="part-label">Establecimiento</span>
+            <span class="part-value">{{ invoiceConfig()!.establishmentCode }}</span>
+          </div>
+          <span class="number-separator">—</span>
+          <div class="number-part">
+            <span class="part-label">Punto de emisión</span>
+            <span class="part-value">{{ invoiceConfig()!.emissionPoint }}</span>
+          </div>
+          <span class="number-separator">—</span>
+          <div class="number-part">
+            <span class="part-label">Secuencial</span>
+            <span class="part-value">{{ invoiceConfig()!.nextSequential }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario edición de configuración -->
+      <div class="config-edit-form" *ngIf="editingConfig()" [formGroup]="configForm">
+        <p class="config-hint">Configura el código de establecimiento y el punto de emisión. El secuencial se genera automáticamente.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Establecimiento *</label>
+            <input type="text" class="form-control" formControlName="establishmentCode" placeholder="001" maxlength="3">
+            <small class="hint">Código del establecimiento (ej: 001)</small>
+          </div>
+          <div class="form-group">
+            <label>Punto de Emisión *</label>
+            <input type="text" class="form-control" formControlName="emissionPoint" placeholder="002" maxlength="3">
+            <small class="hint">Punto de emisión (ej: 002)</small>
+          </div>
+          <div class="form-group">
+            <label>Secuencial</label>
+            <input type="text" class="form-control" [value]="invoiceConfig()?.nextSequential ?? 1" disabled>
+            <small class="hint">Se asigna automáticamente</small>
+          </div>
+        </div>
+        <div class="config-preview" *ngIf="configForm.valid">
+          <span class="preview-label">Vista previa:</span>
+          <span class="preview-number">{{ configForm.get('establishmentCode')?.value?.padStart(3, '0') }}-{{ configForm.get('emissionPoint')?.value?.padStart(3, '0') }}-{{ (invoiceConfig()?.nextSequential ?? 1).toString().padStart(9, '0') }}</span>
+        </div>
+        <div class="config-actions">
+          <button type="button" class="btn btn-sm btn-outline" (click)="toggleEditConfig()" [disabled]="savingConfig()">Cancelar</button>
+          <button type="button" class="btn btn-sm btn-primary" (click)="guardarConfig()" [disabled]="savingConfig() || configForm.invalid">
+            {{ savingConfig() ? 'Guardando...' : 'Guardar Configuración' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div class="number-loading" *ngIf="!invoiceConfig() && !editingConfig()">
+        <span>Cargando configuración...</span>
+      </div>
+    </div>
+
     <!-- Sección Cliente -->
     <div class="card form-section">
       <div class="section-header">
@@ -45,9 +120,9 @@
       <div class="clientes-frecuentes">
         <p class="frecuentes-label">Clientes Frecuentes:</p>
         <div class="frecuentes-grid">
-          <button 
-            type="button" 
-            class="cliente-card" 
+          <button
+            type="button"
+            class="cliente-card"
             *ngFor="let cliente of clientesFrecuentes()"
             (click)="seleccionarClienteFrecuente(cliente)">
             <div class="cliente-avatar">{{ cliente.nombre.charAt(0) }}</div>
@@ -131,16 +206,16 @@
       <div class="items-container" formArrayName="items">
         <div class="item-row" *ngFor="let item of items.controls; let i = index" [formGroupName]="i">
           <div class="item-number">{{ i + 1 }}</div>
-          
+
           <div class="item-fields">
             <div class="form-row">
               <div class="form-group flex-3">
                 <label>Descripción *</label>
                 <input type="text" class="form-control" formControlName="descripcion" placeholder="Ej: Consulta General">
                 <div class="servicios-predefinidos">
-                  <button 
-                    type="button" 
-                    class="servicio-tag" 
+                  <button
+                    type="button"
+                    class="servicio-tag"
                     *ngFor="let servicio of serviciosPredefinidos()"
                     (click)="agregarServicioPredefinido(servicio, i)">
                     {{ servicio.descripcion }}
@@ -170,10 +245,10 @@
             </div>
           </div>
 
-          <button 
-            type="button" 
-            class="btn-delete" 
-            (click)="eliminarItem(i)" 
+          <button
+            type="button"
+            class="btn-delete"
+            (click)="eliminarItem(i)"
             [disabled]="items.length === 1"
             title="Eliminar item">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -275,7 +350,7 @@
 
       <div class="card totales-card">
         <h3>Resumen</h3>
-        
+
         <div class="totales-list">
           <div class="total-row">
             <span>Subtotal:</span>

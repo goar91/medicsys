@@ -1,3 +1,5 @@
+using MEDICSYS.Api.Services;
+
 namespace MEDICSYS.Api.Models;
 
 public class Appointment
@@ -13,6 +15,6 @@ public class Appointment
     public DateTime EndAt { get; set; }
     public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
     public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTimeHelper.Now();
+    public DateTime UpdatedAt { get; set; } = DateTimeHelper.Now();
 }

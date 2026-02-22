@@ -5,6 +5,7 @@ using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers;
 
@@ -162,7 +163,7 @@ public class AccountingController : ControllerBase
             PaymentMethod = paymentMethod,
             Reference = request.Reference,
             Source = "Manual",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now()
         };
 
         _db.AccountingEntries.Add(entry);
@@ -244,7 +245,8 @@ public class AccountingController : ControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<AccountingSummaryDto>> GetSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        var rangeStart = ToUtcStartOfDay(from) ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var now = DateTimeHelper.Now();
+        var rangeStart = ToUtcStartOfDay(from) ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var rangeEnd = ToUtcEndOfDay(to) ?? rangeStart.AddMonths(1).AddTicks(-1);
 
         var entries = await _db.AccountingEntries

@@ -6,6 +6,7 @@ using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Models.Odontologia;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers.Odontologia;
 
@@ -60,8 +61,8 @@ public class OdontologoAppointmentsController : ControllerBase
             EndAt = request.EndAt,
             Notes = request.Notes,
             Status = request.Status ?? AppointmentStatus.Pending,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeHelper.Now(),
+            UpdatedAt = DateTimeHelper.Now()
         };
 
         _db.OdontologoAppointments.Add(appointment);
@@ -85,7 +86,7 @@ public class OdontologoAppointmentsController : ControllerBase
         appointment.Reason = request.Reason;
         appointment.Notes = request.Notes;
         appointment.Status = request.Status ?? appointment.Status;
-        appointment.UpdatedAt = DateTime.UtcNow;
+        appointment.UpdatedAt = DateTimeHelper.Now();
 
         await _db.SaveChangesAsync();
 

@@ -101,6 +101,12 @@ export const routes: Routes = [
     data: { roles: ['Odontologo'] }
   },
   {
+    path: 'odontologo/contabilidad/documentos-espera-autorizacion',
+    loadComponent: () => import('./pages/odontologo/contabilidad/documentos-espera-autorizacion/documentos-espera-autorizacion.component').then(m => m.DocumentosEsperaAutorizacionComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
     path: 'odontologo/inventario',
     loadComponent: () => import('./pages/odontologo/inventario/kardex.component').then(m => m.KardexComponent),
     canActivate: [authGuard, roleGuard],
