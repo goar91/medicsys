@@ -173,6 +173,7 @@ try
     });
 
     builder.Services.AddScoped<TokenService>();
+    builder.Services.AddScoped<AcademicAuditLogger>();
     builder.Services.AddHostedService<ReminderWorker>();
     builder.Services.Configure<SriOptions>(builder.Configuration.GetSection("Sri"));
     builder.Services.AddHttpClient("SRI", client =>
@@ -257,6 +258,16 @@ try
     });
     app.UseRateLimiter();
     app.UseAuthorization();
+    app.Use(async (context, next) =>
+    {
+        await next();
+
+        var auditLogger = context.RequestServices.GetService<AcademicAuditLogger>();
+        if (auditLogger != null)
+        {
+            await auditLogger.TryRecordAsync(context);
+        }
+    });
 
     app.MapHealthChecks("/health").DisableRateLimiting();
     app.MapControllers();

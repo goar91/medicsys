@@ -10,6 +10,8 @@ public class AcademicClinicalHistory
     public JsonObject Data { get; set; } = new();
     public ClinicalHistoryStatus Status { get; set; }
     public string? ProfessorComments { get; set; }
+    public decimal? Grade { get; set; }
+    public DateTime? SubmittedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

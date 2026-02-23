@@ -1,9 +1,13 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
-import { ClinicalHistoryService } from '../../core/clinical-history.service';
-import { ClinicalHistory } from '../../core/models';
+import { forkJoin } from 'rxjs';
+import {
+  AcademicService,
+  AcademicClinicalHistory,
+  AcademicCommentTemplate
+} from '../../core/academic.service';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
 
 interface SectionCard {
@@ -27,14 +31,12 @@ interface ClinicalHistoryData {
   consultation?: {
     reason?: string;
     currentIssue?: string;
-    antecedentes?: Record<string, boolean>;
     vitalSigns?: {
       bloodPressure?: string;
       heartRate?: string;
       temperature?: string;
       respiratoryRate?: string;
     };
-    estomatognatico?: Record<string, boolean>;
     notes?: string;
   };
   indicators?: {
@@ -75,26 +77,30 @@ interface MediaAsset {
 @Component({
   selector: 'app-clinical-history-review',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf, NgFor, DatePipe, RouterLink, TopNavComponent],
+  imports: [ReactiveFormsModule, NgIf, NgFor, DatePipe, TopNavComponent],
   templateUrl: './clinical-history-review.html',
   styleUrl: './clinical-history-review.scss'
 })
 export class ClinicalHistoryReviewComponent implements OnInit {
-  readonly history = signal<ClinicalHistory | null>(null);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly academic = inject(AcademicService);
+
+  readonly history = signal<AcademicClinicalHistory | null>(null);
+  readonly templates = signal<AcademicCommentTemplate[]>([]);
   readonly loading = signal(true);
   readonly reviewing = signal(false);
-  readonly sections = signal<SectionCard[]>([]);
-  readonly canReview = computed(() => this.history()?.status === 'Submitted');
-  readonly mediaAssets = signal<MediaAsset[]>([]);
   readonly deleting = signal(false);
+  readonly savingTemplate = signal(false);
+  readonly sections = signal<SectionCard[]>([]);
+  readonly mediaAssets = signal<MediaAsset[]>([]);
+  readonly selectedTemplateId = signal('');
+  readonly canReview = computed(() => this.history()?.status === 'Submitted');
 
-  readonly notes = new FormControl('');
-
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly service: ClinicalHistoryService
-  ) {}
+  readonly notes = new FormControl('', { nonNullable: true });
+  readonly grade = new FormControl<number | null>(null);
+  readonly templateTitle = new FormControl('', { nonNullable: true });
+  readonly templateCategory = new FormControl('', { nonNullable: true });
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -103,11 +109,17 @@ export class ClinicalHistoryReviewComponent implements OnInit {
       return;
     }
 
-    this.service.getById(id).subscribe({
-      next: history => {
+    forkJoin({
+      history: this.academic.getClinicalHistoryById(id),
+      templates: this.academic.getCommentTemplates()
+    }).subscribe({
+      next: ({ history, templates }) => {
         this.history.set(history);
-        this.sections.set(this.buildSections(history.data as ClinicalHistoryData));
-        this.mediaAssets.set(this.extractMediaAssets(history.data as ClinicalHistoryData));
+        this.templates.set(templates);
+        this.sections.set(this.buildSections((history.data || {}) as ClinicalHistoryData));
+        this.mediaAssets.set(this.extractMediaAssets((history.data || {}) as ClinicalHistoryData));
+        this.notes.setValue(history.professorComments ?? '');
+        this.grade.setValue(history.grade ?? null);
         this.loading.set(false);
       },
       error: () => {
@@ -124,6 +136,67 @@ export class ClinicalHistoryReviewComponent implements OnInit {
     this.sendReview(false);
   }
 
+  requestChanges() {
+    const current = this.notes.value.trim();
+    const next = current ? `${current}\nSolicitar ajustes y reenviar.` : 'Solicitar ajustes y reenviar.';
+    this.notes.setValue(next);
+    this.sendReview(false);
+  }
+
+  applyTemplate(templateId: string) {
+    this.selectedTemplateId.set(templateId);
+    const template = this.templates().find(item => item.id === templateId);
+    if (!template) {
+      return;
+    }
+
+    const current = this.notes.value.trim();
+    this.notes.setValue(current ? `${current}\n${template.commentText}` : template.commentText);
+
+    this.academic.markCommentTemplateUsed(templateId).subscribe({
+      next: () => {
+        this.templates.set(this.templates().map(item =>
+          item.id === templateId
+            ? { ...item, usageCount: item.usageCount + 1, updatedAt: new Date().toISOString() }
+            : item
+        ));
+      }
+    });
+  }
+
+  saveTemplateFromNotes() {
+    const title = this.templateTitle.value.trim();
+    const commentText = this.notes.value.trim();
+    if (!title || !commentText || this.savingTemplate()) {
+      return;
+    }
+
+    this.savingTemplate.set(true);
+    this.academic.createCommentTemplate({
+      title,
+      commentText,
+      category: this.templateCategory.value.trim() || undefined
+    }).subscribe({
+      next: template => {
+        this.savingTemplate.set(false);
+        this.templates.set([template, ...this.templates()]);
+        this.templateTitle.setValue('');
+        this.templateCategory.setValue('');
+      },
+      error: () => {
+        this.savingTemplate.set(false);
+      }
+    });
+  }
+
+  deleteTemplate(id: string) {
+    this.academic.deleteCommentTemplate(id).subscribe({
+      next: () => {
+        this.templates.set(this.templates().filter(item => item.id !== id));
+      }
+    });
+  }
+
   delete() {
     const current = this.history();
     if (!current || this.deleting()) {
@@ -134,7 +207,7 @@ export class ClinicalHistoryReviewComponent implements OnInit {
     }
 
     this.deleting.set(true);
-    this.service.delete(current.id).subscribe({
+    this.academic.deleteClinicalHistory(current.id).subscribe({
       next: () => {
         this.deleting.set(false);
         this.router.navigate(['/professor']);
@@ -145,18 +218,34 @@ export class ClinicalHistoryReviewComponent implements OnInit {
     });
   }
 
+  isImage(asset: MediaAsset) {
+    return asset.contentType?.startsWith('image/');
+  }
+
+  isVideo(asset: MediaAsset) {
+    return asset.contentType?.startsWith('video/');
+  }
+
   private sendReview(approved: boolean) {
     const current = this.history();
-    if (!current) {
+    if (!current || !this.canReview()) {
       return;
     }
 
-    if (!this.canReview()) {
+    const grade = this.grade.value;
+    if (approved && grade != null && (grade < 0 || grade > 10)) {
+      alert('La calificación debe estar entre 0 y 10.');
       return;
     }
 
     this.reviewing.set(true);
-    this.service.review(current.id, { approved, notes: this.notes.value ?? '' }).subscribe({
+    const templateId = this.selectedTemplateId();
+    this.academic.reviewClinicalHistory(current.id, {
+      approved,
+      reviewNotes: this.notes.value.trim() || undefined,
+      grade: approved ? grade : null,
+      templateIds: templateId ? [templateId] : undefined
+    }).subscribe({
       next: history => {
         this.history.set(history);
         this.reviewing.set(false);
@@ -229,7 +318,7 @@ export class ClinicalHistoryReviewComponent implements OnInit {
       {
         title: 'Medios de apoyo',
         items: [
-          { label: 'Imagenes', value: data?.medios?.imagenes ?? '-' },
+          { label: 'Imágenes', value: data?.medios?.imagenes ?? '-' },
           { label: 'Notas', value: data?.medios?.notas ?? '-' }
         ]
       }
@@ -250,13 +339,5 @@ export class ClinicalHistoryReviewComponent implements OnInit {
         contentType: item?.contentType ?? 'application/octet-stream',
         uploadedAt: item?.uploadedAt ?? new Date().toISOString()
       }));
-  }
-
-  isImage(asset: MediaAsset) {
-    return asset.contentType?.startsWith('image/');
-  }
-
-  isVideo(asset: MediaAsset) {
-    return asset.contentType?.startsWith('video/');
   }
 }

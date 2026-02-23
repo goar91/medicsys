@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    [Authorize(Roles = Roles.Professor)]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost("register-professor")]
     public async Task<ActionResult<AuthResponse>> RegisterProfessor(AuthRegisterRequest request)
     {

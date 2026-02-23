@@ -113,6 +113,36 @@ export const routes: Routes = [
     data: { roles: ['Odontologo'] }
   },
   {
+    path: 'odontologo/telemedicina',
+    loadComponent: () => import('./pages/odontologo/telemedicina/telemedicina.component').then(m => m.TelemedicinaComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/portal',
+    loadComponent: () => import('./pages/odontologo/portal-paciente/portal-paciente.component').then(m => m.PortalPacienteComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/seguros',
+    loadComponent: () => import('./pages/odontologo/seguros/seguros.component').then(m => m.SegurosComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/documentos-firmados',
+    loadComponent: () => import('./pages/odontologo/documentos-firmados/documentos-firmados.component').then(m => m.DocumentosFirmadosComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
+    path: 'odontologo/ia',
+    loadComponent: () => import('./pages/odontologo/ai-insights/ai-insights.component').then(m => m.AiInsightsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Odontologo'] }
+  },
+  {
     path: 'odontologo/histories/new',
     component: ClinicalHistoryFormComponent,
     canActivate: [authGuard, roleGuard],
@@ -140,43 +170,55 @@ export const routes: Routes = [
     path: 'professor',
     component: ProfessorDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'] }
+    data: { roles: ['Profesor', 'Administrador'] }
   },
   {
     path: 'professor/dashboard',
     component: ProfessorDashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'] }
+    data: { roles: ['Profesor', 'Administrador'] }
+  },
+  {
+    path: 'professor/histories',
+    component: ProfessorDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor', 'Administrador'], module: 'histories' }
+  },
+  {
+    path: 'professor/patients',
+    component: ProfessorDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Profesor', 'Administrador'], module: 'patients' }
   },
   {
     path: 'professor/patients/new',
     component: ProfessorPatientsFormComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'] }
+    data: { roles: ['Profesor', 'Administrador'] }
   },
   {
     path: 'professor/patients/:id/edit',
     component: ProfessorPatientsFormComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'] }
+    data: { roles: ['Profesor', 'Administrador'] }
   },
   {
     path: 'professor/histories/new',
     component: ClinicalHistoryFormComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'], editor: 'professor' }
+    data: { roles: ['Profesor', 'Administrador'], editor: 'professor' }
   },
   {
     path: 'professor/histories/:id/edit',
     component: ClinicalHistoryFormComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'], editor: 'professor' }
+    data: { roles: ['Profesor', 'Administrador'], editor: 'professor' }
   },
   {
     path: 'professor/histories/:id',
     component: ClinicalHistoryReviewComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['Profesor'] }
+    data: { roles: ['Profesor', 'Administrador'] }
   },
   { path: '**', redirectTo: 'login' }
 ];

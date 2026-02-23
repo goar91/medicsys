@@ -11,7 +11,7 @@ namespace MEDICSYS.Api.Controllers.Academico;
 
 [ApiController]
 [Route("api/academic/patients")]
-[Authorize(Roles = $"{Roles.Professor}")]
+[Authorize(Roles = $"{Roles.Professor},{Roles.Admin}")]
 public class AcademicPatientsController : ControllerBase
 {
     private readonly AcademicDbContext _db;

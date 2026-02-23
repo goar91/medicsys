@@ -12,7 +12,7 @@ namespace MEDICSYS.Api.Controllers.Academico;
 
 [ApiController]
 [Route("api/academic/appointments")]
-[Authorize(Roles = $"{Roles.Student},{Roles.Professor}")]
+[Authorize(Roles = $"{Roles.Student},{Roles.Professor},{Roles.Admin}")]
 public class AcademicAppointmentsController : ControllerBase
 {
     private readonly AcademicDbContext _db;
@@ -33,7 +33,7 @@ public class AcademicAppointmentsController : ControllerBase
         [FromQuery] string? status)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
 
         var query = _db.AcademicAppointments
             .Include(a => a.Student)
@@ -80,7 +80,7 @@ public class AcademicAppointmentsController : ControllerBase
     public async Task<ActionResult<AcademicAppointmentDto>> Create([FromBody] CreateAcademicAppointmentRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
         var isStudent = User.IsInRole(Roles.Student);
 
         if (!isProfessor && !isStudent)
@@ -165,7 +165,7 @@ public class AcademicAppointmentsController : ControllerBase
     public async Task<ActionResult<AcademicAppointmentDto>> Update(Guid id, [FromBody] UpdateAcademicAppointmentRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
 
         var appointment = await _db.AcademicAppointments
             .Include(a => a.Student)
@@ -210,7 +210,7 @@ public class AcademicAppointmentsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/review")]
-    [Authorize(Roles = Roles.Professor)]
+    [Authorize(Roles = $"{Roles.Professor},{Roles.Admin}")]
     public async Task<ActionResult<AcademicAppointmentDto>> Review(Guid id, [FromBody] ReviewAcademicAppointmentRequest request)
     {
         var appointment = await _db.AcademicAppointments
@@ -238,7 +238,7 @@ public class AcademicAppointmentsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
 
         if (!isProfessor)
             return Forbid();

@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
@@ -40,6 +41,12 @@ export class LoginComponent {
 
   readonly userTypes = [
     {
+      label: 'Administrador',
+      value: 'Administrador',
+      description: 'Administración de usuarios académicos',
+      svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 22l-6-4-6 4 1.5-8.5L2 9h7z"/></svg>'
+    },
+    {
       label: 'Estudiante',
       value: 'Alumno',
       description: 'Acceso para estudiantes de medicina/odontología',
@@ -65,6 +72,8 @@ export class LoginComponent {
 
   get emailPlaceholder(): string {
     switch (this.selectedUserType) {
+      case 'Administrador':
+        return 'admin@medicsys.com';
       case 'Profesor':
         return 'profesor@medicsys.com';
       case 'Odontologo':
@@ -100,9 +109,9 @@ export class LoginComponent {
         this.auth.setSession(response);
         this.redirectByRole(response.user.role);
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.loading.set(false);
-        this.error.set('Credenciales inválidas. Verifica tu correo y contraseña.');
+        this.error.set(this.resolveLoginError(error));
       }
     });
   }
@@ -111,6 +120,9 @@ export class LoginComponent {
     switch (role) {
       case 'Odontologo':
         this.router.navigate(['/odontologo/dashboard']);
+        break;
+      case 'Administrador':
+        this.router.navigate(['/professor']);
         break;
       case 'Profesor':
         this.router.navigate(['/professor']);
@@ -124,5 +136,25 @@ export class LoginComponent {
 
   private isRoleMatch(selected: string, actual: string): boolean {
     return selected === actual;
+  }
+
+  private resolveLoginError(error: HttpErrorResponse): string {
+    if (error.status === 401) {
+      return 'Credenciales inválidas. Verifica tu correo y contraseña.';
+    }
+
+    if (error.status === 0) {
+      return 'No se pudo conectar con el servidor. Verifica que la API esté iniciada en http://localhost:5154.';
+    }
+
+    if (error.status >= 500) {
+      return 'El servidor presentó un error al iniciar sesión. Reintenta en unos minutos.';
+    }
+
+    if (error.error && typeof error.error === 'string') {
+      return error.error;
+    }
+
+    return 'No fue posible iniciar sesión. Intenta nuevamente.';
   }
 }

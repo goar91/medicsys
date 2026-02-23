@@ -9,7 +9,7 @@ namespace MEDICSYS.Api.Controllers.Academico;
 
 [ApiController]
 [Route("api/academic/reminders")]
-[Authorize(Roles = $"{Roles.Student},{Roles.Professor}")]
+[Authorize(Roles = $"{Roles.Student},{Roles.Professor},{Roles.Admin}")]
 public class AcademicRemindersController : ControllerBase
 {
     private readonly AcademicDbContext _db;
@@ -23,7 +23,7 @@ public class AcademicRemindersController : ControllerBase
     public async Task<ActionResult<IEnumerable<AcademicReminderDto>>> GetAll([FromQuery] Guid? appointmentId)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
 
         var query = _db.AcademicReminders
             .Include(r => r.Appointment)

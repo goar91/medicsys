@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
@@ -18,6 +19,9 @@ public static class SeedData
         await EnsureRoleAsync(roleManager, Roles.Professor);
         await EnsureRoleAsync(roleManager, Roles.Student);
         await EnsureRoleAsync(roleManager, Roles.Odontologo);
+        await EnsureRoleAsync(roleManager, Roles.Admin);
+
+        await EnsureDefaultAdminAsync(userManager, config);
 
         // Crear usuario Odontólogo
         var odontologoEmail = "odontologo@medicsys.com";
@@ -81,6 +85,38 @@ public static class SeedData
         if (!await roleManager.RoleExistsAsync(roleName))
         {
             await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+        }
+    }
+
+    private static async Task EnsureDefaultAdminAsync(UserManager<ApplicationUser> userManager, IConfiguration config)
+    {
+        var adminEmail = config["Seed:DefaultAdminEmail"] ?? "admin@medicsys.com";
+        var adminPassword = config["Seed:DefaultAdminPassword"] ?? "Admin123!";
+        var adminName = config["Seed:DefaultAdminName"] ?? "Administrador MEDICSYS";
+
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+        if (admin == null)
+        {
+            admin = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = adminEmail,
+                Email = adminEmail,
+                FullName = adminName,
+                EmailConfirmed = true
+            };
+
+            var created = await userManager.CreateAsync(admin, adminPassword);
+            if (!created.Succeeded)
+            {
+                return;
+            }
+        }
+
+        var roles = await userManager.GetRolesAsync(admin);
+        if (!roles.Contains(Roles.Admin))
+        {
+            await userManager.AddToRoleAsync(admin, Roles.Admin);
         }
     }
 

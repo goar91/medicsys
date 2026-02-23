@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Models;
+using MEDICSYS.Api.Models.Academico;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Data;
 
@@ -51,6 +54,116 @@ public static class AcademicSeedData
         // se gestionan únicamente desde la base de datos.
         // No se precargan datos ficticios desde el seed.
 
+        await SeedCacesCriteriaAsync(db, profesor.Id);
+        await SeedRetentionPoliciesAsync(db, profesor.Id);
+
         Console.WriteLine("✅ Seed Académico: usuario profesor y estudiantes verificados");
+    }
+
+    private static async Task SeedCacesCriteriaAsync(AcademicDbContext db, Guid defaultUserId)
+    {
+        if (await db.AcademicAccreditationCriteria.AnyAsync())
+        {
+            return;
+        }
+
+        var now = DateTimeHelper.Now();
+        var criteria = new List<AcademicAccreditationCriterion>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Code = "CACES-RA-01",
+                Name = "Resultado de aprendizaje clínico",
+                Dimension = "Resultados de Aprendizaje",
+                Description = "Porcentaje de historias aprobadas en primera revisión.",
+                TargetValue = 85m,
+                CurrentValue = 72m,
+                Status = AccreditationCriterionStatus.InProgress,
+                CreatedByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Code = "CACES-PE-02",
+                Name = "Prácticas preprofesionales supervisadas",
+                Dimension = "Entorno de Aprendizaje",
+                Description = "Cobertura de estudiantes con prácticas registradas y supervisadas.",
+                TargetValue = 95m,
+                CurrentValue = 88m,
+                Status = AccreditationCriterionStatus.InProgress,
+                CreatedByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Code = "CACES-GC-03",
+                Name = "Gestión de mejora continua",
+                Dimension = "Gestión de la Calidad",
+                Description = "Cumplimiento de acciones del plan de mejoramiento de carrera.",
+                TargetValue = 90m,
+                CurrentValue = 60m,
+                Status = AccreditationCriterionStatus.NeedsImprovement,
+                CreatedByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            }
+        };
+
+        db.AcademicAccreditationCriteria.AddRange(criteria);
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedRetentionPoliciesAsync(AcademicDbContext db, Guid defaultUserId)
+    {
+        if (await db.AcademicDataRetentionPolicies.AnyAsync())
+        {
+            return;
+        }
+
+        var now = DateTimeHelper.Now();
+        var policies = new List<AcademicDataRetentionPolicy>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                DataCategory = "HistoriasClinicasAcademicas",
+                RetentionMonths = 120,
+                AutoDelete = false,
+                IsActive = true,
+                ConfiguredByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                DataCategory = "AuditTrailAcademico",
+                RetentionMonths = 60,
+                AutoDelete = false,
+                IsActive = true,
+                ConfiguredByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                DataCategory = "ConsentimientosLOPDP",
+                RetentionMonths = 120,
+                AutoDelete = false,
+                IsActive = true,
+                ConfiguredByUserId = defaultUserId,
+                CreatedAt = now,
+                UpdatedAt = now
+            }
+        };
+
+        db.AcademicDataRetentionPolicies.AddRange(policies);
+        await db.SaveChangesAsync();
     }
 }

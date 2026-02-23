@@ -145,7 +145,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.isProfessorEditor.set(this.route.snapshot.data['editor'] === 'professor' && this.auth.getRole() === 'Profesor');
+    this.isProfessorEditor.set(this.route.snapshot.data['editor'] === 'professor' && (this.auth.getRole() === 'Profesor' || this.auth.getRole() === 'Administrador'));
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.loading.set(false);
@@ -519,7 +519,7 @@ export class ClinicalHistoryFormComponent implements OnInit {
 
   private historyBasePath() {
     const role = this.auth.getRole();
-    if (role === 'Profesor') {
+    if (role === 'Profesor' || role === 'Administrador') {
       return '/professor/histories';
     }
     if (role === 'Odontologo') {

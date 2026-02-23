@@ -4,165 +4,248 @@
   <header class="page-header">
     <div>
       <p class="eyebrow">Panel profesor</p>
-      <h2>Revisión de historias clínicas</h2>
-      <p class="subtitle">Valida la información enviada por los alumnos y gestiona pacientes.</p>
+      <h2>Supervisión académica</h2>
+      <p class="subtitle">Revisa historias clínicas, aplica acciones por lote y monitorea el progreso del curso.</p>
     </div>
     <div class="header-actions">
-      <button class="btn" type="button" (click)="togglePatients()" [class.btn-primary]="showPatients()" [class.btn-outline]="!showPatients()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        {{ showPatients() ? 'Ver Historias' : 'Ver Pacientes' }}
-      </button>
-      <a class="btn btn-outline" [routerLink]="['/professor/histories/new']">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Nueva historia
-      </a>
-      <a class="btn btn-outline" [routerLink]="['/agenda']">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Agenda
-      </a>
-      <button class="btn btn-ghost" type="button" (click)="load()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-        Refrescar
-      </button>
+      <div class="module-switch">
+        <button class="module-link" type="button" [class.active]="!showPatients()" (click)="openHistoriesModule()">
+          Historias clínicas
+        </button>
+        <button class="module-link" type="button" [class.active]="showPatients()" (click)="openPatientsModule()">
+          Registro de pacientes
+        </button>
+      </div>
+      <a class="btn btn-primary" *ngIf="!showPatients()" [routerLink]="['/professor/histories/new']">Nueva historia</a>
+      <a class="btn btn-primary" *ngIf="showPatients()" [routerLink]="['/professor/patients/new']">Registrar paciente</a>
+      <a class="btn btn-outline" [routerLink]="['/agenda']">Agenda</a>
+      <button class="btn btn-ghost" type="button" (click)="load()">Refrescar</button>
     </div>
   </header>
 
-  <!-- Métricas principales -->
-  <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-    <div class="metric-card" *ngFor="let metric of metrics()" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-        <div>
-          <p style="color: #6b7280; font-size: 0.875rem; margin: 0 0 0.5rem 0;">{{ metric.label }}</p>
-          <h3 style="color: #111827; font-size: 2rem; font-weight: 700; margin: 0;">{{ metric.value }}</h3>
-          <p style="color: #6b7280; font-size: 0.75rem; margin: 0.5rem 0 0 0;">{{ metric.change }}</p>
+  <div class="metrics-grid">
+    <div class="metric-card" *ngFor="let metric of metrics()">
+      <div class="metric-label">{{ metric.label }}</div>
+      <div class="metric-value">{{ metric.value }}</div>
+      <div class="metric-change">{{ metric.change }}</div>
+      <div class="metric-icon">
+        <svg *ngIf="metric.icon === 'clipboard'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+        <svg *ngIf="metric.icon === 'check'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg *ngIf="metric.icon === 'calendar'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg *ngIf="metric.icon === 'users'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <svg *ngIf="metric.icon === 'clock'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg *ngIf="metric.icon === 'warning'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="card list-card" *ngIf="!showPatients()">
+    <h3>Módulos Institucionales</h3>
+    <p class="subtitle">Monitoreo de acreditación CACES, cumplimiento LOPDP y analítica de riesgo académico.</p>
+    <div class="metrics-grid">
+      <div class="metric-card" *ngFor="let metric of enterpriseMetrics()">
+        <div class="metric-label">{{ metric.label }}</div>
+        <div class="metric-value">{{ metric.value }}</div>
+        <div class="metric-change">{{ metric.subtitle }}</div>
+      </div>
+    </div>
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>CACES - Criterios en riesgo</h3>
+        <div class="empty" *ngIf="(cacesDashboard()?.atRiskCriteria?.length ?? 0) === 0">Sin criterios en riesgo.</div>
+        <div class="mini-list" *ngIf="(cacesDashboard()?.atRiskCriteria?.length ?? 0) > 0">
+          <div class="mini-item" *ngFor="let item of cacesDashboard()?.atRiskCriteria">
+            <span>{{ item.code }} - {{ item.name }}</span>
+            <strong>{{ item.currentValue | number:'1.0-2' }}/{{ item.targetValue | number:'1.0-2' }}</strong>
+          </div>
         </div>
-        <div style="background: #f3f4f6; padding: 0.75rem; border-radius: 8px;">
-          <svg *ngIf="metric.icon === 'clipboard'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
-          <svg *ngIf="metric.icon === 'check'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <svg *ngIf="metric.icon === 'calendar'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <svg *ngIf="metric.icon === 'users'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <svg *ngIf="metric.icon === 'file'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      </div>
+      <div class="card">
+        <h3>LOPDP - Auditoría reciente</h3>
+        <div class="empty" *ngIf="(complianceDashboard()?.recentAuditEvents?.length ?? 0) === 0">Sin eventos recientes.</div>
+        <div class="mini-list" *ngIf="(complianceDashboard()?.recentAuditEvents?.length ?? 0) > 0">
+          <div class="mini-item" *ngFor="let item of complianceDashboard()?.recentAuditEvents | slice:0:8">
+            <span>{{ item.method }} {{ item.path }}</span>
+            <strong>{{ item.statusCode }}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Riesgo de deserción</h3>
+        <div class="empty" *ngIf="(analyticsDashboard()?.topRiskStudents?.length ?? 0) === 0">Sin estudiantes con riesgo.</div>
+        <div class="mini-list" *ngIf="(analyticsDashboard()?.topRiskStudents?.length ?? 0) > 0">
+          <div class="mini-item" *ngFor="let student of analyticsDashboard()?.topRiskStudents | slice:0:8">
+            <span>{{ student.studentName }} ({{ student.cohort }})</span>
+            <strong>{{ student.riskLevel }}</strong>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="filters">
-    <button class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-      Todas
-    </button>
-    <button class="chip" [class.active]="filter() === 'Submitted'" (click)="setFilter('Submitted')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      En revisión
-    </button>
-    <button class="chip" [class.active]="filter() === 'Approved'" (click)="setFilter('Approved')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Aprobadas
-    </button>
-    <button class="chip" [class.active]="filter() === 'Rejected'" (click)="setFilter('Rejected')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-      Rechazadas
-    </button>
+  <div class="filters" *ngIf="!showPatients()">
+    <button class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">Todas</button>
+    <button class="chip" [class.active]="filter() === 'Submitted'" (click)="setFilter('Submitted')">Pendientes</button>
+    <button class="chip" [class.active]="filter() === 'Approved'" (click)="setFilter('Approved')">Aprobadas</button>
+    <button class="chip" [class.active]="filter() === 'Rejected'" (click)="setFilter('Rejected')">Rechazadas</button>
+    <button class="chip" [class.active]="filter() === 'Draft'" (click)="setFilter('Draft')">Borrador</button>
   </div>
 
-  <!-- Vista de Historias Clínicas -->
-  <div class="card list-card" *ngIf="!showPatients()">
-    <div *ngIf="loading()" class="empty">
-      <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-      Cargando historias...
+  <div class="card batch-card" *ngIf="!showPatients()">
+    <div class="batch-header">
+      <h3>Acciones por lote</h3>
+      <span class="muted">{{ selectedCount() }} seleccionadas</span>
     </div>
+    <div class="batch-controls">
+      <label class="inline-control">
+        Decisión
+        <select class="input" (change)="setBatchDecision($any($event.target).value)">
+          <option value="approve">Aprobar</option>
+          <option value="reject">Rechazar</option>
+          <option value="requestChanges">Solicitar cambios</option>
+        </select>
+      </label>
+      <label class="inline-control">
+        Plantilla de comentario
+        <select class="input" (change)="applyTemplateToBatch($any($event.target).value)">
+          <option value="">Sin plantilla</option>
+          <option *ngFor="let template of templates()" [value]="template.id">{{ template.title }} ({{ template.usageCount }})</option>
+        </select>
+      </label>
+      <label class="inline-control" *ngIf="batchDecision() === 'approve'">
+        Calificación (0-10)
+        <input class="input" type="number" min="0" max="10" step="0.01" [formControl]="batchGrade" />
+      </label>
+    </div>
+    <label class="inline-control">
+      Observaciones
+      <textarea class="input" rows="3" [formControl]="batchNotes"></textarea>
+    </label>
+    <div class="batch-actions">
+      <button class="btn btn-primary" type="button" (click)="runBatchAction()" [disabled]="selectedCount() === 0 || batching()">
+        Aplicar a seleccionadas
+      </button>
+    </div>
+  </div>
 
-    <div *ngIf="!loading() && filtered().length === 0" class="empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <p>No hay historias clínicas para este filtro.</p>
+  <div class="dashboard-grid" *ngIf="!showPatients()">
+    <div class="card">
+      <h3>Errores más comunes</h3>
+      <div class="empty" *ngIf="(dashboard()?.commonErrors?.length ?? 0) === 0">Sin errores recurrentes registrados.</div>
+      <div class="mini-list" *ngIf="(dashboard()?.commonErrors?.length ?? 0) > 0">
+        <div class="mini-item" *ngFor="let item of dashboard()?.commonErrors">
+          <span>{{ item.comment }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Errores por alumno</h3>
+      <div class="empty" *ngIf="(dashboard()?.errorsByStudent?.length ?? 0) === 0">Sin datos.</div>
+      <div class="mini-list" *ngIf="(dashboard()?.errorsByStudent?.length ?? 0) > 0">
+        <div class="mini-item" *ngFor="let item of dashboard()?.errorsByStudent">
+          <span>{{ item.studentName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Errores por grupo</h3>
+      <div class="empty" *ngIf="(dashboard()?.errorsByGroup?.length ?? 0) === 0">Sin datos.</div>
+      <div class="mini-list" *ngIf="(dashboard()?.errorsByGroup?.length ?? 0) > 0">
+        <div class="mini-item" *ngFor="let item of dashboard()?.errorsByGroup">
+          <span>{{ item.groupName }}</span>
+          <strong>{{ item.count }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card list-card" *ngIf="!showPatients()">
+    <div *ngIf="loading()" class="empty">Cargando historias...</div>
+    <div *ngIf="!loading() && filtered().length === 0" class="empty">No hay historias para el filtro seleccionado.</div>
+
+    <div class="select-all" *ngIf="!loading() && filtered().length > 0">
+      <label>
+        <input type="checkbox" [checked]="allSelectableChecked()" (change)="toggleSelectAllSubmitted($any($event.target).checked)" />
+        Seleccionar todas las pendientes visibles
+      </label>
     </div>
 
     <div class="history-list" *ngIf="!loading() && filtered().length > 0">
       <article class="history-item" *ngFor="let history of filtered()">
+        <div class="item-select">
+          <input
+            type="checkbox"
+            [disabled]="history.status !== 'Submitted'"
+            [checked]="selectedHistoryIds().includes(history.id)"
+            (change)="toggleHistorySelection(history.id, $any($event.target).checked)" />
+        </div>
         <div class="item-info">
           <span class="status" [attr.data-status]="history.status">{{ history.status }}</span>
-          <h4>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            {{ history.patientName }} (ID: {{ history.patientIdNumber }})
-          </h4>
-          <p>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            Creada: {{ history.createdAt | date: 'medium' }}
-          </p>
+          <h4>{{ history.patientName }} <small>({{ history.patientIdNumber || 'Sin cédula' }})</small></h4>
+          <p>Alumno: {{ history.studentName }}</p>
+          <p>Actualizada: {{ history.updatedAt | date: 'medium' }}</p>
+          <p *ngIf="history.grade != null">Calificación: {{ history.grade | number:'1.0-2' }}/10</p>
+          <p *ngIf="history.professorComments">Observación: {{ history.professorComments }}</p>
         </div>
         <div class="item-actions">
-          <a class="btn btn-outline" [routerLink]="['/professor/histories', history.id]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Revisar
-          </a>
-          <a class="btn btn-ghost" [routerLink]="['/professor/histories', history.id, 'edit']">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Editar
-          </a>
-          <button class="btn btn-danger" type="button" (click)="delete(history.id)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Eliminar
-          </button>
+          <a class="btn btn-outline" [routerLink]="['/professor/histories', history.id]">Revisar</a>
+          <button class="btn btn-danger" type="button" (click)="delete(history.id)">Eliminar</button>
         </div>
       </article>
     </div>
   </div>
 
-  <!-- Vista de Pacientes -->
   <div class="card list-card" *ngIf="showPatients()">
-    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600;">Pacientes Registrados</h3>
-      <a class="btn btn-primary" [routerLink]="['/professor/patients/new']">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Registrar Paciente
-      </a>
+    <div class="patients-header">
+      <h3>Pacientes registrados</h3>
+      <a class="btn btn-primary" [routerLink]="['/professor/patients/new']">Registrar paciente</a>
     </div>
 
-    <div *ngIf="loading()" class="empty">
-      <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-      Cargando pacientes...
-    </div>
-
-    <div *ngIf="!loading() && patients().length === 0" class="empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <p>No hay pacientes registrados.</p>
-      <a class="btn btn-primary" [routerLink]="['/professor/patients/new']" style="margin-top: 1rem;">Registrar Primer Paciente</a>
-    </div>
+    <div *ngIf="loading()" class="empty">Cargando pacientes...</div>
+    <div *ngIf="!loading() && patients().length === 0" class="empty">No hay pacientes registrados.</div>
 
     <div class="history-list" *ngIf="!loading() && patients().length > 0">
       <article class="history-item" *ngFor="let patient of patients()">
         <div class="item-info">
-          <span class="status" data-status="Draft" style="background: #e0f2fe; color: #0369a1;">Paciente</span>
-          <h4>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            {{ patient.firstName }} {{ patient.lastName }}
-          </h4>
-          <p>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-            Cédula: {{ patient.idNumber }} |
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            {{ patient.phone }}
-          </p>
-          <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
-            Email: {{ patient.email || 'No registrado' }} | Sangre: {{ patient.bloodType || 'N/A' }}
-          </p>
+          <h4>{{ patient.firstName }} {{ patient.lastName }}</h4>
+          <p>Cédula: {{ patient.idNumber }}</p>
+          <p>Teléfono: {{ patient.phone || 'No registrado' }}</p>
+          <p>Email: {{ patient.email || 'No registrado' }}</p>
         </div>
         <div class="item-actions">
-          <a class="btn btn-outline" [routerLink]="['/professor/patients', patient.id]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Ver
-          </a>
-          <a class="btn btn-ghost" [routerLink]="['/professor/patients', patient.id, 'edit']">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Editar
-          </a>
-          <button class="btn btn-danger" type="button" (click)="deletePatient(patient.id!)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Eliminar
-          </button>
+          <a class="btn btn-outline" [routerLink]="['/professor/patients', patient.id, 'edit']">Editar</a>
+          <button class="btn btn-danger" type="button" (click)="deletePatient(patient.id)">Eliminar</button>
         </div>
       </article>
+    </div>
+  </div>
+
+  <div class="card list-card" *ngIf="!showPatients()">
+    <h3>Progreso de alumnos</h3>
+    <div class="empty" *ngIf="(dashboard()?.studentProgress?.length ?? 0) === 0">No hay estudiantes asignados aún.</div>
+    <div class="progress-table" *ngIf="(dashboard()?.studentProgress?.length ?? 0) > 0">
+      <div class="progress-head">
+        <span>Alumno</span>
+        <span>Grupo</span>
+        <span>Total</span>
+        <span>Pendientes</span>
+        <span>Aprobadas</span>
+        <span>Rechazadas</span>
+        <span>Nota promedio</span>
+        <span>Progreso</span>
+      </div>
+      <div class="progress-row" *ngFor="let row of dashboard()?.studentProgress">
+        <span>{{ row.studentName }}</span>
+        <span>{{ row.groupName || 'Sin grupo' }}</span>
+        <span>{{ row.totalHistories }}</span>
+        <span>{{ row.pendingReviews }}</span>
+        <span>{{ row.approvedHistories }}</span>
+        <span>{{ row.rejectedHistories }}</span>
+        <span>{{ row.averageGrade == null ? '-' : (row.averageGrade | number:'1.0-2') }}</span>
+        <span>{{ row.progressPercent | number:'1.0-2' }}%</span>
+      </div>
     </div>
   </div>
 </section>
