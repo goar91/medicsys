@@ -1,15 +1,14 @@
 @echo off
-REM MEDICSYS - Script de Inicialización usando CMD
-REM Ejecuta como administrador
-
+setlocal
 cd /d "%~dp0"
 
-echo ================================================
-echo    MEDICSYS - Inicio del Sistema
-echo ================================================
-echo.
+call "%~dp0start-medicsys.cmd"
+set EXIT_CODE=%ERRORLEVEL%
 
-echo Ejecutando script de PowerShell...
-powershell.exe -ExecutionPolicy Bypass -File "%~dp0iniciar-medicsys.ps1"
+if not "%EXIT_CODE%"=="0" (
+  echo.
+  echo El inicio fallo con codigo %EXIT_CODE%.
+)
 
 pause
+endlocal & exit /b %EXIT_CODE%

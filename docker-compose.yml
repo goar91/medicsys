@@ -28,7 +28,6 @@ services:
       postgres:
         condition: service_healthy
     working_dir: /app
-    user: "${LOCAL_UID:-501}:${LOCAL_GID:-20}"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://0.0.0.0:5154
