@@ -101,6 +101,7 @@ async function loginAndValidate(browser, testCase) {
 }
 
 async function run() {
+  await waitForFrontend();
   const browser = await chromium.launch({ headless: true });
   const results = [];
   try {
@@ -139,6 +140,23 @@ async function run() {
   if (failed > 0) {
     process.exitCode = 1;
   }
+}
+
+async function waitForFrontend() {
+  const start = Date.now();
+  const timeoutMs = 60000;
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const response = await fetch(`${baseUrl}/login`);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // retry
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  throw new Error(`Frontend no disponible en ${baseUrl}/login tras ${timeoutMs / 1000}s`);
 }
 
 run().catch(error => {
