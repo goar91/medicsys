@@ -9,7 +9,7 @@
     <div class="header-actions">
       <button class="btn btn-outline" type="button" (click)="print()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Imprimir
+        Imprimir básico
       </button>
       <button class="btn btn-primary" type="button" *ngIf="invoice()?.status === 'Pending' || invoice()?.status === 'AwaitingAuthorization'" (click)="sendToSri()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -224,7 +224,75 @@
     </div>
   </div>
 
+  <article class="print-clean-sheet" *ngIf="invoice() as factura">
+    <header class="clean-header">
+      <div class="clean-brand">
+        <div class="clean-logo">MD</div>
+        <div>
+          <h1>MEDICSYS Dental</h1>
+          <p>CONSULTORIO DENTAL DR. CARLOS MENDOZA</p>
+          <p>RUC: 0999999999001</p>
+        </div>
+      </div>
+      <div class="clean-meta">
+        <div><strong>Factura:</strong> {{ factura.number }}</div>
+        <div><strong>Fecha:</strong> {{ factura.issuedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div><strong>Estado:</strong> {{ formatStatus(factura.status) }}</div>
+      </div>
+    </header>
+
+    <section class="clean-block">
+      <h2>Cliente</h2>
+      <div class="clean-grid">
+        <div><strong>Nombre:</strong> {{ factura.customer.name }}</div>
+        <div><strong>Identificación:</strong> {{ factura.customer.identification }}</div>
+        <div><strong>Email:</strong> {{ factura.customer.email || 'No registra' }}</div>
+        <div><strong>Pago:</strong> {{ formatPayment(factura.paymentMethod) }}</div>
+      </div>
+    </section>
+
+    <section class="clean-block">
+      <h2>Detalle</h2>
+      <table class="clean-table">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th>Cant.</th>
+            <th>P. Unit.</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of factura.items">
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td>{{ (item.total ?? item.subtotal ?? (item.unitPrice * item.quantity)) | currency:'USD':'symbol':'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="clean-totals">
+      <div><span>Subtotal</span><strong>{{ factura.subtotal | currency:'USD':'symbol':'1.2-2' }}</strong></div>
+      <div><span>IVA</span><strong>{{ factura.tax | currency:'USD':'symbol':'1.2-2' }}</strong></div>
+      <div *ngIf="factura.cardFeeAmount"><span>Recargo tarjeta</span><strong>{{ factura.cardFeeAmount | currency:'USD':'symbol':'1.2-2' }}</strong></div>
+      <div class="final"><span>Total</span><strong>{{ factura.totalToCharge | currency:'USD':'symbol':'1.2-2' }}</strong></div>
+    </section>
+
+    <footer class="clean-footer" *ngIf="factura.sriAuthorizationNumber || factura.sriAccessKey">
+      <div *ngIf="factura.sriAuthorizationNumber"><strong>Autorización SRI:</strong> {{ factura.sriAuthorizationNumber }}</div>
+      <div *ngIf="factura.sriAccessKey"><strong>Clave de Acceso:</strong> {{ formatAccessKeyCompact(factura.sriAccessKey) }}</div>
+    </footer>
+  </article>
+
   <div class="card loading" *ngIf="loading()">
     <p>Cargando factura...</p>
+  </div>
+
+  <div class="card loading error" *ngIf="!loading() && loadError()">
+    <h4>No se pudo cargar la factura</h4>
+    <p>Verifica la conexión con el backend y vuelve a intentar.</p>
+    <button class="btn btn-outline" type="button" (click)="back()">Volver</button>
   </div>
 </section>

@@ -126,7 +126,12 @@ export class OdontologoDashboardComponent implements OnInit {
     { label: 'Ver Historias', route: '/odontologo/historias', icon: 'receipt', color: 'info' },
     { label: 'Nueva Factura', route: '/odontologo/facturacion/new', icon: 'receipt', color: 'warning' },
     { label: 'Contabilidad', route: '/odontologo/contabilidad', icon: 'package', color: 'info' },
-    { label: 'Inventario', route: '/odontologo/inventario', icon: 'package', color: 'success' }
+    { label: 'Inventario', route: '/odontologo/inventario', icon: 'package', color: 'success' },
+    { label: 'Telemedicina', route: '/odontologo/telemedicina', icon: 'calendar-plus', color: 'primary' },
+    { label: 'Portal Paciente', route: '/odontologo/portal', icon: 'user-plus', color: 'warning' },
+    { label: 'Seguros', route: '/odontologo/seguros', icon: 'receipt', color: 'info' },
+    { label: 'Firma Recetas', route: '/odontologo/documentos-firmados', icon: 'receipt', color: 'success' },
+    { label: 'IA Clínica', route: '/odontologo/ia', icon: 'package', color: 'primary' }
   ]);
 
   readonly recentAlerts = computed(() => {

@@ -50,6 +50,35 @@ export interface ComparativeReport {
   averageProfit: number;
 }
 
+export interface AdvancedReport {
+  period: { start: string; end: string };
+  summary: {
+    totalRevenue: number;
+    operationalCost: number;
+    estimatedGrossProfit: number;
+    estimatedGrossMargin: number;
+    newPatients: number;
+    marketingExpense: number;
+    patientAcquisitionCost: number;
+    ltv: number;
+  };
+  profitabilityByProcedure: Array<{
+    procedure: string;
+    quantity: number;
+    revenue: number;
+    estimatedCost: number;
+    estimatedProfit: number;
+    marginPercent: number;
+  }>;
+  customerLifetimeValue: Array<{
+    customerIdentification: string;
+    customerName: string;
+    revenue: number;
+    invoiceCount: number;
+    averageTicket: number;
+  }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
   private readonly apiUrl = `${API_BASE_URL}/odontologia/reportes`;
@@ -82,5 +111,19 @@ export class ReportesService {
 
   getComparativeReport(months: number = 12): Observable<ComparativeReport> {
     return this.http.get<ComparativeReport>(`${this.apiUrl}/comparativo?months=${months}`);
+  }
+
+  getAdvancedReport(startDate?: string, endDate?: string): Observable<AdvancedReport> {
+    let url = `${this.apiUrl}/avanzado`;
+    const params = new URLSearchParams();
+
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    return this.http.get<AdvancedReport>(url);
   }
 }

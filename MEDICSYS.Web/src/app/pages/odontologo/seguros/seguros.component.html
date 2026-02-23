@@ -1,0 +1,77 @@
+<app-top-nav></app-top-nav>
+
+<section class="page seguros-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Odontólogo</p>
+      <h2>Integración con Seguros</h2>
+      <p class="subtitle">Validación de cobertura y gestión de reclamos.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <h3>Nueva Validación / Reclamo</h3>
+      <label>
+        Paciente
+        <select [(ngModel)]="patientId">
+          <option value="">Seleccionar</option>
+          @for (patient of patients(); track patient.id) {
+            <option [value]="patient.id">{{ patient.fullName }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Aseguradora
+        <input type="text" [(ngModel)]="insurerName" />
+      </label>
+      <label>
+        N° póliza
+        <input type="text" [(ngModel)]="policyNumber" />
+      </label>
+      <label>
+        Código procedimiento
+        <input type="text" [(ngModel)]="procedureCode" />
+      </label>
+      <label>
+        Descripción
+        <input type="text" [(ngModel)]="procedureDescription" />
+      </label>
+      <label>
+        Monto solicitado
+        <input type="number" [(ngModel)]="requestedAmount" min="0" step="0.01" />
+      </label>
+      <div class="actions">
+        <button class="btn btn-outline" type="button" (click)="validateCoverage()">Validar cobertura</button>
+        <button class="btn btn-primary" type="button" (click)="createClaim()">Crear reclamo</button>
+      </div>
+    </article>
+
+    <article class="card">
+      <h3>Resultado de Cobertura</h3>
+      @if (validationResult()) {
+        <p><strong>Aseguradora:</strong> {{ validationResult()!.insurer }}</p>
+        <p><strong>Póliza:</strong> {{ validationResult()!.policyNumber }}</p>
+        <p><strong>Cobertura:</strong> {{ validationResult()!.coveragePercent }}%</p>
+        <p><strong>Monto cubierto:</strong> ${{ validationResult()!.coveredAmount | number:'1.2-2' }}</p>
+        <p><strong>Estado:</strong> {{ validationResult()!.isApproved ? 'Aprobado' : 'Requiere información' }}</p>
+        <p>{{ validationResult()!.message }}</p>
+      } @else {
+        <p>Ejecuta una validación para ver resultados.</p>
+      }
+    </article>
+
+    <article class="card">
+      <h3>Reclamos</h3>
+      @for (claim of claims(); track claim.id) {
+        <div class="claim-item">
+          <strong>{{ claim.insurerName }} · {{ claim.procedureCode }}</strong>
+          <span>Paciente: {{ claim.patientId }}</span>
+          <span>Solicitado: ${{ claim.requestedAmount | number:'1.2-2' }}</span>
+          <span>Aprobado: ${{ (claim.approvedAmount ?? 0) | number:'1.2-2' }}</span>
+          <span class="status">{{ claim.status }}</span>
+        </div>
+      }
+    </article>
+  </div>
+</section>

@@ -39,6 +39,9 @@
     <button class="tab" [class.active]="activeTab() === 'comparative'" (click)="setActiveTab('comparative')">
       Comparativo
     </button>
+    <button class="tab" [class.active]="activeTab() === 'advanced'" (click)="setActiveTab('advanced')">
+      Avanzado
+    </button>
   </div>
 
   <!-- Financial Report -->
@@ -333,6 +336,104 @@
                   <td>
                     {{ month.income > 0 ? ((month.profit / month.income) * 100 | number:'1.1-1') : 0 }}%
                   </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Advanced Report -->
+  @if (activeTab() === 'advanced') {
+    <div class="report-content">
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="advancedStartDate" (change)="loadAdvancedReport()">
+        </div>
+        <div class="filter-group">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="advancedEndDate" (change)="loadAdvancedReport()">
+        </div>
+        <button class="btn-apply" (click)="loadAdvancedReport()">Aplicar</button>
+      </div>
+
+      @if (loading()) {
+        <div class="loading">Generando reporte...</div>
+      } @else if (advancedReport()) {
+        <div class="summary-grid">
+          <div class="summary-card blue">
+            <h3>Rentabilidad Bruta</h3>
+            <div class="value">${{ advancedReport()!.summary.estimatedGrossProfit | number:'1.2-2' }}</div>
+            <div class="meta">Margen: {{ advancedReport()!.summary.estimatedGrossMargin | number:'1.1-1' }}%</div>
+          </div>
+          <div class="summary-card orange">
+            <h3>CAC Estimado</h3>
+            <div class="value">${{ advancedReport()!.summary.patientAcquisitionCost | number:'1.2-2' }}</div>
+            <div class="meta">Nuevos pacientes: {{ advancedReport()!.summary.newPatients }}</div>
+          </div>
+          <div class="summary-card green">
+            <h3>LTV Promedio</h3>
+            <div class="value">${{ advancedReport()!.summary.ltv | number:'1.2-2' }}</div>
+            <div class="meta">Base histórica de facturas</div>
+          </div>
+          <div class="summary-card purple">
+            <h3>Gasto Operativo</h3>
+            <div class="value">${{ advancedReport()!.summary.operationalCost | number:'1.2-2' }}</div>
+            <div class="meta">Incluye gastos y compras</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <h3>Rentabilidad por Procedimiento</h3>
+          <table class="comparative-table">
+            <thead>
+              <tr>
+                <th>Procedimiento</th>
+                <th>Cantidad</th>
+                <th>Ingresos</th>
+                <th>Costo Estimado</th>
+                <th>Utilidad Estimada</th>
+                <th>Margen %</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of advancedReport()!.profitabilityByProcedure; track item.procedure) {
+                <tr>
+                  <td class="month-name">{{ item.procedure }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td class="income">${{ item.revenue | number:'1.2-2' }}</td>
+                  <td class="expense">${{ item.estimatedCost | number:'1.2-2' }}</td>
+                  <td class="profit" [class.negative]="item.estimatedProfit < 0">${{ item.estimatedProfit | number:'1.2-2' }}</td>
+                  <td>{{ item.marginPercent | number:'1.1-1' }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-card">
+          <h3>LTV por Paciente</h3>
+          <table class="comparative-table">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Identificación</th>
+                <th>Facturas</th>
+                <th>Ingreso acumulado</th>
+                <th>Ticket promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of advancedReport()!.customerLifetimeValue; track item.customerIdentification) {
+                <tr>
+                  <td class="month-name">{{ item.customerName }}</td>
+                  <td>{{ item.customerIdentification }}</td>
+                  <td>{{ item.invoiceCount }}</td>
+                  <td class="income">${{ item.revenue | number:'1.2-2' }}</td>
+                  <td>${{ item.averageTicket | number:'1.2-2' }}</td>
                 </tr>
               }
             </tbody>

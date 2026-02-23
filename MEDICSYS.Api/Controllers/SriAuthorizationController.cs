@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
@@ -27,13 +28,22 @@ public class SriAuthorizationController : ControllerBase
         _logger = logger;
     }
 
+    private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private IQueryable<Invoice> GetOwnedInvoices(Guid odontologoId)
+    {
+        return _db.Invoices.Where(i => _db.OdontologoInvoiceOwnerships
+            .Any(o => o.InvoiceId == i.Id && o.OdontologoId == odontologoId));
+    }
+
     /// <summary>
     /// Obtiene todas las facturas pendientes de envío al SRI
     /// </summary>
     [HttpGet("pending-invoices")]
     public async Task<ActionResult<IEnumerable<object>>> GetPendingInvoices()
     {
-        var pendingInvoices = await _db.Invoices
+        var odontologoId = GetUserId();
+        var pendingInvoices = await GetOwnedInvoices(odontologoId)
             .Where(x =>
                 x.Status == InvoiceStatus.Pending ||
                 x.Status == InvoiceStatus.Rejected ||
@@ -67,7 +77,8 @@ public class SriAuthorizationController : ControllerBase
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to)
     {
-        var query = _db.Invoices
+        var odontologoId = GetUserId();
+        var query = GetOwnedInvoices(odontologoId)
             .Where(x => x.Status == InvoiceStatus.Authorized);
 
         if (from.HasValue)
@@ -110,7 +121,8 @@ public class SriAuthorizationController : ControllerBase
     [HttpPost("send-invoice/{id:guid}")]
     public async Task<ActionResult<object>> SendInvoice(Guid id)
     {
-        var invoice = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoice = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -161,12 +173,13 @@ public class SriAuthorizationController : ControllerBase
     [HttpPost("send-batch")]
     public async Task<ActionResult<object>> SendBatch([FromBody] List<Guid> invoiceIds)
     {
+        var odontologoId = GetUserId();
         if (invoiceIds == null || !invoiceIds.Any())
         {
             return BadRequest(new { message = "Debe proporcionar al menos una factura" });
         }
 
-        var invoices = await _db.Invoices
+        var invoices = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .Where(x => invoiceIds.Contains(x.Id) && 
                        (x.Status == InvoiceStatus.Pending ||
@@ -230,7 +243,8 @@ public class SriAuthorizationController : ControllerBase
     [HttpGet("check-status/{id:guid}")]
     public async Task<ActionResult<object>> CheckAuthorizationStatus(Guid id)
     {
-        var invoice = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoice = await GetOwnedInvoices(odontologoId)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -281,7 +295,8 @@ public class SriAuthorizationController : ControllerBase
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to)
     {
-        var query = _db.Invoices.AsQueryable();
+        var odontologoId = GetUserId();
+        var query = GetOwnedInvoices(odontologoId);
 
         if (from.HasValue)
         {

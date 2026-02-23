@@ -22,6 +22,14 @@ public class OdontologoDbContext : DbContext
     public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<InvoiceConfig> InvoiceConfigs => Set<InvoiceConfig>();
+    public DbSet<TelemedicineSession> TelemedicineSessions => Set<TelemedicineSession>();
+    public DbSet<TelemedicineMessage> TelemedicineMessages => Set<TelemedicineMessage>();
+    public DbSet<PatientPortalPreference> PatientPortalPreferences => Set<PatientPortalPreference>();
+    public DbSet<PatientPortalNotification> PatientPortalNotifications => Set<PatientPortalNotification>();
+    public DbSet<InsuranceClaim> InsuranceClaims => Set<InsuranceClaim>();
+    public DbSet<SignedClinicalDocument> SignedClinicalDocuments => Set<SignedClinicalDocument>();
+    public DbSet<OdontologoInvoiceOwnership> OdontologoInvoiceOwnerships => Set<OdontologoInvoiceOwnership>();
+    public DbSet<OdontologoAccountingEntryOwnership> OdontologoAccountingEntryOwnerships => Set<OdontologoAccountingEntryOwnership>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -88,6 +96,17 @@ public class OdontologoDbContext : DbContext
             entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
         });
 
+        // Invoice ownership (security boundary per odontologo)
+        builder.Entity<OdontologoInvoiceOwnership>(entity =>
+        {
+            entity.HasKey(e => e.InvoiceId);
+            entity.HasOne<Invoice>()
+                .WithMany()
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.OdontologoId);
+        });
+
         // AccountingEntry
         builder.Entity<AccountingEntry>(entity =>
         {
@@ -99,6 +118,17 @@ public class OdontologoDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(e => e.Date);
             entity.HasIndex(e => e.Type);
+        });
+
+        // Accounting ownership (security boundary per odontologo)
+        builder.Entity<OdontologoAccountingEntryOwnership>(entity =>
+        {
+            entity.HasKey(e => e.AccountingEntryId);
+            entity.HasOne<AccountingEntry>()
+                .WithMany()
+                .HasForeignKey(e => e.AccountingEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.OdontologoId);
         });
 
         // AccountingCategory
@@ -186,6 +216,89 @@ public class OdontologoDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.EstablishmentCode).IsRequired().HasMaxLength(3).HasDefaultValue("001");
             entity.Property(e => e.EmissionPoint).IsRequired().HasMaxLength(3).HasDefaultValue("002");
+        });
+
+        // TelemedicineSession
+        builder.Entity<TelemedicineSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PatientName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Topic).IsRequired().HasMaxLength(250);
+            entity.Property(e => e.MeetingLink).HasMaxLength(500);
+            entity.HasMany(e => e.Messages)
+                .WithOne(e => e.Session)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => e.ScheduledStartAt);
+            entity.HasIndex(e => e.Status);
+        });
+
+        // TelemedicineMessage
+        builder.Entity<TelemedicineMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SenderRole).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.SenderName).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+            entity.HasIndex(e => e.SessionId);
+            entity.HasIndex(e => e.SentAt);
+        });
+
+        // PatientPortalPreference
+        builder.Entity<PatientPortalPreference>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => new { e.OdontologoId, e.PatientId }).IsUnique();
+        });
+
+        // PatientPortalNotification
+        builder.Entity<PatientPortalNotification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Channel).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(180);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.ExternalReference).HasMaxLength(200);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => e.ScheduledFor);
+            entity.HasIndex(e => e.Status);
+        });
+
+        // InsuranceClaim
+        builder.Entity<InsuranceClaim>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.InsurerName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.PolicyNumber).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ProcedureCode).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ProcedureDescription).IsRequired().HasMaxLength(300);
+            entity.Property(e => e.RequestedAmount).HasPrecision(18, 2);
+            entity.Property(e => e.ApprovedAmount).HasPrecision(18, 2);
+            entity.Property(e => e.ResponseMessage).HasMaxLength(1000);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.RequestedAt);
+        });
+
+        // SignedClinicalDocument
+        builder.Entity<SignedClinicalDocument>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DocumentType).IsRequired().HasMaxLength(80);
+            entity.Property(e => e.DocumentName).IsRequired().HasMaxLength(300);
+            entity.Property(e => e.DocumentHash).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.SignatureProvider).IsRequired().HasMaxLength(120);
+            entity.Property(e => e.SignatureSerial).HasMaxLength(150);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+            entity.HasIndex(e => e.OdontologoId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => e.SignedAt);
         });
 
         // InventoryMovement

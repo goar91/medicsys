@@ -4,6 +4,7 @@ import { NgFor, NgIf, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TopNavComponent } from '../../../shared/top-nav/top-nav';
 import { InvoiceService, InvoiceConfig } from '../../../core/invoice.service';
+import { Invoice } from '../../../core/models';
 
 type SriEnvironment = 'Pruebas' | 'Produccion';
 
@@ -22,6 +23,16 @@ interface Cliente {
   direccion: string;
   telefono: string;
   email: string;
+}
+
+interface ServicioSugerido {
+  descripcion: string;
+  precio: number;
+}
+
+interface CardFeeOption {
+  type: string;
+  percent: number;
 }
 
 @Component({
@@ -75,48 +86,9 @@ export class OdontologoFacturaFormComponent implements OnInit {
     observaciones: ['']
   });
 
-  // Clientes frecuentes
-  readonly clientesFrecuentes = signal([
-    {
-      identificacion: '0102345678',
-      nombre: 'María González',
-      email: 'maria@email.com',
-      telefono: '0987654321'
-    },
-    {
-      identificacion: '0103456789',
-      nombre: 'Juan Pérez',
-      email: 'juan@email.com',
-      telefono: '0987654322'
-    },
-    {
-      identificacion: '0104567890',
-      nombre: 'Ana Rodríguez',
-      email: 'ana@email.com',
-      telefono: '0987654323'
-    }
-  ]);
-
-  // Servicios predefinidos
-  readonly serviciosPredefinidos = signal([
-    { descripcion: 'Consulta General', precio: 35.00 },
-    { descripcion: 'Limpieza Dental', precio: 45.00 },
-    { descripcion: 'Extracción Simple', precio: 50.00 },
-    { descripcion: 'Extracción Compleja', precio: 85.00 },
-    { descripcion: 'Resina Dental', precio: 65.00 },
-    { descripcion: 'Endodoncia', precio: 150.00 },
-    { descripcion: 'Corona', precio: 320.00 },
-    { descripcion: 'Implante Dental', precio: 850.00 },
-    { descripcion: 'Ortodoncia - Mensualidad', precio: 120.00 },
-    { descripcion: 'Blanqueamiento Dental', precio: 180.00 }
-  ]);
-
-  readonly cardFees = signal([
-    { type: 'Débito', percent: 1.5 },
-    { type: 'Crédito', percent: 3.5 },
-    { type: 'American Express', percent: 5.0 },
-    { type: 'Diners', percent: 6.0 }
-  ]);
+  readonly clientesFrecuentes = signal<Cliente[]>([]);
+  readonly serviciosPredefinidos = signal<ServicioSugerido[]>([]);
+  readonly cardFees = signal<CardFeeOption[]>([]);
 
   readonly configForm: FormGroup = this.fb.group({
     establishmentCode: ['001', [Validators.required, Validators.pattern(/^\d{1,3}$/)]],
@@ -176,6 +148,7 @@ export class OdontologoFacturaFormComponent implements OnInit {
 
   ngOnInit() {
     this.loadConfig();
+    this.loadSuggestionsFromHistory();
   }
 
   loadConfig() {
@@ -188,13 +161,23 @@ export class OdontologoFacturaFormComponent implements OnInit {
         });
       },
       error: () => {
-        // fallback: use defaults
-        this.invoiceConfig.set({
-          establishmentCode: '001',
-          emissionPoint: '002',
-          nextSequential: 1,
-          nextNumber: '001-002-000000001'
-        });
+        this.invoiceConfig.set(null);
+        alert('No se pudo cargar la configuración de facturación desde la base de datos.');
+      }
+    });
+  }
+
+  loadSuggestionsFromHistory() {
+    this.invoicesApi.getInvoices().subscribe({
+      next: invoices => {
+        this.clientesFrecuentes.set(this.buildFrequentCustomers(invoices));
+        this.serviciosPredefinidos.set(this.buildSuggestedServices(invoices));
+        this.cardFees.set(this.buildCardFeeOptions(invoices));
+      },
+      error: () => {
+        this.clientesFrecuentes.set([]);
+        this.serviciosPredefinidos.set([]);
+        this.cardFees.set([]);
       }
     });
   }
@@ -239,15 +222,15 @@ export class OdontologoFacturaFormComponent implements OnInit {
     this.showClienteForm.set(false);
   }
 
-  seleccionarClienteFrecuente(clienteData: any) {
+  seleccionarClienteFrecuente(clienteData: Cliente) {
     this.esConsumidorFinal.set(false);
     this.cliente.patchValue({
-      tipoIdentificacion: '05', // Cédula
+      tipoIdentificacion: clienteData.tipoIdentificacion || '05',
       identificacion: clienteData.identificacion,
       nombre: clienteData.nombre,
-      direccion: '',
-      telefono: clienteData.telefono,
-      email: clienteData.email
+      direccion: clienteData.direccion || '',
+      telefono: clienteData.telefono || '',
+      email: clienteData.email || ''
     });
     this.showClienteForm.set(false);
   }
@@ -287,7 +270,7 @@ export class OdontologoFacturaFormComponent implements OnInit {
     }
   }
 
-  agregarServicioPredefinido(servicio: any, index: number) {
+  agregarServicioPredefinido(servicio: ServicioSugerido, index: number) {
     this.items.at(index).patchValue({
       descripcion: servicio.descripcion,
       precioUnitario: servicio.precio
@@ -361,5 +344,109 @@ export class OdontologoFacturaFormComponent implements OnInit {
 
   seleccionarAmbiente(value: SriEnvironment) {
     this.facturaForm.patchValue({ sriEnvironment: value });
+  }
+
+  private buildFrequentCustomers(invoices: Invoice[]): Cliente[] {
+    const grouped = new Map<string, { customer: Invoice['customer']; count: number }>();
+
+    for (const invoice of invoices) {
+      const customer = invoice.customer;
+      if (!customer?.identification || customer.identification === '9999999999') {
+        continue;
+      }
+
+      const key = customer.identification.trim();
+      if (!key) {
+        continue;
+      }
+
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        grouped.set(key, {
+          customer,
+          count: 1
+        });
+      }
+    }
+
+    return Array.from(grouped.values())
+      .sort((a, b) => b.count - a.count || a.customer.name.localeCompare(b.customer.name))
+      .slice(0, 12)
+      .map(entry => ({
+        tipoIdentificacion: entry.customer.identificationType || '05',
+        identificacion: entry.customer.identification,
+        nombre: entry.customer.name,
+        direccion: entry.customer.address || '',
+        telefono: entry.customer.phone || '',
+        email: entry.customer.email || ''
+      }));
+  }
+
+  private buildSuggestedServices(invoices: Invoice[]): ServicioSugerido[] {
+    const grouped = new Map<string, { description: string; quantity: number; revenue: number; uses: number }>();
+
+    for (const invoice of invoices) {
+      for (const item of invoice.items || []) {
+        const description = item.description?.trim();
+        if (!description) {
+          continue;
+        }
+
+        const key = description.toLowerCase();
+        const quantity = Number(item.quantity || 0);
+        const revenue = Number(item.total ?? (item.unitPrice * item.quantity));
+        const existing = grouped.get(key);
+
+        if (existing) {
+          existing.quantity += quantity;
+          existing.revenue += revenue;
+          existing.uses += 1;
+        } else {
+          grouped.set(key, {
+            description,
+            quantity,
+            revenue,
+            uses: 1
+          });
+        }
+      }
+    }
+
+    return Array.from(grouped.values())
+      .sort((a, b) => b.uses - a.uses || b.revenue - a.revenue)
+      .slice(0, 12)
+      .map(item => ({
+        descripcion: item.description,
+        precio: Number((item.revenue / Math.max(item.quantity, 1)).toFixed(2))
+      }));
+  }
+
+  private buildCardFeeOptions(invoices: Invoice[]): CardFeeOption[] {
+    const grouped = new Map<string, { count: number; percentSum: number }>();
+
+    for (const invoice of invoices) {
+      if (invoice.paymentMethod !== 'Card' || invoice.cardFeePercent == null || invoice.cardFeePercent <= 0) {
+        continue;
+      }
+
+      const cardType = invoice.cardType?.trim() || 'Tarjeta';
+      const existing = grouped.get(cardType);
+      if (existing) {
+        existing.count += 1;
+        existing.percentSum += invoice.cardFeePercent;
+      } else {
+        grouped.set(cardType, { count: 1, percentSum: invoice.cardFeePercent });
+      }
+    }
+
+    return Array.from(grouped.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 8)
+      .map(([type, stats]) => ({
+        type,
+        percent: Number((stats.percentSum / stats.count).toFixed(2))
+      }));
   }
 }

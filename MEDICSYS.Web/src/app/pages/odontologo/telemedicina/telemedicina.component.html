@@ -1,0 +1,93 @@
+<app-top-nav></app-top-nav>
+
+<section class="page telemedicina-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Odontólogo</p>
+      <h2>Telemedicina</h2>
+      <p class="subtitle">Gestión de teleconsultas con chat clínico.</p>
+    </div>
+    <button class="btn btn-outline" type="button" (click)="loadSessions()">Actualizar</button>
+  </header>
+
+  <div class="tele-grid">
+    <article class="card form-card">
+      <h3>Nueva Teleconsulta</h3>
+      <label>
+        Paciente registrado
+        <select [(ngModel)]="patientId">
+          <option value="">Seleccionar</option>
+          @for (patient of patients(); track patient.id) {
+            <option [value]="patient.id">{{ patient.fullName }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Nombre paciente (manual)
+        <input type="text" [(ngModel)]="patientName" placeholder="Nombre del paciente" />
+      </label>
+      <label>
+        Motivo / Tema
+        <input type="text" [(ngModel)]="topic" placeholder="Control post-tratamiento" />
+      </label>
+      <label>
+        Link de videollamada
+        <input type="url" [(ngModel)]="meetingLink" placeholder="https://..." />
+      </label>
+      <label>
+        Inicio
+        <input type="datetime-local" [(ngModel)]="scheduledStartAt" />
+      </label>
+      <label>
+        Fin
+        <input type="datetime-local" [(ngModel)]="scheduledEndAt" />
+      </label>
+      <button class="btn btn-primary" type="button" (click)="createSession()">Guardar sesión</button>
+    </article>
+
+    <article class="card list-card">
+      <h3>Sesiones</h3>
+      @if (loading()) {
+        <p>Cargando...</p>
+      } @else {
+        <div class="session-list">
+          @for (session of sessions(); track session.id) {
+            <div class="session-item" [class.active]="selectedSessionId() === session.id">
+              <div class="session-main" (click)="openSession(session.id)">
+                <strong>{{ session.patientName }}</strong>
+                <span>{{ session.topic }}</span>
+                <small>{{ session.scheduledStartAt | date:'short' }} · {{ session.status }}</small>
+              </div>
+              <div class="session-actions">
+                <button class="btn btn-ghost" type="button" (click)="startSession(session.id)">Iniciar</button>
+                <button class="btn btn-ghost" type="button" (click)="endSession(session.id)">Finalizar</button>
+                <button class="btn btn-ghost" type="button" (click)="cancelSession(session.id)">Cancelar</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </article>
+
+    <article class="card chat-card">
+      <h3>Chat de sesión</h3>
+      @if (selectedSessionId()) {
+        <div class="chat-box">
+          @for (msg of messages(); track msg.id) {
+            <div class="chat-message">
+              <strong>{{ msg.senderName }}</strong>
+              <p>{{ msg.message }}</p>
+              <small>{{ msg.sentAt | date:'short' }}</small>
+            </div>
+          }
+        </div>
+        <div class="chat-input">
+          <input type="text" [(ngModel)]="chatMessage" placeholder="Escribe un mensaje" />
+          <button class="btn btn-primary" type="button" (click)="sendMessage()">Enviar</button>
+        </div>
+      } @else {
+        <p>Selecciona una sesión para ver el chat.</p>
+      }
+    </article>
+  </div>
+</section>

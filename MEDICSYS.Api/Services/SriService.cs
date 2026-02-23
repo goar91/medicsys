@@ -106,8 +106,8 @@ public class SriService : ISriService
 
         if (_options.Mock)
         {
-            var mockSignedXml = xml; // Mock: sin firma real
-            var mockSignedXmlPath = WriteDocument(_docFirmadosDir, $"{baseName}.xml", mockSignedXml);
+            var signedXmlFallback = xml; // Sin firma digital en modo de pruebas
+            var signedXmlFallbackPath = WriteDocument(_docFirmadosDir, $"{baseName}.xml", signedXmlFallback);
 
             var authorized = invoice.Total > 0;
             var status = authorized ? "AUTORIZADO" : "RECHAZADO";
@@ -121,13 +121,13 @@ public class SriService : ISriService
             string? authorizedXmlPath = null;
             if (authorized && authorization != null && authorizedAt.HasValue)
             {
-                var authorizationXml = BuildAuthorizationXml(authorization, authorizedAt.Value, environmentValue, mockSignedXml);
+                var authorizationXml = BuildAuthorizationXml(authorization, authorizedAt.Value, environmentValue, signedXmlFallback);
                 authorizedXmlPath = WriteDocument(_docAutorizadosDir, $"{baseName}.xml", authorizationXml);
             }
 
             _logger.LogInformation("SRI MOCK {Environment}: {Status} para factura {Number}", environmentValue, status, invoice.Number);
             return new SriSendResult(status, accessKey, authorization, authorizedAt, message,
-                generatedXmlPath, mockSignedXmlPath, responseXmlPath, authorizedXmlPath);
+                generatedXmlPath, signedXmlFallbackPath, responseXmlPath, authorizedXmlPath);
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -315,8 +315,8 @@ public class SriService : ISriService
         return resultado.ToString(CultureInfo.InvariantCulture);
     }
 
-    // Nota: En el SRI real, el número de autorización es la misma clave de acceso (49 dígitos).
-    // Este método se mantiene por compatibilidad pero ya no se usa en el flujo mock.
+    // Nota: En el SRI real, el numero de autorizacion es la misma clave de acceso (49 digitos).
+    // Este metodo se mantiene por compatibilidad historica.
     private static string GenerateAuthorizationNumber(string accessKey)
     {
         return accessKey;

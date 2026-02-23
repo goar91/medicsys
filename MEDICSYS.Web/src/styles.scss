@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 :root {
+  color-scheme: light;
+
   /* Tipografías */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -62,6 +64,39 @@
   --radius-sm: 12px;
   --page-gutter: clamp(1rem, 3vw, 2.5rem);
   --page-max: 1400px;
+  --invoice-print-scale: 1;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e2e8f0;
+  --ink-light: #f8fafc;
+  --muted: #cbd5e1;
+  --muted-light: #94a3b8;
+  --canvas: #0b1220;
+  --surface: #111827;
+  --surface-glass: rgba(17, 24, 39, 0.78);
+  --stroke: #334155;
+  --stroke-light: #1e293b;
+  --badge-bg: rgba(249, 115, 22, 0.24);
+  --badge-text: #fdba74;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ink: #e2e8f0;
+    --ink-light: #f8fafc;
+    --muted: #cbd5e1;
+    --muted-light: #94a3b8;
+    --canvas: #0b1220;
+    --surface: #111827;
+    --surface-glass: rgba(17, 24, 39, 0.78);
+    --stroke: #334155;
+    --stroke-light: #1e293b;
+    --badge-bg: rgba(249, 115, 22, 0.24);
+    --badge-text: #fdba74;
+  }
 }
 
 * {
@@ -368,6 +403,14 @@ input,
 select,
 textarea {
   font: inherit;
+  color: var(--ink);
+}
+
+input,
+select,
+textarea {
+  background: var(--surface);
+  border-color: var(--stroke);
 }
 
 a {
@@ -474,6 +517,61 @@ a {
 ::-moz-selection {
   background: rgba(249, 115, 22, 0.2);
   color: var(--ink);
+}
+
+@media print {
+  html,
+  body {
+    color-scheme: light !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  body::before,
+  body::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+
+  .page {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    color: #000 !important;
+    background: #fff !important;
+    border-color: #999 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  button,
+  input,
+  select,
+  textarea {
+    forced-color-adjust: none;
+    color: CanvasText;
+    background: Canvas;
+    border-color: GrayText;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

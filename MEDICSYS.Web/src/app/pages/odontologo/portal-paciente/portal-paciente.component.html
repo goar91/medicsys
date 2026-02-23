@@ -1,0 +1,95 @@
+<app-top-nav></app-top-nav>
+
+<section class="page portal-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Odontólogo</p>
+      <h2>Portal del Paciente</h2>
+      <p class="subtitle">Facturas, citas y recordatorios por paciente.</p>
+    </div>
+  </header>
+
+  <div class="controls card">
+    <label>
+      Paciente
+      <select [(ngModel)]="selectedPatientId" (change)="loadSummary()">
+        <option value="">Seleccionar paciente</option>
+        @for (patient of patients(); track patient.id) {
+          <option [value]="patient.id">{{ patient.fullName }} · {{ patient.idNumber }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (loading()) {
+    <div class="card">Cargando resumen...</div>
+  } @else if (summary()) {
+    <div class="portal-grid">
+      <article class="card">
+        <h3>Resumen del Paciente</h3>
+        <p><strong>Nombre:</strong> {{ summary()!.patient.fullName }}</p>
+        <p><strong>Cédula:</strong> {{ summary()!.patient.idNumber }}</p>
+        <p><strong>Email:</strong> {{ summary()!.patient.email }}</p>
+        <p><strong>Teléfono:</strong> {{ summary()!.patient.phone }}</p>
+      </article>
+
+      <article class="card">
+        <h3>Preferencias de Notificación</h3>
+        <label class="check"><input type="checkbox" [(ngModel)]="sendEmail" /> Email</label>
+        <label class="check"><input type="checkbox" [(ngModel)]="sendWhatsApp" /> WhatsApp</label>
+        <button class="btn btn-primary" type="button" (click)="updatePreferences()">Guardar preferencias</button>
+      </article>
+
+      <article class="card">
+        <h3>Programar Recordatorio</h3>
+        <label>
+          Asunto
+          <input type="text" [(ngModel)]="reminderSubject" />
+        </label>
+        <label>
+          Mensaje
+          <textarea rows="3" [(ngModel)]="reminderMessage"></textarea>
+        </label>
+        <label>
+          Fecha/Hora
+          <input type="datetime-local" [(ngModel)]="reminderDate" />
+        </label>
+        <button class="btn btn-primary" type="button" (click)="scheduleReminder()">Programar</button>
+      </article>
+    </div>
+
+    <div class="portal-grid second-row">
+      <article class="card">
+        <h3>Próximas Citas</h3>
+        @for (appointment of summary()!.upcomingAppointments; track appointment.id) {
+          <div class="item-row">
+            <span>{{ appointment.startAt | date:'short' }}</span>
+            <span>{{ appointment.reason }}</span>
+            <strong>{{ appointment.status }}</strong>
+          </div>
+        }
+      </article>
+
+      <article class="card">
+        <h3>Facturas</h3>
+        @for (invoice of summary()!.invoices; track invoice.id) {
+          <div class="item-row">
+            <span>{{ invoice.number }}</span>
+            <span>{{ invoice.issuedAt | date:'shortDate' }}</span>
+            <strong>${{ invoice.totalToCharge | number:'1.2-2' }}</strong>
+          </div>
+        }
+      </article>
+
+      <article class="card">
+        <h3>Historias Clínicas</h3>
+        @for (history of summary()!.clinicalHistoryEntries; track history.id) {
+          <div class="item-row">
+            <span>{{ history.createdAt | date:'shortDate' }}</span>
+            <strong>{{ history.status }}</strong>
+          </div>
+        }
+      </article>
+    </div>
+  }
+</section>

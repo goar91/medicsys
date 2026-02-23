@@ -1,0 +1,110 @@
+.telemedicina-page {
+  padding: 1.5rem;
+}
+
+.tele-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  input,
+  select {
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    background: var(--surface, #fff);
+    color: var(--text, #111827);
+  }
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.session-item {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 10px;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &.active {
+    border-color: var(--primary, #2563eb);
+    background: color-mix(in oklab, var(--primary, #2563eb) 8%, transparent);
+  }
+}
+
+.session-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  cursor: pointer;
+}
+
+.session-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chat-box {
+  max-height: 420px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.chat-message {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 8px;
+  padding: 0.5rem;
+
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
+.chat-input {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+
+  input {
+    flex: 1;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    background: var(--surface, #fff);
+    color: var(--text, #111827);
+  }
+}
+
+@media (max-width: 1100px) {
+  .tele-grid {
+    grid-template-columns: 1fr;
+  }
+}

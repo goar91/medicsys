@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
@@ -31,13 +32,23 @@ public class InvoicesController : ControllerBase
         _logger = logger;
     }
 
+    private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private IQueryable<Invoice> GetOwnedInvoices(Guid odontologoId)
+    {
+        return _db.Invoices.Where(i => _db.OdontologoInvoiceOwnerships
+            .Any(o => o.InvoiceId == i.Id && o.OdontologoId == odontologoId));
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAll(
         [FromQuery] string? status,
         [FromQuery] int? page,
         [FromQuery] int? pageSize)
     {
-        var query = _db.Invoices
+        var odontologoId = GetUserId();
+
+        var query = GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .AsNoTracking();
 
@@ -73,7 +84,8 @@ public class InvoicesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<InvoiceDto>> GetById(Guid id)
     {
-        var invoice = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoice = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -89,7 +101,8 @@ public class InvoicesController : ControllerBase
     [HttpGet("{id:guid}/ride")]
     public async Task<IActionResult> GetRide(Guid id)
     {
-        var invoice = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoice = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -115,6 +128,7 @@ public class InvoicesController : ControllerBase
     [HttpGet("config")]
     public async Task<ActionResult<InvoiceConfigDto>> GetConfig()
     {
+        var odontologoId = GetUserId();
         var config = await _db.InvoiceConfigs.FirstOrDefaultAsync();
 
         if (config == null)
@@ -130,7 +144,7 @@ public class InvoicesController : ControllerBase
             await _db.SaveChangesAsync();
         }
 
-        var nextSeq = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
+        var nextSeq = (await GetOwnedInvoices(odontologoId).MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
 
         return Ok(new InvoiceConfigDto
         {
@@ -144,6 +158,7 @@ public class InvoicesController : ControllerBase
     [HttpPut("config")]
     public async Task<ActionResult<InvoiceConfigDto>> UpdateConfig(InvoiceConfigUpdateRequest request)
     {
+        var odontologoId = GetUserId();
         var config = await _db.InvoiceConfigs.FirstOrDefaultAsync();
 
         if (config == null)
@@ -166,7 +181,7 @@ public class InvoicesController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        var nextSeq = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
+        var nextSeq = (await GetOwnedInvoices(odontologoId).MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
 
         return Ok(new InvoiceConfigDto
         {
@@ -180,6 +195,8 @@ public class InvoicesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<InvoiceDto>> Create(InvoiceCreateRequest request)
     {
+        var odontologoId = GetUserId();
+
         if (request.Items == null || request.Items.Count == 0)
         {
             return BadRequest("Debe incluir al menos un item.");
@@ -192,7 +209,7 @@ public class InvoicesController : ControllerBase
         var establishment = config?.EstablishmentCode ?? "001";
         var emissionPoint = config?.EmissionPoint ?? "002";
 
-        var nextSequential = (await _db.Invoices.MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
+        var nextSequential = (await GetOwnedInvoices(odontologoId).MaxAsync(x => (int?)x.Sequential) ?? 0) + 1;
         var issuedAt = DateTimeHelper.Now();
         var number = FormatInvoiceNumber(establishment, emissionPoint, nextSequential);
 
@@ -263,9 +280,15 @@ public class InvoicesController : ControllerBase
         };
 
         _db.Invoices.Add(invoice);
+        _db.OdontologoInvoiceOwnerships.Add(new Models.Odontologia.OdontologoInvoiceOwnership
+        {
+            InvoiceId = invoice.Id,
+            OdontologoId = odontologoId,
+            CreatedAt = DateTimeHelper.Now()
+        });
         await _db.SaveChangesAsync();
 
-        await RegisterAccountingEntryAsync(invoice);
+        await RegisterAccountingEntryAsync(invoice, odontologoId);
 
         if (request.SendToSri)
         {
@@ -278,7 +301,8 @@ public class InvoicesController : ControllerBase
     [HttpPost("{id:guid}/send-sri")]
     public async Task<ActionResult<InvoiceDto>> SendToSri(Guid id)
     {
-        var invoice = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoice = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -296,7 +320,9 @@ public class InvoicesController : ControllerBase
         [FromQuery] int? page,
         [FromQuery] int? pageSize)
     {
-        var query = _db.Invoices
+        var odontologoId = GetUserId();
+
+        var query = GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .AsNoTracking()
             .Where(x =>
@@ -333,7 +359,8 @@ public class InvoicesController : ControllerBase
     [HttpPost("send-awaiting-sri")]
     public async Task<ActionResult<object>> SendAwaitingToSri()
     {
-        var invoices = await _db.Invoices
+        var odontologoId = GetUserId();
+        var invoices = await GetOwnedInvoices(odontologoId)
             .Include(x => x.Items)
             .Where(x =>
                 x.Status == InvoiceStatus.AwaitingAuthorization ||
@@ -445,7 +472,7 @@ public class InvoicesController : ControllerBase
         };
     }
 
-    private async Task RegisterAccountingEntryAsync(Invoice invoice)
+    private async Task RegisterAccountingEntryAsync(Invoice invoice, Guid odontologoId)
     {
         var category = await _db.AccountingCategories
             .FirstOrDefaultAsync(x => x.Name == "Ingresos por servicios" && x.Type == AccountingEntryType.Income);
@@ -481,6 +508,12 @@ public class InvoicesController : ControllerBase
         };
 
         _db.AccountingEntries.Add(entry);
+        _db.OdontologoAccountingEntryOwnerships.Add(new Models.Odontologia.OdontologoAccountingEntryOwnership
+        {
+            AccountingEntryId = entry.Id,
+            OdontologoId = odontologoId,
+            CreatedAt = DateTimeHelper.Now()
+        });
         await _db.SaveChangesAsync();
     }
 

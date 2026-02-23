@@ -1,0 +1,54 @@
+.documentos-page {
+  padding: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(280px, 1fr) minmax(400px, 2fr);
+}
+
+.card {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  background: var(--surface, #fff);
+  color: var(--text, #111827);
+}
+
+.list-card {
+  max-height: 680px;
+  overflow: auto;
+}
+
+.doc-item {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 0.6rem;
+  margin-bottom: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

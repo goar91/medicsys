@@ -1,0 +1,72 @@
+<app-top-nav></app-top-nav>
+
+<section class="page documentos-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Odontólogo</p>
+      <h2>Firma Electrónica de Documentos</h2>
+      <p class="subtitle">Registro trazable de recetas y consentimientos firmados.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <h3>Nuevo Documento Firmado</h3>
+      <label>
+        Paciente
+        <select [(ngModel)]="patientId">
+          <option value="">Seleccionar</option>
+          @for (patient of patients(); track patient.id) {
+            <option [value]="patient.id">{{ patient.fullName }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Tipo
+        <select [(ngModel)]="documentType">
+          <option value="Receta">Receta</option>
+          <option value="Consentimiento">Consentimiento</option>
+          <option value="Informe">Informe clínico</option>
+        </select>
+      </label>
+      <label>
+        Nombre documento
+        <input type="text" [(ngModel)]="documentName" placeholder="Receta antibiótico" />
+      </label>
+      <label>
+        Proveedor firma
+        <input type="text" [(ngModel)]="signatureProvider" />
+      </label>
+      <label>
+        Serial certificado
+        <input type="text" [(ngModel)]="signatureSerial" />
+      </label>
+      <label>
+        Contenido (resumen)
+        <textarea rows="4" [(ngModel)]="documentContent"></textarea>
+      </label>
+      <label>
+        Notas
+        <textarea rows="2" [(ngModel)]="notes"></textarea>
+      </label>
+      <label>
+        Vigente hasta
+        <input type="datetime-local" [(ngModel)]="validUntil" />
+      </label>
+      <button class="btn btn-primary" type="button" (click)="createDocument()">Registrar firma</button>
+    </article>
+
+    <article class="card list-card">
+      <h3>Documentos Firmados</h3>
+      @for (doc of documents(); track doc.id) {
+        <div class="doc-item">
+          <strong>{{ doc.documentType }} · {{ doc.documentName }}</strong>
+          <span>Paciente: {{ doc.patientId }}</span>
+          <span>Firmado: {{ doc.signedAt | date:'short' }}</span>
+          <span>Hash: {{ doc.documentHash }}</span>
+          <span>Proveedor: {{ doc.signatureProvider }}</span>
+        </div>
+      }
+    </article>
+  </div>
+</section>

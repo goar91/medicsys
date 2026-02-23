@@ -1,0 +1,72 @@
+<app-top-nav></app-top-nav>
+
+<section class="page ai-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Odontólogo</p>
+      <h2>Módulo IA</h2>
+      <p class="subtitle">Asistente diagnóstico y análisis predictivo.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <article class="card">
+      <h3>Asistente de Diagnóstico</h3>
+      <label>
+        Síntomas
+        <textarea rows="3" [(ngModel)]="symptoms"></textarea>
+      </label>
+      <label>
+        Hallazgos clínicos
+        <textarea rows="3" [(ngModel)]="clinicalFindings"></textarea>
+      </label>
+      <label>
+        Notas
+        <textarea rows="2" [(ngModel)]="notes"></textarea>
+      </label>
+      <button class="btn btn-primary" type="button" (click)="suggestDiagnosis()">Analizar</button>
+
+      @if (diagnosis()) {
+        <div class="result">
+          <h4>Sugerencia principal</h4>
+          <p><strong>{{ diagnosis()!.primarySuggestion.diagnosis }}</strong> ({{ diagnosis()!.primarySuggestion.confidence * 100 | number:'1.0-0' }}%)</p>
+          <p>{{ diagnosis()!.primarySuggestion.rationale }}</p>
+          <h4>Diagnósticos diferenciales</h4>
+          @for (item of diagnosis()!.differentialDiagnoses; track item.diagnosis) {
+            <p>{{ item.diagnosis }} - {{ item.confidence * 100 | number:'1.0-0' }}%</p>
+          }
+          <small>{{ diagnosis()!.disclaimer }}</small>
+        </div>
+      }
+    </article>
+
+    <article class="card">
+      <h3>Análisis Predictivo</h3>
+      <div class="row">
+        <label>
+          Meses
+          <input type="number" min="1" max="24" [(ngModel)]="months" />
+        </label>
+        <button class="btn btn-outline" type="button" (click)="loadTrends()">Actualizar</button>
+      </div>
+
+      @if (trends()) {
+        <p><strong>Registros analizados:</strong> {{ trends()!.historyRecordsAnalyzed }}</p>
+        <p><strong>Tasa de aprobación seguros:</strong> {{ trends()!.insuranceApprovalRate | number:'1.1-1' }}%</p>
+        <p><strong>Pronóstico próxima carga:</strong> {{ trends()!.forecast.nextMonthExpectedAppointments }} citas</p>
+
+        <h4>Patrones clínicos</h4>
+        @for (pattern of trends()!.topClinicalPatterns; track pattern.pattern) {
+          <p>{{ pattern.pattern }}: {{ pattern.count }}</p>
+        }
+
+        <h4>Carga mensual</h4>
+        @for (month of trends()!.appointmentLoadByMonth; track month.month) {
+          <p>{{ month.month }}: {{ month.appointmentCount }} citas</p>
+        }
+
+        <small>{{ trends()!.disclaimer }}</small>
+      }
+    </article>
+  </div>
+</section>

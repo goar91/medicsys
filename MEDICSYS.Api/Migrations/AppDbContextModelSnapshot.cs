@@ -17,7 +17,7 @@ namespace MEDICSYS.Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.12")
+                .HasAnnotation("ProductVersion", "9.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -385,6 +385,11 @@ namespace MEDICSYS.Api.Migrations
 
                     b.Property<DateTime?>("SriAuthorizedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SriEnvironment")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SriMessages")
                         .HasColumnType("text");

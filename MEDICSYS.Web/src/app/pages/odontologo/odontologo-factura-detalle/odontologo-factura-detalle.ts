@@ -13,6 +13,8 @@ import { TopNavComponent } from '../../../shared/top-nav/top-nav';
   styleUrl: './odontologo-factura-detalle.scss'
 })
 export class OdontologoFacturaDetalleComponent {
+  private static readonly LetterPrintableHeightPx = 1020;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly invoicesApi = inject(InvoiceService);
@@ -20,6 +22,8 @@ export class OdontologoFacturaDetalleComponent {
   readonly invoice = signal<Invoice | null>(null);
   readonly loading = signal(true);
   readonly printMode = signal(false);
+  readonly loadError = signal(false);
+  readonly printScale = signal(1);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -33,12 +37,14 @@ export class OdontologoFacturaDetalleComponent {
     this.invoicesApi.getInvoice(id).subscribe({
       next: invoice => {
         this.invoice.set(invoice);
+        this.loadError.set(false);
         this.loading.set(false);
         if (this.printMode()) {
-          setTimeout(() => window.print(), 500);
+          this.print();
         }
       },
       error: () => {
+        this.loadError.set(true);
         this.loading.set(false);
       }
     });
@@ -53,7 +59,7 @@ export class OdontologoFacturaDetalleComponent {
   }
 
   print() {
-    window.print();
+    this.triggerPrintWhenReady();
   }
 
   back() {
@@ -121,5 +127,73 @@ export class OdontologoFacturaDetalleComponent {
     }
 
     return segments;
+  }
+
+  formatAccessKeyCompact(accessKey: string | null | undefined): string {
+    if (!accessKey) {
+      return '';
+    }
+
+    const normalized = accessKey.replace(/\s+/g, '');
+    if (normalized.length <= 32) {
+      return normalized;
+    }
+
+    return `${normalized.slice(0, 16)}...${normalized.slice(-16)}`;
+  }
+
+  private triggerPrintWhenReady(maxAttempts = 30) {
+    let attempts = 0;
+
+    const tryPrint = () => {
+      attempts++;
+      const hasInvoice = !!this.invoice();
+      const printNode = document.querySelector('.print-clean-sheet');
+
+      if ((!hasInvoice || !printNode) && attempts < maxAttempts) {
+        setTimeout(tryPrint, 120);
+        return;
+      }
+
+      this.applyPrintScale();
+
+      // Espera dos frames para garantizar layout/paint antes de abrir el diálogo.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print();
+          this.resetPrintScale();
+        });
+      });
+    };
+
+    tryPrint();
+  }
+
+  private applyPrintScale() {
+    const sheet = document.querySelector<HTMLElement>('.print-clean-sheet');
+    if (!sheet) {
+      return;
+    }
+
+    this.printScale.set(1);
+    document.documentElement.style.setProperty('--invoice-print-scale', '1');
+
+    // Forzamos un layout pass con escala 1 para medir altura real.
+    void sheet.offsetHeight;
+
+    const realHeight = sheet.scrollHeight;
+    const available = OdontologoFacturaDetalleComponent.LetterPrintableHeightPx;
+    const scale = realHeight > available
+      ? Math.max(0.55, available / realHeight)
+      : 1;
+
+    const finalScale = Number(scale.toFixed(3));
+    this.printScale.set(finalScale);
+    document.documentElement.style.setProperty('--invoice-print-scale', `${finalScale}`);
+  }
+
+  private resetPrintScale() {
+    this.printScale.set(1);
+    document.documentElement.style.setProperty('--invoice-print-scale', '1');
   }
 }

@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using MEDICSYS.Api.Contracts;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models;
+using MEDICSYS.Api.Models.Odontologia;
 using MEDICSYS.Api.Security;
 using MEDICSYS.Api.Services;
 
@@ -19,6 +21,14 @@ public class AccountingController : ControllerBase
     public AccountingController(OdontologoDbContext db)
     {
         _db = db;
+    }
+
+    private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private IQueryable<AccountingEntry> GetOwnedEntries(Guid odontologoId)
+    {
+        return _db.AccountingEntries.Where(e => _db.OdontologoAccountingEntryOwnerships
+            .Any(o => o.AccountingEntryId == e.Id && o.OdontologoId == odontologoId));
     }
 
     [HttpGet("categories")]
@@ -77,7 +87,8 @@ public class AccountingController : ControllerBase
         [FromQuery] int? page,
         [FromQuery] int? pageSize)
     {
-        var query = _db.AccountingEntries
+        var odontologoId = GetUserId();
+        var query = GetOwnedEntries(odontologoId)
             .Include(x => x.Category)
             .AsNoTracking();
 
@@ -133,6 +144,7 @@ public class AccountingController : ControllerBase
     [HttpPost("entries")]
     public async Task<ActionResult<AccountingEntryDto>> CreateEntry(AccountingEntryRequest request)
     {
+        var odontologoId = GetUserId();
         var category = await _db.AccountingCategories.FindAsync(request.CategoryId);
         if (category == null)
         {
@@ -167,6 +179,12 @@ public class AccountingController : ControllerBase
         };
 
         _db.AccountingEntries.Add(entry);
+        _db.OdontologoAccountingEntryOwnerships.Add(new OdontologoAccountingEntryOwnership
+        {
+            AccountingEntryId = entry.Id,
+            OdontologoId = odontologoId,
+            CreatedAt = DateTimeHelper.Now()
+        });
         await _db.SaveChangesAsync();
 
         entry.Category = category;
@@ -176,7 +194,8 @@ public class AccountingController : ControllerBase
     [HttpPut("entries/{id}")]
     public async Task<ActionResult<AccountingEntryDto>> UpdateEntry(Guid id, AccountingEntryRequest request)
     {
-        var entry = await _db.AccountingEntries
+        var odontologoId = GetUserId();
+        var entry = await GetOwnedEntries(odontologoId)
             .Include(x => x.Category)
             .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -225,7 +244,8 @@ public class AccountingController : ControllerBase
     [HttpDelete("entries/{id}")]
     public async Task<IActionResult> DeleteEntry(Guid id)
     {
-        var entry = await _db.AccountingEntries.FindAsync(id);
+        var odontologoId = GetUserId();
+        var entry = await GetOwnedEntries(odontologoId).FirstOrDefaultAsync(x => x.Id == id);
         if (entry == null)
         {
             return NotFound("Movimiento no encontrado.");
@@ -237,6 +257,12 @@ public class AccountingController : ControllerBase
         }
 
         _db.AccountingEntries.Remove(entry);
+        var ownership = await _db.OdontologoAccountingEntryOwnerships
+            .FirstOrDefaultAsync(x => x.AccountingEntryId == id && x.OdontologoId == odontologoId);
+        if (ownership != null)
+        {
+            _db.OdontologoAccountingEntryOwnerships.Remove(ownership);
+        }
         await _db.SaveChangesAsync();
 
         return NoContent();
@@ -245,11 +271,12 @@ public class AccountingController : ControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<AccountingSummaryDto>> GetSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
+        var odontologoId = GetUserId();
         var now = DateTimeHelper.Now();
         var rangeStart = ToUtcStartOfDay(from) ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var rangeEnd = ToUtcEndOfDay(to) ?? rangeStart.AddMonths(1).AddTicks(-1);
 
-        var entries = await _db.AccountingEntries
+        var entries = await GetOwnedEntries(odontologoId)
             .Include(x => x.Category)
             .AsNoTracking()
             .Where(x => x.Date >= rangeStart && x.Date <= rangeEnd)
