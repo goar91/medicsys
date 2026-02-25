@@ -20,8 +20,10 @@ public static class SeedData
         await EnsureRoleAsync(roleManager, Roles.Student);
         await EnsureRoleAsync(roleManager, Roles.Odontologo);
         await EnsureRoleAsync(roleManager, Roles.Admin);
+        await EnsureRoleAsync(roleManager, Roles.Auditoria);
 
         await EnsureDefaultAdminAsync(userManager, config);
+        await EnsureDefaultAuditorAsync(userManager, config);
 
         // Crear usuario Odontólogo
         var odontologoEmail = "odontologo@medicsys.com";
@@ -117,6 +119,38 @@ public static class SeedData
         if (!roles.Contains(Roles.Admin))
         {
             await userManager.AddToRoleAsync(admin, Roles.Admin);
+        }
+    }
+
+    private static async Task EnsureDefaultAuditorAsync(UserManager<ApplicationUser> userManager, IConfiguration config)
+    {
+        var auditorEmail = config["Seed:DefaultAuditorEmail"] ?? "auditoria@medicsys.com";
+        var auditorPassword = config["Seed:DefaultAuditorPassword"] ?? "Auditoria123!";
+        var auditorName = config["Seed:DefaultAuditorName"] ?? "Auditoria MEDICSYS";
+
+        var auditor = await userManager.FindByEmailAsync(auditorEmail);
+        if (auditor == null)
+        {
+            auditor = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = auditorEmail,
+                Email = auditorEmail,
+                FullName = auditorName,
+                EmailConfirmed = true
+            };
+
+            var created = await userManager.CreateAsync(auditor, auditorPassword);
+            if (!created.Succeeded)
+            {
+                return;
+            }
+        }
+
+        var roles = await userManager.GetRolesAsync(auditor);
+        if (!roles.Contains(Roles.Auditoria))
+        {
+            await userManager.AddToRoleAsync(auditor, Roles.Auditoria);
         }
     }
 

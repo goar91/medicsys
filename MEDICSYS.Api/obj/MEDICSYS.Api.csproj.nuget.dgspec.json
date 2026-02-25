@@ -1,26 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj": {}
+    "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj": {}
   },
   "projects": {
-    "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj": {
+    "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
+        "projectUniqueName": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
         "projectName": "MEDICSYS.Api",
-        "projectPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
-        "packagesPath": "/Users/gerson/.nuget/packages/",
-        "outputPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/obj/",
+        "projectPath": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
+        "packagesPath": "C:\\Users\\gerso\\.nuget\\packages\\",
+        "outputPath": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/gerson/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\gerso\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "/usr/local/Cellar/dotnet/10.0.103/libexec/library-packs": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -111,6 +116,10 @@
               "target": "Package",
               "version": "[5.*, )"
             },
+            "Serilog.Sinks.Seq": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "SkiaSharp": {
               "target": "Package",
               "version": "[3.*, )"
@@ -143,7 +152,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.103/libexec/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

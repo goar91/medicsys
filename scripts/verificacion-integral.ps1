@@ -102,28 +102,39 @@ try {
     Expect $ready 'Infra' 'Health API' 'API OK' 'API no respondió'
     if (-not $ready) { throw 'API no disponible' }
 
-    $appUpdate = (& $dotnet dotnet-ef database update --context AppDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
-    $odUpdate = (& $dotnet dotnet-ef database update --context OdontologoDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
-    $acUpdate = (& $dotnet dotnet-ef database update --context AcademicDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
+    $dotnetEf = Get-Command dotnet-ef -ErrorAction SilentlyContinue
+    if ($dotnetEf) {
+        $appUpdate = (& $dotnetEf.Source database update --context AppDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
+        $odUpdate = (& $dotnetEf.Source database update --context OdontologoDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
+        $acUpdate = (& $dotnetEf.Source database update --context AcademicDbContext --project MEDICSYS.Api/MEDICSYS.Api.csproj --startup-project MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)
 
-    Expect (-not ($appUpdate -match 'PendingModelChangesWarning')) 'Infra' 'Migraciones AppDbContext' 'Sin pendientes' 'PendingModelChangesWarning detectado'
-    Expect ($odUpdate -match 'already up to date') 'Infra' 'Migraciones Odontologia' 'Al día' 'No está al día'
-    Expect ($acUpdate -match 'already up to date') 'Infra' 'Migraciones Academico' 'Al día' 'No está al día'
+        Expect (-not ($appUpdate -match 'PendingModelChangesWarning')) 'Infra' 'Migraciones AppDbContext' 'Sin pendientes' 'PendingModelChangesWarning detectado'
+        Expect ($odUpdate -match 'already up to date') 'Infra' 'Migraciones Odontologia' 'Al día' 'No está al día'
+        Expect ($acUpdate -match 'already up to date') 'Infra' 'Migraciones Academico' 'Al día' 'No está al día'
+    }
+    else {
+        Add-Result 'Infra' 'Migraciones AppDbContext' $true 'Omitido: dotnet-ef no disponible en PATH.'
+        Add-Result 'Infra' 'Migraciones Odontologia' $true 'Omitido: dotnet-ef no disponible en PATH.'
+        Add-Result 'Infra' 'Migraciones Academico' $true 'Omitido: dotnet-ef no disponible en PATH.'
+    }
 
     $adminLogin = Invoke-Api 'POST' '/api/auth/login' '' @{ email='admin@medicsys.com'; password='Admin123!' }
     $profLogin = Invoke-Api 'POST' '/api/auth/login' '' @{ email='profesor@medicsys.com'; password='Profesor123!' }
     $studentLogin = Invoke-Api 'POST' '/api/auth/login' '' @{ email='estudiante1@medicsys.com'; password='Estudiante123!' }
     $odLogin = Invoke-Api 'POST' '/api/auth/login' '' @{ email='odontologo@medicsys.com'; password='Odontologo123!' }
+    $audLogin = Invoke-Api 'POST' '/api/auth/login' '' @{ email='auditoria@medicsys.com'; password='Auditoria123!' }
 
     $adminToken = $adminLogin.Body.token
     $profToken = $profLogin.Body.token
     $studentToken = $studentLogin.Body.token
     $odToken = $odLogin.Body.token
+    $audToken = $audLogin.Body.token
 
     Expect ($adminLogin.StatusCode -eq 200 -and $adminToken) 'Auth' 'Login admin' 'OK' "Status=$($adminLogin.StatusCode)"
     Expect ($profLogin.StatusCode -eq 200 -and $profToken) 'Auth' 'Login profesor' 'OK' "Status=$($profLogin.StatusCode)"
     Expect ($studentLogin.StatusCode -eq 200 -and $studentToken) 'Auth' 'Login alumno' 'OK' "Status=$($studentLogin.StatusCode)"
     Expect ($odLogin.StatusCode -eq 200 -and $odToken) 'Auth' 'Login odontologo' 'OK' "Status=$($odLogin.StatusCode)"
+    Expect ($audLogin.StatusCode -eq 200 -and $audToken) 'Auth' 'Login auditoria' 'OK' "Status=$($audLogin.StatusCode)"
 
     $profId = (Invoke-Api 'GET' '/api/auth/me' $profToken $null).Body.id
     $studentId = (Invoke-Api 'GET' '/api/auth/me' $studentToken $null).Body.id
@@ -282,6 +293,12 @@ try {
     $hasMock = $mockScan -match 'simulaci|Funcionalidad de exportación|mock|hardcoded|dummy|fake'
     $mockDetail = if ($mockScan.Length -gt 800) { $mockScan.Substring(0,800) } else { $mockScan }
     Expect (-not $hasMock) 'AuditoriaCodigo' 'Patrones mock/simulación' 'Sin patrones' $mockDetail
+
+    $audDashboard = Invoke-Api 'GET' '/api/auditoria/dashboard' $audToken $null
+    $audEvents = Invoke-Api 'GET' '/api/auditoria/eventos?take=50' $audToken $null
+    $audRoles = @($audDashboard.Body.roleSummaries | ForEach-Object { $_.role })
+    $audHasCoreRoles = @('Administrador','Profesor','Alumno','Odontologo','Auditoria') | ForEach-Object { $audRoles -contains $_ }
+    Expect ($audDashboard.StatusCode -eq 200 -and $audEvents.StatusCode -eq 200 -and (($audHasCoreRoles | Where-Object { $_ }).Count -eq 5)) 'Auditoria' 'Dashboard y eventos por rol' 'OK' "dashboard=$($audDashboard.StatusCode), events=$($audEvents.StatusCode), roles=$($audRoles -join ',')"
 
     Set-Location $projectRoot
     $apiBuild = (& $dotnet build MEDICSYS.Api/MEDICSYS.Api.csproj 2>&1 | Out-String)

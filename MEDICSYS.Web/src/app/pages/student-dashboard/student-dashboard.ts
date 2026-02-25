@@ -9,7 +9,6 @@ interface DashboardMetric {
   label: string;
   value: number | string;
   change: string;
-  trend: 'up' | 'down' | 'neutral';
   icon: string;
 }
 
@@ -59,28 +58,24 @@ export class StudentDashboardComponent implements OnInit {
         label: 'Borradores',
         value: this.draftCount(),
         change: 'Sin enviar',
-        trend: 'neutral' as const,
         icon: 'edit'
       },
       {
         label: 'En Revisión',
         value: this.submittedCount(),
         change: 'Esperando aprobación',
-        trend: 'neutral' as const,
         icon: 'clock'
       },
       {
         label: 'Aprobadas',
         value: this.approvedCount(),
         change: 'Total aprobadas',
-        trend: 'up' as const,
         icon: 'check'
       },
       {
         label: 'Citas Hoy',
         value: todayApptsCount,
         change: 'Programadas',
-        trend: 'neutral' as const,
         icon: 'calendar'
       }
     ];

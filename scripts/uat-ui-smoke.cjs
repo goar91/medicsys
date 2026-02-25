@@ -33,6 +33,13 @@ const cases = [
     email: 'odontologo@medicsys.com',
     password: 'Odontologo123!',
     expectedUrlIncludes: '/odontologo/dashboard'
+  },
+  {
+    roleName: 'Auditoria',
+    roleButtonRegex: /Auditor[ií]a/i,
+    email: 'auditoria@medicsys.com',
+    password: 'Auditoria123!',
+    expectedUrlIncludes: '/auditoria'
   }
 ];
 
@@ -86,6 +93,13 @@ async function loginAndValidate(browser, testCase) {
       result.details.push(historiesHeader ? 'Modulo Historias Clinicas OK' : 'Modulo Historias Clinicas no visible');
 
       roleSpecificOk = navHistory && navPatients && patientsHeader && historiesHeader;
+    }
+    else if (testCase.roleName === 'Auditoria') {
+      const heading = await page.getByRole('heading', { name: /Trazabilidad y Cumplimiento/i }).first().isVisible().catch(() => false);
+      const eventsHeading = await page.getByRole('heading', { name: /Eventos de auditor[ií]a/i }).first().isVisible().catch(() => false);
+      result.details.push(heading ? 'Dashboard Auditoria visible' : 'Dashboard Auditoria no visible');
+      result.details.push(eventsHeading ? 'Seccion de eventos visible' : 'Seccion de eventos no visible');
+      roleSpecificOk = heading && eventsHeading;
     }
 
     result.pass = urlOk && roleSpecificOk;

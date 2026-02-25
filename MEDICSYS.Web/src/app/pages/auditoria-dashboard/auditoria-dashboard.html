@@ -1,0 +1,146 @@
+<app-top-nav></app-top-nav>
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Rol Auditoría</p>
+      <h2>Trazabilidad y Cumplimiento</h2>
+      <p class="subtitle">Supervisión transversal de actividad por rol con enfoque LOPDP Ecuador.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" type="button" (click)="refreshAll()">Refrescar</button>
+    </div>
+  </header>
+
+  <div class="metrics-grid" *ngIf="dashboard() as d">
+    <article class="metric-card">
+      <p class="metric-label">Eventos auditados</p>
+      <p class="metric-value">{{ d.totalEvents }}</p>
+      <p class="metric-change">Últimos 30 días</p>
+    </article>
+    <article class="metric-card">
+      <p class="metric-label">Eventos fallidos</p>
+      <p class="metric-value danger">{{ d.failedEvents }}</p>
+      <p class="metric-change">Status HTTP 4xx/5xx</p>
+    </article>
+    <article class="metric-card">
+      <p class="metric-label">Intentos no autorizados</p>
+      <p class="metric-value warning">{{ d.unauthorizedAttempts }}</p>
+      <p class="metric-change">401 y 403</p>
+    </article>
+    <article class="metric-card">
+      <p class="metric-label">Accesos a datos sensibles</p>
+      <p class="metric-value">{{ d.sensitiveDataAccesses }}</p>
+      <p class="metric-change">Historias, pacientes, facturas, seguros</p>
+    </article>
+    <article class="metric-card">
+      <p class="metric-label">Actores únicos</p>
+      <p class="metric-value">{{ d.activeActors }}</p>
+      <p class="metric-change">Usuarios/IP con actividad</p>
+    </article>
+    <article class="metric-card">
+      <p class="metric-label">Retención de bitácora</p>
+      <p class="metric-value">{{ d.retentionMonths }}</p>
+      <p class="metric-change">Meses activos</p>
+    </article>
+  </div>
+
+  <div class="card split" *ngIf="dashboard() as d">
+    <section>
+      <h3>Actividad por rol</h3>
+      <div class="table-like">
+        <div class="row head">
+          <span>Rol</span>
+          <span>Total</span>
+          <span>Fallidos</span>
+          <span>Sensibles</span>
+          <span>Última actividad</span>
+        </div>
+        <div class="row" *ngFor="let item of d.roleSummaries">
+          <span>{{ item.role }}</span>
+          <span>{{ item.totalEvents }}</span>
+          <span>{{ item.failedEvents }}</span>
+          <span>{{ item.sensitiveDataAccesses }}</span>
+          <span>{{ item.lastActivityAt ? (item.lastActivityAt | date:'short') : '-' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>Controles normativos</h3>
+      <ul class="plain-list">
+        <li *ngFor="let ref of d.legalReferences">{{ ref }}</li>
+      </ul>
+
+      <h3>Alertas de riesgo</h3>
+      <div class="empty" *ngIf="d.riskAlerts.length === 0">Sin alertas de riesgo activas.</div>
+      <ul class="plain-list alerts" *ngIf="d.riskAlerts.length > 0">
+        <li *ngFor="let alert of d.riskAlerts">{{ alert }}</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <label class="control">
+        Rol
+        <select class="input" [formControl]="roleFilter">
+          <option value="">Todos</option>
+          <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+        </select>
+      </label>
+      <label class="control">
+        Módulo
+        <select class="input" [formControl]="moduleFilter">
+          <option value="">Todos</option>
+          <option *ngFor="let module of availableModules" [value]="module">{{ module }}</option>
+        </select>
+      </label>
+      <label class="control">
+        Status desde
+        <input class="input" type="number" min="100" max="599" [formControl]="statusFromFilter" />
+      </label>
+      <label class="control search">
+        Buscar
+        <input class="input" type="text" placeholder="Path, email, identificador" [formControl]="searchFilter" />
+      </label>
+      <div class="actions">
+        <button class="btn btn-outline" type="button" (click)="clearFilters()">Limpiar</button>
+        <button class="btn btn-primary" type="button" (click)="applyFilters()">Aplicar</button>
+      </div>
+    </div>
+
+    <div class="events-header">
+      <h3>Eventos de auditoría</h3>
+      <span>{{ totalEvents() }} registros</span>
+    </div>
+
+    <div class="empty" *ngIf="loadingEvents()">Cargando eventos...</div>
+    <div class="empty" *ngIf="!loadingEvents() && events().length === 0">No se encontraron eventos para los filtros seleccionados.</div>
+
+    <div class="table-like" *ngIf="!loadingEvents() && events().length > 0">
+      <div class="row head">
+        <span>Fecha</span>
+        <span>Rol</span>
+        <span>Módulo</span>
+        <span>Acción</span>
+        <span>Status</span>
+        <span>Ruta</span>
+      </div>
+      <div class="row" *ngFor="let item of events()">
+        <span>{{ item.occurredAt | date:'short' }}</span>
+        <span>{{ item.actorRole }}</span>
+        <span>{{ item.module }}</span>
+        <span>{{ item.method }} / {{ item.eventType }}</span>
+        <span [class.danger]="item.statusCode >= 400">{{ item.statusCode }}</span>
+        <span class="path">{{ item.path }}</span>
+      </div>
+    </div>
+
+    <div class="pager">
+      <button class="btn btn-outline" type="button" (click)="prevPage()" [disabled]="skip() === 0">Anterior</button>
+      <span>Página {{ (skip() / take) + 1 }}</span>
+      <button class="btn btn-outline" type="button" (click)="nextPage()" [disabled]="skip() + take >= totalEvents()">Siguiente</button>
+    </div>
+  </div>
+</section>

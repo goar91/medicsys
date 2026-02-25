@@ -39,56 +39,34 @@
     </div>
   </div>
 
-  <div class="card list-card" *ngIf="!showPatients()">
-    <h3>Módulos Institucionales</h3>
-    <p class="subtitle">Monitoreo de acreditación CACES, cumplimiento LOPDP y analítica de riesgo académico.</p>
-    <div class="metrics-grid">
-      <div class="metric-card" *ngFor="let metric of enterpriseMetrics()">
-        <div class="metric-label">{{ metric.label }}</div>
-        <div class="metric-value">{{ metric.value }}</div>
-        <div class="metric-change">{{ metric.subtitle }}</div>
-      </div>
-    </div>
-    <div class="dashboard-grid">
-      <div class="card">
-        <h3>CACES - Criterios en riesgo</h3>
-        <div class="empty" *ngIf="(cacesDashboard()?.atRiskCriteria?.length ?? 0) === 0">Sin criterios en riesgo.</div>
-        <div class="mini-list" *ngIf="(cacesDashboard()?.atRiskCriteria?.length ?? 0) > 0">
-          <div class="mini-item" *ngFor="let item of cacesDashboard()?.atRiskCriteria">
-            <span>{{ item.code }} - {{ item.name }}</span>
-            <strong>{{ item.currentValue | number:'1.0-2' }}/{{ item.targetValue | number:'1.0-2' }}</strong>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>LOPDP - Auditoría reciente</h3>
-        <div class="empty" *ngIf="(complianceDashboard()?.recentAuditEvents?.length ?? 0) === 0">Sin eventos recientes.</div>
-        <div class="mini-list" *ngIf="(complianceDashboard()?.recentAuditEvents?.length ?? 0) > 0">
-          <div class="mini-item" *ngFor="let item of complianceDashboard()?.recentAuditEvents | slice:0:8">
-            <span>{{ item.method }} {{ item.path }}</span>
-            <strong>{{ item.statusCode }}</strong>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Riesgo de deserción</h3>
-        <div class="empty" *ngIf="(analyticsDashboard()?.topRiskStudents?.length ?? 0) === 0">Sin estudiantes con riesgo.</div>
-        <div class="mini-list" *ngIf="(analyticsDashboard()?.topRiskStudents?.length ?? 0) > 0">
-          <div class="mini-item" *ngFor="let student of analyticsDashboard()?.topRiskStudents | slice:0:8">
-            <span>{{ student.studentName }} ({{ student.cohort }})</span>
-            <strong>{{ student.riskLevel }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="filters" *ngIf="!showPatients()">
     <button class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">Todas</button>
     <button class="chip" [class.active]="filter() === 'Submitted'" (click)="setFilter('Submitted')">Pendientes</button>
     <button class="chip" [class.active]="filter() === 'Approved'" (click)="setFilter('Approved')">Aprobadas</button>
     <button class="chip" [class.active]="filter() === 'Rejected'" (click)="setFilter('Rejected')">Rechazadas</button>
     <button class="chip" [class.active]="filter() === 'Draft'" (click)="setFilter('Draft')">Borrador</button>
+  </div>
+
+  <div class="card list-card" *ngIf="!showPatients()">
+    <div class="patients-header">
+      <h3>Bandeja inteligente de revisión</h3>
+      <span class="muted">{{ priorityQueue().length }} casos priorizados</span>
+    </div>
+    <div class="empty" *ngIf="priorityQueue().length === 0">No hay historias pendientes para revisar.</div>
+    <div class="history-list" *ngIf="priorityQueue().length > 0">
+      <article class="history-item" *ngFor="let item of priorityQueue() | slice:0:8">
+        <div class="item-info">
+          <h4>{{ item.patientName }}</h4>
+          <p>Alumno: {{ item.studentName }}</p>
+          <p>Espera: {{ item.hoursWaiting | number:'1.0-1' }} h</p>
+          <p>Puntaje de prioridad: {{ item.priorityScore | number:'1.0-2' }}</p>
+        </div>
+        <div class="item-actions smart-actions">
+          <span class="status" [attr.data-status]="item.slaStatus">{{ slaLabel(item.slaStatus) }}</span>
+          <a class="btn btn-outline" [routerLink]="['/professor/histories', item.historyId]">Revisar</a>
+        </div>
+      </article>
+    </div>
   </div>
 
   <div class="card batch-card" *ngIf="!showPatients()">
@@ -185,6 +163,10 @@
           <span class="status" [attr.data-status]="history.status">{{ history.status }}</span>
           <h4>{{ history.patientName }} <small>({{ history.patientIdNumber || 'Sin cédula' }})</small></h4>
           <p>Alumno: {{ history.studentName }}</p>
+          <p *ngIf="history.status === 'Submitted' && prioritizedReviewMap().has(history.id)">
+            Prioridad: {{ prioritizedReviewMap().get(history.id)?.priorityScore | number:'1.0-2' }} |
+            SLA: {{ slaLabel($any(prioritizedReviewMap().get(history.id)?.slaStatus)) }}
+          </p>
           <p>Actualizada: {{ history.updatedAt | date: 'medium' }}</p>
           <p *ngIf="history.grade != null">Calificación: {{ history.grade | number:'1.0-2' }}/10</p>
           <p *ngIf="history.professorComments">Observación: {{ history.professorComments }}</p>

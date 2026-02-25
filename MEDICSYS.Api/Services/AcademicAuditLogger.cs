@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MEDICSYS.Api.Data;
 using MEDICSYS.Api.Models.Academico;
@@ -20,12 +21,20 @@ public class AcademicAuditLogger
     {
         try
         {
-            if (!context.Request.Path.StartsWithSegments("/api/academic", StringComparison.OrdinalIgnoreCase))
+            if (!context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
-            if (context.Request.Path.StartsWithSegments("/api/academic/compliance/audit-events", StringComparison.OrdinalIgnoreCase))
+            if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) ||
+                context.Request.Path.StartsWithSegments("/api/health", StringComparison.OrdinalIgnoreCase) ||
+                context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase) ||
+                context.Request.Path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (HttpMethods.IsOptions(context.Request.Method))
             {
                 return;
             }
@@ -49,7 +58,7 @@ public class AcademicAuditLogger
                 ? subjectIdValue.ToString()
                 : null;
 
-            var eventType = ResolveEventType(context.Request.Method, context.Request.Path);
+            var eventType = ResolveEventType(context.Request.Method, context.Request.Path, context.Response.StatusCode);
 
             _db.AcademicDataAuditEvents.Add(new AcademicDataAuditEvent
             {
@@ -64,7 +73,7 @@ public class AcademicAuditLogger
                 SubjectType = string.IsNullOrWhiteSpace(subjectType) ? null : subjectType.Trim(),
                 SubjectIdentifier = string.IsNullOrWhiteSpace(subjectIdentifier) ? null : subjectIdentifier.Trim(),
                 Reason = context.Request.Query.TryGetValue("reason", out var reason) ? reason.ToString() : null,
-                IpAddress = context.Connection.RemoteIpAddress?.ToString(),
+                IpAddress = MaskIpAddress(context.Connection.RemoteIpAddress?.ToString()),
                 OccurredAt = DateTimeHelper.Now()
             });
 
@@ -76,16 +85,23 @@ public class AcademicAuditLogger
         }
     }
 
-    private static DataAuditEventType ResolveEventType(string method, PathString path)
+    private static DataAuditEventType ResolveEventType(string method, PathString path, int statusCode)
     {
-        if (path.Value?.Contains("/export", StringComparison.OrdinalIgnoreCase) == true)
+        var pathValue = path.Value ?? string.Empty;
+
+        if (pathValue.Contains("/auth/login", StringComparison.OrdinalIgnoreCase))
+        {
+            return DataAuditEventType.Login;
+        }
+
+        if (pathValue.Contains("/export", StringComparison.OrdinalIgnoreCase))
         {
             return DataAuditEventType.Export;
         }
 
-        if (path.Value?.Contains("/login", StringComparison.OrdinalIgnoreCase) == true)
+        if (statusCode == StatusCodes.Status401Unauthorized || statusCode == StatusCodes.Status403Forbidden)
         {
-            return DataAuditEventType.Login;
+            return DataAuditEventType.Other;
         }
 
         return method.ToUpperInvariant() switch
@@ -96,5 +112,34 @@ public class AcademicAuditLogger
             "DELETE" => DataAuditEventType.Delete,
             _ => DataAuditEventType.Other
         };
+    }
+
+    private static string? MaskIpAddress(string? ipAddress)
+    {
+        if (string.IsNullOrWhiteSpace(ipAddress))
+        {
+            return null;
+        }
+
+        if (ipAddress.Contains('.'))
+        {
+            var parts = ipAddress.Split('.');
+            if (parts.Length == 4)
+            {
+                parts[3] = "xxx";
+                return string.Join('.', parts);
+            }
+        }
+
+        if (ipAddress.Contains(':'))
+        {
+            var parts = ipAddress.Split(':');
+            if (parts.Length > 2)
+            {
+                return string.Join(':', parts.Take(Math.Min(4, parts.Length))) + ":xxxx";
+            }
+        }
+
+        return ipAddress;
     }
 }

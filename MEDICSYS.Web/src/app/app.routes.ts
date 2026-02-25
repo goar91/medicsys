@@ -17,6 +17,7 @@ import { OdontologoFacturaDetalleComponent } from './pages/odontologo/odontologo
 import { OdontologoContabilidadComponent } from './pages/odontologo/odontologo-contabilidad/odontologo-contabilidad';
 import { OdontologoInventarioComponent } from './pages/odontologo/odontologo-inventario/odontologo-inventario';
 import { ProfessorPatientsFormComponent } from './pages/professor-patients-form/professor-patients-form';
+import { AuditoriaDashboardComponent } from './pages/auditoria-dashboard/auditoria-dashboard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -219,6 +220,12 @@ export const routes: Routes = [
     component: ClinicalHistoryReviewComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['Profesor', 'Administrador'] }
+  },
+  {
+    path: 'auditoria',
+    component: AuditoriaDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Auditoria', 'Administrador'] }
   },
   { path: '**', redirectTo: 'login' }
 ];

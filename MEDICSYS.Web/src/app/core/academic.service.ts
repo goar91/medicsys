@@ -94,6 +94,19 @@ export interface StudentProgress {
   progressPercent: number;
 }
 
+export interface ProfessorPrioritizedReview {
+  historyId: string;
+  studentId: string;
+  studentName: string;
+  patientName: string;
+  submittedAt: string;
+  hoursWaiting: number;
+  recentRejectedCount: number;
+  riskLevel: string;
+  slaStatus: 'Normal' | 'EnRiesgo' | 'Critico';
+  priorityScore: number;
+}
+
 export interface ProfessorClinicalDashboard {
   pendingReviews: number;
   totalReviewed: number;
@@ -104,6 +117,7 @@ export interface ProfessorClinicalDashboard {
   errorsByStudent: ProfessorErrorByStudent[];
   errorsByGroup: ProfessorErrorByGroup[];
   studentProgress: StudentProgress[];
+  prioritizedReviews: ProfessorPrioritizedReview[];
 }
 
 export interface AcademicCommentTemplate {
@@ -318,6 +332,61 @@ export interface IntegrationTestResult {
   message?: string | null;
   processedAt: string;
   syncStatus: string;
+}
+
+export interface AuditoriaRoleSummary {
+  role: string;
+  totalEvents: number;
+  failedEvents: number;
+  sensitiveDataAccesses: number;
+  lastActivityAt?: string | null;
+}
+
+export interface AuditoriaModuleSummary {
+  module: string;
+  totalEvents: number;
+  failedEvents: number;
+  sensitiveDataAccesses: number;
+}
+
+export interface AuditoriaDashboard {
+  from: string;
+  to: string;
+  totalEvents: number;
+  failedEvents: number;
+  unauthorizedAttempts: number;
+  sensitiveDataAccesses: number;
+  activeActors: number;
+  retentionMonths: number;
+  roleSummaries: AuditoriaRoleSummary[];
+  moduleSummaries: AuditoriaModuleSummary[];
+  riskAlerts: string[];
+  legalReferences: string[];
+}
+
+export interface AuditoriaEvent {
+  id: string;
+  occurredAt: string;
+  module: string;
+  eventType: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  actorRole: string;
+  actorEmail?: string | null;
+  subjectType?: string | null;
+  subjectIdentifier?: string | null;
+  ipAddress?: string | null;
+  isSensitiveAccess: boolean;
+}
+
+export interface AuditoriaEventsPage {
+  from: string;
+  to: string;
+  total: number;
+  skip: number;
+  take: number;
+  items: AuditoriaEvent[];
 }
 
 @Injectable({
@@ -662,5 +731,27 @@ export class AcademicService {
 
   syncIntegration(id: string): Observable<IntegrationTestResult> {
     return this.http.post<IntegrationTestResult>(`${this.baseUrl}/integrations/${id}/sync`, {});
+  }
+
+  getAuditoriaDashboard(days = 30): Observable<AuditoriaDashboard> {
+    return this.http.get<AuditoriaDashboard>(`${API_BASE_URL}/auditoria/dashboard`, { params: { days } as any });
+  }
+
+  getAuditoriaEventos(params?: {
+    days?: number;
+    from?: string;
+    to?: string;
+    role?: string;
+    module?: string;
+    method?: string;
+    eventType?: string;
+    statusCodeFrom?: number;
+    statusCodeTo?: number;
+    search?: string;
+    skip?: number;
+    take?: number;
+    includePersonalData?: boolean;
+  }): Observable<AuditoriaEventsPage> {
+    return this.http.get<AuditoriaEventsPage>(`${API_BASE_URL}/auditoria/eventos`, { params: params as any });
   }
 }

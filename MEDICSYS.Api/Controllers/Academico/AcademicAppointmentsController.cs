@@ -16,10 +16,12 @@ namespace MEDICSYS.Api.Controllers.Academico;
 public class AcademicAppointmentsController : ControllerBase
 {
     private readonly AcademicDbContext _db;
+    private readonly AcademicScopeService _scope;
 
-    public AcademicAppointmentsController(AcademicDbContext db)
+    public AcademicAppointmentsController(AcademicDbContext db, AcademicScopeService scope)
     {
         _db = db;
+        _scope = scope;
     }
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -33,17 +35,37 @@ public class AcademicAppointmentsController : ControllerBase
         [FromQuery] string? status)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
 
         var query = _db.AcademicAppointments
             .Include(a => a.Student)
             .Include(a => a.Professor)
             .AsNoTracking();
 
-        // Profesor ve todas las citas, Alumno solo las suyas
-        if (!isProfessor)
+        if (!isProfessor && !isAdmin)
         {
             query = query.Where(a => a.StudentId == userId);
+        }
+        else if (isProfessor && !isAdmin)
+        {
+            if (professorId.HasValue && professorId.Value != userId)
+            {
+                return Forbid();
+            }
+
+            var supervisedStudentIds = (await _scope.GetSupervisedStudentIdsAsync(userId)).ToList();
+            if (studentId.HasValue && !supervisedStudentIds.Contains(studentId.Value))
+            {
+                return Forbid();
+            }
+
+            if (supervisedStudentIds.Count == 0)
+            {
+                return Ok(Array.Empty<AcademicAppointmentDto>());
+            }
+
+            query = query.Where(a => a.ProfessorId == userId && supervisedStudentIds.Contains(a.StudentId));
         }
         else
         {
@@ -80,10 +102,11 @@ public class AcademicAppointmentsController : ControllerBase
     public async Task<ActionResult<AcademicAppointmentDto>> Create([FromBody] CreateAcademicAppointmentRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
         var isStudent = User.IsInRole(Roles.Student);
 
-        if (!isProfessor && !isStudent)
+        if (!isProfessor && !isStudent && !isAdmin)
         {
             return Forbid();
         }
@@ -106,7 +129,7 @@ public class AcademicAppointmentsController : ControllerBase
         Guid studentId;
         Guid professorId;
 
-        if (isProfessor)
+        if (isProfessor && !isAdmin)
         {
             professorId = userId;
             if (!request.StudentId.HasValue || request.StudentId == Guid.Empty)
@@ -114,6 +137,22 @@ public class AcademicAppointmentsController : ControllerBase
                 return BadRequest(new { message = "Debe seleccionar un alumno." });
             }
             studentId = request.StudentId.Value;
+
+            if (!await _scope.ProfessorSupervisesStudentAsync(professorId, studentId))
+            {
+                return BadRequest(new { message = "El alumno no está asignado al profesor." });
+            }
+        }
+        else if (isAdmin)
+        {
+            if (!request.StudentId.HasValue || request.StudentId == Guid.Empty ||
+                !request.ProfessorId.HasValue || request.ProfessorId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Debe seleccionar profesor y alumno." });
+            }
+
+            studentId = request.StudentId.Value;
+            professorId = request.ProfessorId.Value;
         }
         else
         {
@@ -123,6 +162,11 @@ public class AcademicAppointmentsController : ControllerBase
                 return BadRequest(new { message = "Debe seleccionar un profesor." });
             }
             professorId = request.ProfessorId.Value;
+
+            if (!await _scope.ProfessorSupervisesStudentAsync(professorId, studentId))
+            {
+                return BadRequest(new { message = "No existe asignación activa con ese profesor." });
+            }
         }
 
         var student = await _db.Users.FindAsync(studentId);
@@ -144,7 +188,7 @@ public class AcademicAppointmentsController : ControllerBase
             StartAt = request.StartAt,
             EndAt = request.EndAt,
             Notes = request.Notes,
-            Status = isProfessor ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
+            Status = (isProfessor || isAdmin) ? (request.Status ?? AppointmentStatus.Pending) : AppointmentStatus.Pending,
             CreatedAt = DateTimeHelper.Now(),
             UpdatedAt = DateTimeHelper.Now()
         };
@@ -165,7 +209,8 @@ public class AcademicAppointmentsController : ControllerBase
     public async Task<ActionResult<AcademicAppointmentDto>> Update(Guid id, [FromBody] UpdateAcademicAppointmentRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
 
         var appointment = await _db.AcademicAppointments
             .Include(a => a.Student)
@@ -175,10 +220,13 @@ public class AcademicAppointmentsController : ControllerBase
         if (appointment == null)
             return NotFound();
 
-        if (!isProfessor && appointment.StudentId != userId)
+        if (!isProfessor && !isAdmin && appointment.StudentId != userId)
             return Forbid();
 
-        if (!isProfessor && appointment.Status != AppointmentStatus.Pending)
+        if (isProfessor && !isAdmin && appointment.ProfessorId != userId)
+            return Forbid();
+
+        if (!isProfessor && !isAdmin && appointment.Status != AppointmentStatus.Pending)
         {
             return BadRequest(new { message = "Solo puedes modificar citas pendientes." });
         }
@@ -198,7 +246,7 @@ public class AcademicAppointmentsController : ControllerBase
             appointment.Notes = request.Notes;
         }
 
-        if (request.Status.HasValue && isProfessor)
+        if (request.Status.HasValue && (isProfessor || isAdmin))
         {
             appointment.Status = request.Status.Value;
         }
@@ -213,6 +261,9 @@ public class AcademicAppointmentsController : ControllerBase
     [Authorize(Roles = $"{Roles.Professor},{Roles.Admin}")]
     public async Task<ActionResult<AcademicAppointmentDto>> Review(Guid id, [FromBody] ReviewAcademicAppointmentRequest request)
     {
+        var userId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
+
         var appointment = await _db.AcademicAppointments
             .Include(a => a.Student)
             .Include(a => a.Professor)
@@ -221,6 +272,11 @@ public class AcademicAppointmentsController : ControllerBase
         if (appointment == null)
         {
             return NotFound();
+        }
+
+        if (!isAdmin && appointment.ProfessorId != userId)
+        {
+            return Forbid();
         }
 
         appointment.Status = request.Approved ? AppointmentStatus.Confirmed : AppointmentStatus.Cancelled;
@@ -238,15 +294,22 @@ public class AcademicAppointmentsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var userId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
 
-        if (!isProfessor)
+        if (!isProfessor && !isAdmin)
             return Forbid();
 
         var appointment = await _db.AcademicAppointments.FindAsync(id);
 
         if (appointment == null)
             return NotFound();
+
+        if (!isAdmin && appointment.ProfessorId != userId)
+        {
+            return Forbid();
+        }
 
         _db.AcademicAppointments.Remove(appointment);
         await _db.SaveChangesAsync();

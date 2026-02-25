@@ -1,0 +1,55 @@
+{
+  "timestampUtc": "2026-02-25T01:23:46.314Z",
+  "baseUrl": "http://localhost:4200",
+  "passed": 5,
+  "failed": 0,
+  "total": 5,
+  "results": [
+    {
+      "role": "Admin",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/professor"
+      ],
+      "finalUrl": "http://localhost:4200/professor"
+    },
+    {
+      "role": "Profesor",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/professor",
+        "Nav profesor: link Historias Clinicas visible",
+        "Nav profesor: link Pacientes visible",
+        "Modulo Pacientes OK",
+        "Modulo Historias Clinicas OK"
+      ],
+      "finalUrl": "http://localhost:4200/professor"
+    },
+    {
+      "role": "Estudiante",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/student"
+      ],
+      "finalUrl": "http://localhost:4200/student"
+    },
+    {
+      "role": "Odontologo",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/odontologo/dashboard"
+      ],
+      "finalUrl": "http://localhost:4200/odontologo/dashboard"
+    },
+    {
+      "role": "Auditoria",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/auditoria",
+        "Dashboard Auditoria visible",
+        "Seccion de eventos visible"
+      ],
+      "finalUrl": "http://localhost:4200/auditoria"
+    }
+  ]
+}

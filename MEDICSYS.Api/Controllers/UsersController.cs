@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using MEDICSYS.Api.Models;
 using MEDICSYS.Api.Security;
+using MEDICSYS.Api.Services;
 
 namespace MEDICSYS.Api.Controllers;
 
@@ -13,23 +15,51 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+    private readonly AcademicScopeService _scope;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole<Guid>> roleManager)
+        RoleManager<IdentityRole<Guid>> roleManager,
+        AcademicScopeService scope)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _scope = scope;
     }
 
     [Authorize(Roles = Roles.Professor + "," + Roles.Odontologo + "," + Roles.Admin)]
     [HttpGet("students")]
     public async Task<ActionResult<IEnumerable<UserSummaryDto>>> GetStudents()
     {
-        var users = _userManager.Users.ToList();
+        var actorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isProfessor = User.IsInRole(Roles.Professor);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isOdontologo = User.IsInRole(Roles.Odontologo);
+        var users = await _userManager.Users.ToListAsync();
         var result = new List<UserSummaryDto>();
+
+        HashSet<Guid>? supervisedIds = null;
+        if (isProfessor && !isAdmin && !isOdontologo)
+        {
+            if (!Guid.TryParse(actorId, out var professorId))
+            {
+                return Unauthorized();
+            }
+
+            supervisedIds = await _scope.GetSupervisedStudentIdsAsync(professorId);
+            if (supervisedIds.Count == 0)
+            {
+                return Ok(Array.Empty<UserSummaryDto>());
+            }
+        }
+
         foreach (var user in users)
         {
+            if (supervisedIds is not null && !supervisedIds.Contains(user.Id))
+            {
+                continue;
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
             if (roles.Contains(Roles.Student))
             {

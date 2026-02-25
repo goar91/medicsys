@@ -16,16 +16,20 @@ namespace MEDICSYS.Api.Controllers.Academico;
 public class AcademicAnalyticsController : ControllerBase
 {
     private readonly AcademicDbContext _db;
+    private readonly AcademicScopeService _scope;
 
-    public AcademicAnalyticsController(AcademicDbContext db)
+    public AcademicAnalyticsController(AcademicDbContext db, AcademicScopeService scope)
     {
         _db = db;
+        _scope = scope;
     }
 
     [HttpGet("dashboard")]
     public async Task<ActionResult<AcademicAnalyticsDashboardDto>> GetDashboard()
     {
-        var profiles = await BuildRiskProfilesAsync();
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var profiles = await BuildRiskProfilesAsync(
+            isAdmin ? null : await _scope.GetSupervisedStudentIdsAsync(GetUserId()));
         var historyStats = await _db.AcademicClinicalHistories
             .AsNoTracking()
             .GroupBy(_ => 1)
@@ -113,16 +117,26 @@ public class AcademicAnalyticsController : ControllerBase
     [HttpGet("dropout-risk")]
     public async Task<ActionResult<IEnumerable<StudentRiskProfileDto>>> GetDropoutRiskProfiles()
     {
-        var profiles = await BuildRiskProfilesAsync();
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var profiles = await BuildRiskProfilesAsync(
+            isAdmin ? null : await _scope.GetSupervisedStudentIdsAsync(GetUserId()));
         return Ok(profiles.OrderByDescending(p => p.RiskScore));
     }
 
     [HttpPost("risk-flags")]
     public async Task<ActionResult<RiskFlagDto>> CreateRiskFlag([FromBody] CreateRiskFlagRequest request)
     {
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var actorId = GetUserId();
+
         if (request.StudentId == Guid.Empty || string.IsNullOrWhiteSpace(request.Notes))
         {
             return BadRequest(new { message = "StudentId y Notes son obligatorios." });
+        }
+
+        if (!isAdmin && !await _scope.ProfessorSupervisesStudentAsync(actorId, request.StudentId))
+        {
+            return Forbid();
         }
 
         var studentExists = await _db.Users.AnyAsync(u => u.Id == request.StudentId);
@@ -138,7 +152,7 @@ public class AcademicAnalyticsController : ControllerBase
             RiskLevel = request.RiskLevel,
             Notes = request.Notes.Trim(),
             IsResolved = false,
-            CreatedByUserId = GetUserId(),
+            CreatedByUserId = actorId,
             CreatedAt = DateTimeHelper.Now()
         };
 
@@ -151,10 +165,18 @@ public class AcademicAnalyticsController : ControllerBase
     [HttpPut("risk-flags/{id:guid}/resolve")]
     public async Task<ActionResult<RiskFlagDto>> ResolveRiskFlag(Guid id, [FromBody] ResolveRiskFlagRequest request)
     {
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var actorId = GetUserId();
+
         var item = await _db.AcademicStudentRiskFlags.FirstOrDefaultAsync(f => f.Id == id);
         if (item == null)
         {
             return NotFound();
+        }
+
+        if (!isAdmin && !await _scope.ProfessorSupervisesStudentAsync(actorId, item.StudentId))
+        {
+            return Forbid();
         }
 
         if (item.IsResolved)
@@ -164,7 +186,7 @@ public class AcademicAnalyticsController : ControllerBase
 
         item.IsResolved = true;
         item.ResolvedAt = DateTimeHelper.Now();
-        item.ResolvedByUserId = GetUserId();
+        item.ResolvedByUserId = actorId;
         if (!string.IsNullOrWhiteSpace(request.ResolutionNotes))
         {
             item.Notes = $"{item.Notes}\nResuelto: {request.ResolutionNotes.Trim()}".Trim();
@@ -174,7 +196,7 @@ public class AcademicAnalyticsController : ControllerBase
         return Ok(MapRiskFlag(item));
     }
 
-    private async Task<List<StudentRiskProfileDto>> BuildRiskProfilesAsync()
+    private async Task<List<StudentRiskProfileDto>> BuildRiskProfilesAsync(IReadOnlyCollection<Guid>? allowedStudentIds = null)
     {
         var studentIds = await (
             from userRole in _db.UserRoles.AsNoTracking()
@@ -183,6 +205,12 @@ public class AcademicAnalyticsController : ControllerBase
             select userRole.UserId)
             .Distinct()
             .ToListAsync();
+
+        if (allowedStudentIds is not null)
+        {
+            var allowedSet = allowedStudentIds.ToHashSet();
+            studentIds = studentIds.Where(id => allowedSet.Contains(id)).ToList();
+        }
 
         if (studentIds.Count == 0)
         {

@@ -54,6 +54,7 @@ public static class AcademicSeedData
         // se gestionan únicamente desde la base de datos.
         // No se precargan datos ficticios desde el seed.
 
+        await SeedSupervisionAssignmentsAsync(db, profesor.Id, students);
         await SeedCacesCriteriaAsync(db, profesor.Id);
         await SeedRetentionPoliciesAsync(db, profesor.Id);
 
@@ -164,6 +165,50 @@ public static class AcademicSeedData
         };
 
         db.AcademicDataRetentionPolicies.AddRange(policies);
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedSupervisionAssignmentsAsync(
+        AcademicDbContext db,
+        Guid professorId,
+        IReadOnlyCollection<ApplicationUser> students)
+    {
+        var studentIds = students.Select(s => s.Id).Where(id => id != Guid.Empty).Distinct().ToList();
+        if (studentIds.Count == 0)
+        {
+            return;
+        }
+
+        var existingStudentIds = await db.AcademicSupervisionAssignments
+            .AsNoTracking()
+            .Where(a => a.IsActive && a.ProfessorId == professorId && studentIds.Contains(a.StudentId))
+            .Select(a => a.StudentId)
+            .Distinct()
+            .ToListAsync();
+
+        var now = DateTimeHelper.Now();
+        var newAssignments = studentIds
+            .Where(studentId => !existingStudentIds.Contains(studentId))
+            .Select(studentId => new AcademicSupervisionAssignment
+            {
+                Id = Guid.NewGuid(),
+                ProfessorId = professorId,
+                StudentId = studentId,
+                PatientId = null,
+                AssignedByUserId = professorId,
+                IsActive = true,
+                Notes = "Asignación académica inicial",
+                AssignedAt = now,
+                UpdatedAt = now
+            })
+            .ToList();
+
+        if (newAssignments.Count == 0)
+        {
+            return;
+        }
+
+        db.AcademicSupervisionAssignments.AddRange(newAssignments);
         await db.SaveChangesAsync();
     }
 }

@@ -1,0 +1,45 @@
+{
+  "timestampUtc": "2026-02-23T03:40:26.129Z",
+  "baseUrl": "http://localhost:4200",
+  "passed": 3,
+  "failed": 1,
+  "total": 4,
+  "results": [
+    {
+      "role": "Admin",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/professor"
+      ],
+      "finalUrl": "http://localhost:4200/professor"
+    },
+    {
+      "role": "Profesor",
+      "pass": false,
+      "details": [
+        "URL OK: http://localhost:4200/professor",
+        "Nav profesor: link Historias Clinicas visible",
+        "Nav profesor: link Pacientes visible",
+        "Modulo Pacientes no visible",
+        "Modulo Historias Clinicas no visible"
+      ],
+      "finalUrl": "http://localhost:4200/professor"
+    },
+    {
+      "role": "Estudiante",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/student"
+      ],
+      "finalUrl": "http://localhost:4200/student"
+    },
+    {
+      "role": "Odontologo",
+      "pass": true,
+      "details": [
+        "URL OK: http://localhost:4200/odontologo/dashboard"
+      ],
+      "finalUrl": "http://localhost:4200/odontologo/dashboard"
+    }
+  ]
+}

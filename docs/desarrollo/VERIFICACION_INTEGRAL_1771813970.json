@@ -1,0 +1,218 @@
+{
+    "TimestampUtc":  "2026-02-23T02:33:26.6916574Z",
+    "Passed":  32,
+    "Failed":  3,
+    "Total":  35,
+    "Results":  [
+                    {
+                        "Layer":  "Infra",
+                        "Test":  "Bases locales",
+                        "Pass":  true,
+                        "Details":  "medicsys, medicsys_academico, medicsys_odontologia"
+                    },
+                    {
+                        "Layer":  "Infra",
+                        "Test":  "Health API",
+                        "Pass":  true,
+                        "Details":  "API OK"
+                    },
+                    {
+                        "Layer":  "Infra",
+                        "Test":  "Migraciones AppDbContext",
+                        "Pass":  false,
+                        "Details":  "PendingModelChangesWarning detectado"
+                    },
+                    {
+                        "Layer":  "Infra",
+                        "Test":  "Migraciones Odontologia",
+                        "Pass":  true,
+                        "Details":  "Al día"
+                    },
+                    {
+                        "Layer":  "Infra",
+                        "Test":  "Migraciones Academico",
+                        "Pass":  true,
+                        "Details":  "Al día"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Login admin",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Login profesor",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Login alumno",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Login odontologo",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Registro alumno",
+                        "Pass":  true,
+                        "Details":  "audit.student.1771813970@medicsys.com"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Admin registra profesor",
+                        "Pass":  true,
+                        "Details":  "audit.prof.1771813970@medicsys.com"
+                    },
+                    {
+                        "Layer":  "Auth",
+                        "Test":  "Profesor bloqueado al registrar profesor",
+                        "Pass":  true,
+                        "Details":  "403 esperado"
+                    },
+                    {
+                        "Layer":  "Usuarios",
+                        "Test":  "Listados usuarios",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Usuarios",
+                        "Test":  "CRUD admin usuarios",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "AppDB",
+                        "Test":  "Pacientes app",
+                        "Pass":  true,
+                        "Details":  "PatientId=07534cdd-24ab-4a1f-8748-985e2cc7dc9d"
+                    },
+                    {
+                        "Layer":  "AppDB",
+                        "Test":  "Agenda y recordatorios",
+                        "Pass":  true,
+                        "Details":  "Appointment=da947d81-66e2-4cd1-b75f-2c1a4d4d34dc reminders=4"
+                    },
+                    {
+                        "Layer":  "AppDB",
+                        "Test":  "Historia clínica app",
+                        "Pass":  true,
+                        "Details":  "History=640bdb60-4b62-40a4-8243-d63a8fd09228 status=Approved"
+                    },
+                    {
+                        "Layer":  "Academico",
+                        "Test":  "Paciente académico",
+                        "Pass":  true,
+                        "Details":  "AcademicPatient=a6055bec-3e9d-418f-a125-cd7dc35d57d1"
+                    },
+                    {
+                        "Layer":  "Academico",
+                        "Test":  "Cita académica y recordatorios",
+                        "Pass":  true,
+                        "Details":  "Appointment=cfd93b97-c72f-49bc-8910-2a6ec6fd22d3 reminders=2"
+                    },
+                    {
+                        "Layer":  "Academico",
+                        "Test":  "Historia académica + batch + dashboard",
+                        "Pass":  true,
+                        "Details":  "History=85542cf5-72ff-40f3-818f-53787109f8d2 templateUsage=1"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Pacientes y citas odonto",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Inventario y kardex",
+                        "Pass":  true,
+                        "Details":  "Item=7031d24d-038d-4e1f-91e7-d29dc7b0ee81 qty=20 mov=3"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Compras + gastos + asientos",
+                        "Pass":  true,
+                        "Details":  "purchase=827a745e-b6a7-4933-8621-f94acded17fb expense=dca0fa75-9886-47f2-b2ea-8cae2158265b"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Factura + ownership",
+                        "Pass":  true,
+                        "Details":  "Invoice=9a9c2368-858c-4870-b00d-665ec459524e"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Contabilidad endpoint + ownership",
+                        "Pass":  true,
+                        "Details":  "ManualEntry=30d483aa-07bd-4219-ace3-b404d5521bb7"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Telemedicina chat",
+                        "Pass":  true,
+                        "Details":  "Session=252691ac-e583-43a7-8a42-eea0cd9cea8e"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Portal paciente y notificaciones",
+                        "Pass":  true,
+                        "Details":  "Notifs=2"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Seguros reclamos",
+                        "Pass":  true,
+                        "Details":  "Claim=d93a7cfd-9413-4b71-befe-f8b6b7b95de6"
+                    },
+                    {
+                        "Layer":  "Odontologia",
+                        "Test":  "Documentos firmados",
+                        "Pass":  true,
+                        "Details":  "Doc=5b6b15ec-9ea5-4fb9-a253-d276386c211e"
+                    },
+                    {
+                        "Layer":  "Reportes",
+                        "Test":  "Reportes desde BD",
+                        "Pass":  true,
+                        "Details":  "incomeApi=247.25 incomeDb=247.25"
+                    },
+                    {
+                        "Layer":  "SRI",
+                        "Test":  "Consultas SRI",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "IA",
+                        "Test":  "Endpoints IA",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    },
+                    {
+                        "Layer":  "AuditoriaCodigo",
+                        "Test":  "Patrones mock/simulación",
+                        "Pass":  false,
+                        "Details":  "MEDICSYS.Api\\Services\\SriService.cs:109:            var mockSignedXml = xml; // Mock: sin firma real\r\nMEDICSYS.Api\\Services\\SriService.cs:110:            var mockSignedXmlPath = WriteDocument(_docFirmadosDir, $\"{baseName}.xml\", mockSignedXml);\r\nMEDICSYS.Api\\Services\\SriService.cs:124:                var authorizationXml = BuildAuthorizationXml(authorization, authorizedAt.Value, environmentValue, mockSignedXml);\r\nMEDICSYS.Api\\Services\\SriService.cs:130:                generatedXmlPath, mockSignedXmlPath, responseXmlPath, authorizedXmlPath);\r\nMEDICSYS.Api\\Services\\SriService.cs:319:    // Este m�todo se mantiene por compatibilidad pero ya no se usa en el flujo mock.\r\nMEDICSYS.Web\\src\\app\\pages\\odontologo\\contabilidad\\reportes\\reportes.component.ts:159:    alert(\u0027Funcionalidad de exportaci�n "
+                    },
+                    {
+                        "Layer":  "Build",
+                        "Test":  "Backend build",
+                        "Pass":  false,
+                        "Details":  "Falló backend build"
+                    },
+                    {
+                        "Layer":  "Build",
+                        "Test":  "Frontend build",
+                        "Pass":  true,
+                        "Details":  "OK"
+                    }
+                ]
+}

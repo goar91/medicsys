@@ -1,7 +1,7 @@
 .page {
   padding: 0 2.5rem 3rem;
   display: grid;
-  gap: 1.5rem;
+  gap: 1.1rem;
 }
 
 .page-header {
@@ -23,7 +23,7 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   overflow: hidden;
-  background: white;
+  background: var(--surface);
 }
 
 .module-link {
@@ -60,7 +60,7 @@
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .metric-card {
@@ -68,7 +68,7 @@
   border: 1px solid var(--stroke);
   border-radius: 12px;
   padding: 1rem;
-  background: white;
+  background: var(--surface);
 }
 
 .metric-label {
@@ -104,7 +104,7 @@
 
 .chip {
   border: 1px solid var(--stroke);
-  background: white;
+  background: var(--surface);
   color: var(--ink);
   padding: 0.45rem 0.85rem;
   border-radius: 999px;
@@ -120,8 +120,12 @@
 .card {
   border: 1px solid var(--stroke);
   border-radius: 14px;
-  background: white;
+  background: var(--surface);
   padding: 1rem;
+}
+
+.card h3 {
+  margin: 0;
 }
 
 .batch-card {
@@ -155,7 +159,7 @@
   padding: 0.55rem 0.7rem;
   font: inherit;
   color: var(--ink);
-  background: white;
+  background: var(--surface);
 }
 
 .batch-actions {
@@ -205,6 +209,7 @@
   border: 1px solid var(--stroke);
   border-radius: 12px;
   padding: 0.8rem;
+  background: var(--surface);
 }
 
 .item-select {
@@ -233,6 +238,13 @@
   justify-content: flex-end;
 }
 
+.smart-actions {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 0.45rem;
+}
+
 .status {
   display: inline-flex;
   align-items: center;
@@ -259,6 +271,21 @@
 .status[data-status='Submitted'] {
   background: rgba(59, 130, 246, 0.14);
   color: #1d4ed8;
+}
+
+.status[data-status='Critico'] {
+  background: rgba(185, 28, 28, 0.16);
+  color: #991b1b;
+}
+
+.status[data-status='EnRiesgo'] {
+  background: rgba(245, 158, 11, 0.18);
+  color: #92400e;
+}
+
+.status[data-status='Normal'] {
+  background: rgba(34, 197, 94, 0.14);
+  color: #166534;
 }
 
 .patients-header {
@@ -294,6 +321,7 @@
   border-radius: 10px;
   padding: 0.45rem 0.55rem;
   font-size: 0.86rem;
+  background: var(--surface);
 }
 
 .empty {

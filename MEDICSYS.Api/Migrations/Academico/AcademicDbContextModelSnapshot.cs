@@ -834,6 +834,54 @@ namespace MEDICSYS.Api.Migrations.Academico
                     b.ToTable("AcademicStudentRiskFlags");
                 });
 
+            modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicSupervisionAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
+
+                    b.Property<Guid?>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProfessorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("ProfessorId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ProfessorId", "StudentId", "PatientId");
+
+                    b.ToTable("AcademicSupervisionAssignments");
+                });
+
             modelBuilder.Entity("MEDICSYS.Api.Models.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1246,6 +1294,40 @@ namespace MEDICSYS.Api.Migrations.Academico
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("ResolvedByUser");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("MEDICSYS.Api.Models.Academico.AcademicSupervisionAssignment", b =>
+                {
+                    b.HasOne("MEDICSYS.Api.Models.ApplicationUser", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MEDICSYS.Api.Models.Academico.AcademicPatient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MEDICSYS.Api.Models.ApplicationUser", "Professor")
+                        .WithMany()
+                        .HasForeignKey("ProfessorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MEDICSYS.Api.Models.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Professor");
 
                     b.Navigation("Student");
                 });

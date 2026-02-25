@@ -968,6 +968,40 @@
           }
         }
       },
+      "Serilog.Sinks.PeriodicBatching/4.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Serilog": "3.1.1"
+        },
+        "compile": {
+          "lib/net6.0/Serilog.Sinks.PeriodicBatching.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Serilog.Sinks.PeriodicBatching.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Serilog.Sinks.Seq/7.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Serilog": "3.1.1",
+          "Serilog.Sinks.File": "5.0.0",
+          "Serilog.Sinks.PeriodicBatching": "4.0.0"
+        },
+        "compile": {
+          "lib/net6.0/Serilog.Sinks.Seq.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Serilog.Sinks.Seq.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SkiaSharp/3.119.2": {
         "type": "package",
         "dependencies": {
@@ -2951,6 +2985,42 @@
         "serilog.sinks.file.nuspec"
       ]
     },
+    "Serilog.Sinks.PeriodicBatching/4.0.0": {
+      "sha512": "kxg6QLNA1sDVqYEE7/6hCr/Ur3imS+qaoEqriQh07WTU1/b6jknnuVN1rWQpj67JpwAXXTmgI3Js9IGGktgumQ==",
+      "type": "package",
+      "path": "serilog.sinks.periodicbatching/4.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net462/Serilog.Sinks.PeriodicBatching.dll",
+        "lib/net462/Serilog.Sinks.PeriodicBatching.xml",
+        "lib/net6.0/Serilog.Sinks.PeriodicBatching.dll",
+        "lib/net6.0/Serilog.Sinks.PeriodicBatching.xml",
+        "lib/netstandard2.0/Serilog.Sinks.PeriodicBatching.dll",
+        "lib/netstandard2.0/Serilog.Sinks.PeriodicBatching.xml",
+        "serilog.sinks.periodicbatching.4.0.0.nupkg.sha512",
+        "serilog.sinks.periodicbatching.nuspec"
+      ]
+    },
+    "Serilog.Sinks.Seq/7.0.0": {
+      "sha512": "GEi6SZnlhFGpzsWu/xit883Bn67vAssUItXIFsVTmyxaRL7h7Xk2/BUswoM/iqwOBJzj5P9xU4IBf/IAoVklPg==",
+      "type": "package",
+      "path": "serilog.sinks.seq/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net6.0/Serilog.Sinks.Seq.dll",
+        "lib/net6.0/Serilog.Sinks.Seq.xml",
+        "lib/netstandard2.0/Serilog.Sinks.Seq.dll",
+        "lib/netstandard2.0/Serilog.Sinks.Seq.xml",
+        "serilog.sinks.seq.7.0.0.nupkg.sha512",
+        "serilog.sinks.seq.nuspec"
+      ]
+    },
     "SkiaSharp/3.119.2": {
       "sha512": "nmy2dOFWPvQKMglfpjz8+/xQQcSrL9jzul3cUyzCJVSwrmSAw+6B1sEgU7jt6NZBptwGq2k/V0kjyu2GizMFtg==",
       "type": "package",
@@ -3421,31 +3491,38 @@
       "Serilog.Settings.Configuration >= 8.*",
       "Serilog.Sinks.Console >= 5.*",
       "Serilog.Sinks.File >= 5.*",
+      "Serilog.Sinks.Seq >= 7.0.0",
       "SkiaSharp >= 3.*",
       "System.Security.Cryptography.Xml >= 10.0.3",
       "ZXing.Net >= 0.16.*"
     ]
   },
   "packageFolders": {
-    "/Users/gerson/.nuget/packages/": {}
+    "C:\\Users\\gerso\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
+      "projectUniqueName": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
       "projectName": "MEDICSYS.Api",
-      "projectPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/MEDICSYS.Api.csproj",
-      "packagesPath": "/Users/gerson/.nuget/packages/",
-      "outputPath": "/Volumes/Datos/Programación/MEDICSYS/MEDICSYS/MEDICSYS.Api/obj/",
+      "projectPath": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\MEDICSYS.Api.csproj",
+      "packagesPath": "C:\\Users\\gerso\\.nuget\\packages\\",
+      "outputPath": "H:\\Programación\\MEDICSYS\\MEDICSYS\\MEDICSYS.Api\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/Users/gerson/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\gerso\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "/usr/local/Cellar/dotnet/10.0.103/libexec/library-packs": {},
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3536,6 +3613,10 @@
             "target": "Package",
             "version": "[5.*, )"
           },
+          "Serilog.Sinks.Seq": {
+            "target": "Package",
+            "version": "[7.0.0, )"
+          },
           "SkiaSharp": {
             "target": "Package",
             "version": "[3.*, )"
@@ -3568,7 +3649,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.103/libexec/sdk/10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
@@ -3991,7 +4072,7 @@
       "code": "NU1510",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "PackageReference System.Security.Cryptography.Xml will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
+      "message": "PackageReference System.Security.Cryptography.Xml no se eliminará. Considere la posibilidad de quitar este paquete de las dependencias, ya que es probable que no sea necesario.",
       "libraryId": "System.Security.Cryptography.Xml",
       "targetGraphs": [
         "net10.0"

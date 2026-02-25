@@ -63,6 +63,12 @@ export class LoginComponent {
       value: 'Odontologo',
       description: 'Gestión de pacientes y tratamientos',
       svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M12 12v10"/><path d="M9 12v5l-1.5 5M15 12v5l1.5 5"/></svg>'
+    },
+    {
+      label: 'Auditoría',
+      value: 'Auditoria',
+      description: 'Trazabilidad y control normativo',
+      svgIcon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>'
     }
   ];
 
@@ -78,6 +84,8 @@ export class LoginComponent {
         return 'profesor@medicsys.com';
       case 'Odontologo':
         return 'odontologo@medicsys.com';
+      case 'Auditoria':
+        return 'auditoria@medicsys.com';
       default:
         return 'estudiante@medicsys.com';
     }
@@ -126,6 +134,9 @@ export class LoginComponent {
         break;
       case 'Profesor':
         this.router.navigate(['/professor']);
+        break;
+      case 'Auditoria':
+        this.router.navigate(['/auditoria']);
         break;
       case 'Alumno':
       default:

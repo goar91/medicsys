@@ -18,10 +18,12 @@ namespace MEDICSYS.Api.Controllers.Academico;
 public class AcademicClinicalHistoriesController : ControllerBase
 {
     private readonly AcademicDbContext _db;
+    private readonly AcademicScopeService _scope;
 
-    public AcademicClinicalHistoriesController(AcademicDbContext db)
+    public AcademicClinicalHistoriesController(AcademicDbContext db, AcademicScopeService scope)
     {
         _db = db;
+        _scope = scope;
     }
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -30,18 +32,39 @@ public class AcademicClinicalHistoriesController : ControllerBase
     public async Task<ActionResult<IEnumerable<AcademicClinicalHistoryDto>>> GetAll([FromQuery] Guid? studentId, [FromQuery] string? status)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
 
         var query = _db.AcademicClinicalHistories
             .Include(h => h.Student)
             .Include(h => h.ReviewedByProfessor)
             .AsNoTracking();
 
-        if (!isProfessor)
+        if (!isProfessor && !isAdmin)
         {
+            if (studentId.HasValue && studentId.Value != userId)
+            {
+                return Forbid();
+            }
             query = query.Where(h => h.StudentId == userId);
         }
-        else if (studentId.HasValue)
+        else if (isProfessor && !isAdmin)
+        {
+            var supervisedStudentIds = (await _scope.GetSupervisedStudentIdsAsync(userId)).ToList();
+            if (studentId.HasValue && !supervisedStudentIds.Contains(studentId.Value))
+            {
+                return Forbid();
+            }
+
+            if (supervisedStudentIds.Count == 0)
+            {
+                return Ok(Array.Empty<AcademicClinicalHistoryDto>());
+            }
+
+            query = query.Where(h => supervisedStudentIds.Contains(h.StudentId));
+        }
+
+        if ((isProfessor || isAdmin) && studentId.HasValue)
         {
             query = query.Where(h => h.StudentId == studentId.Value);
         }
@@ -62,7 +85,8 @@ public class AcademicClinicalHistoriesController : ControllerBase
     public async Task<ActionResult<AcademicClinicalHistoryDto>> GetById(Guid id)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
 
         var history = await _db.AcademicClinicalHistories
             .Include(h => h.Student)
@@ -74,7 +98,13 @@ public class AcademicClinicalHistoriesController : ControllerBase
             return NotFound();
         }
 
-        if (!isProfessor && history.StudentId != userId)
+        if (!isProfessor && !isAdmin && history.StudentId != userId)
+        {
+            return Forbid();
+        }
+
+        if (isProfessor && !isAdmin &&
+            !await _scope.ProfessorSupervisesStudentAsync(userId, history.StudentId))
         {
             return Forbid();
         }
@@ -110,7 +140,9 @@ public class AcademicClinicalHistoriesController : ControllerBase
     public async Task<ActionResult<AcademicClinicalHistoryDto>> Update(Guid id, [FromBody] UpdateAcademicClinicalHistoryRequest request)
     {
         var userId = GetUserId();
-        var isProfessor = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Admin);
+        var isAdmin = User.IsInRole(Roles.Admin);
+        var isProfessor = User.IsInRole(Roles.Professor);
+        var isReviewer = isProfessor || isAdmin;
 
         var history = await _db.AcademicClinicalHistories
             .Include(h => h.Student)
@@ -122,7 +154,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
             return NotFound();
         }
 
-        if (!isProfessor)
+        if (!isReviewer)
         {
             if (history.StudentId != userId)
             {
@@ -133,6 +165,11 @@ public class AcademicClinicalHistoriesController : ControllerBase
             {
                 return BadRequest(new { message = "Solo se pueden editar historias en estado Draft o Rejected" });
             }
+        }
+        else if (isProfessor && !isAdmin &&
+                 !await _scope.ProfessorSupervisesStudentAsync(userId, history.StudentId))
+        {
+            return Forbid();
         }
 
         history.Data = request.Data ?? new JsonObject();
@@ -157,10 +194,18 @@ public class AcademicClinicalHistoriesController : ControllerBase
     [Authorize(Roles = $"{Roles.Professor},{Roles.Admin}")]
     public async Task<ActionResult> Delete(Guid id)
     {
+        var userId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
+
         var history = await _db.AcademicClinicalHistories.FirstOrDefaultAsync(h => h.Id == id);
         if (history == null)
         {
             return NotFound();
+        }
+
+        if (!isAdmin && !await _scope.ProfessorSupervisesStudentAsync(userId, history.StudentId))
+        {
+            return Forbid();
         }
 
         _db.AcademicClinicalHistories.Remove(history);
@@ -208,6 +253,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
     public async Task<ActionResult<AcademicClinicalHistoryDto>> Review(Guid id, [FromBody] ReviewAcademicClinicalHistoryRequest request)
     {
         var professorId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
 
         if (!IsValidGrade(request.Grade))
         {
@@ -221,6 +267,11 @@ public class AcademicClinicalHistoriesController : ControllerBase
         if (history == null)
         {
             return NotFound();
+        }
+
+        if (!isAdmin && !await _scope.ProfessorSupervisesStudentAsync(professorId, history.StudentId))
+        {
+            return Forbid();
         }
 
         if (history.Status != ClinicalHistoryStatus.Submitted)
@@ -249,6 +300,7 @@ public class AcademicClinicalHistoriesController : ControllerBase
         [FromBody] BatchReviewAcademicClinicalHistoriesRequest request)
     {
         var professorId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
         var ids = (request.HistoryIds ?? Array.Empty<Guid>())
             .Where(id => id != Guid.Empty)
             .Distinct()
@@ -273,6 +325,9 @@ public class AcademicClinicalHistoriesController : ControllerBase
         var histories = await _db.AcademicClinicalHistories
             .Where(h => ids.Contains(h.Id))
             .ToDictionaryAsync(h => h.Id);
+        var supervisedStudentIds = isAdmin
+            ? new HashSet<Guid>()
+            : await _scope.GetSupervisedStudentIdsAsync(professorId);
 
         var updatedIds = new List<Guid>();
         var skipped = new List<BatchReviewSkippedItem>();
@@ -288,6 +343,12 @@ public class AcademicClinicalHistoriesController : ControllerBase
             if (history.Status != ClinicalHistoryStatus.Submitted)
             {
                 skipped.Add(new BatchReviewSkippedItem(id, "La historia no está en estado Submitted."));
+                continue;
+            }
+
+            if (!isAdmin && !supervisedStudentIds.Contains(history.StudentId))
+            {
+                skipped.Add(new BatchReviewSkippedItem(id, "Sin asignación activa para este estudiante."));
                 continue;
             }
 
@@ -319,32 +380,30 @@ public class AcademicClinicalHistoriesController : ControllerBase
     public async Task<ActionResult<ProfessorClinicalDashboardDto>> GetDashboard()
     {
         var professorId = GetUserId();
+        var isAdmin = User.IsInRole(Roles.Admin);
 
-        var supervisedStudentIds = await _db.AcademicAppointments
-            .AsNoTracking()
-            .Where(a => a.ProfessorId == professorId)
-            .Select(a => a.StudentId)
-            .Distinct()
-            .ToListAsync();
-
-        if (supervisedStudentIds.Count == 0)
-        {
-            supervisedStudentIds = await _db.AcademicClinicalHistories
-                .AsNoTracking()
-                .Where(h => h.ReviewedByProfessorId == professorId)
-                .Select(h => h.StudentId)
-                .Distinct()
-                .ToListAsync();
-        }
-
-        if (supervisedStudentIds.Count == 0)
-        {
-            supervisedStudentIds = await _db.AcademicClinicalHistories
+        var supervisedStudentIds = isAdmin
+            ? await _db.AcademicClinicalHistories
                 .AsNoTracking()
                 .Where(h => h.Status == ClinicalHistoryStatus.Submitted)
                 .Select(h => h.StudentId)
                 .Distinct()
-                .ToListAsync();
+                .ToListAsync()
+            : (await _scope.GetSupervisedStudentIdsAsync(professorId)).ToList();
+
+        if (!isAdmin && supervisedStudentIds.Count == 0)
+        {
+            return Ok(new ProfessorClinicalDashboardDto(
+                0,
+                0,
+                0,
+                0,
+                0,
+                Array.Empty<ProfessorCommonErrorDto>(),
+                Array.Empty<ProfessorErrorByStudentDto>(),
+                Array.Empty<ProfessorErrorByGroupDto>(),
+                Array.Empty<StudentProgressDto>(),
+                Array.Empty<PrioritizedReviewDto>()));
         }
 
         var supervisedSet = supervisedStudentIds.ToHashSet();
@@ -432,6 +491,63 @@ public class AcademicClinicalHistoriesController : ControllerBase
             .ThenBy(x => x.StudentName)
             .ToList();
 
+        var unresolvedRiskLevels = await _db.AcademicStudentRiskFlags
+            .AsNoTracking()
+            .Where(f => !f.IsResolved && supervisedSet.Contains(f.StudentId))
+            .GroupBy(f => f.StudentId)
+            .Select(group => new
+            {
+                StudentId = group.Key,
+                MaxRisk = group.Max(f => f.RiskLevel)
+            })
+            .ToDictionaryAsync(x => x.StudentId, x => x.MaxRisk);
+
+        var prioritizedReviews = histories
+            .Where(h => h.Status == ClinicalHistoryStatus.Submitted)
+            .Select(h =>
+            {
+                var submittedAt = h.SubmittedAt ?? h.UpdatedAt;
+                var waitingHours = Math.Max(0, (DateTimeHelper.Now() - submittedAt).TotalHours);
+                var recentRejectedCount = histories.Count(item =>
+                    item.StudentId == h.StudentId &&
+                    item.Status == ClinicalHistoryStatus.Rejected &&
+                    item.UpdatedAt >= DateTimeHelper.Now().AddDays(-60));
+                var hasRiskFlag = unresolvedRiskLevels.TryGetValue(h.StudentId, out var riskLevel);
+
+                var riskWeight = !hasRiskFlag ? 0m : riskLevel switch
+                {
+                    StudentRiskLevel.Critical => 6m,
+                    StudentRiskLevel.High => 4m,
+                    StudentRiskLevel.Medium => 2m,
+                    StudentRiskLevel.Low => 0.5m,
+                    _ => 0m
+                };
+
+                var priorityScore = Math.Round(((decimal)waitingHours * 0.20m) + (recentRejectedCount * 2m) + riskWeight, 2);
+                var slaStatus = waitingHours switch
+                {
+                    >= 72 => "Critico",
+                    >= 48 => "EnRiesgo",
+                    _ => "Normal"
+                };
+
+                return new PrioritizedReviewDto(
+                    h.Id,
+                    h.StudentId,
+                    h.Student?.FullName ?? "Alumno",
+                    h.PatientNameFromData(),
+                    submittedAt,
+                    Math.Round(waitingHours, 2),
+                    recentRejectedCount,
+                    hasRiskFlag ? riskLevel.ToString() : "SinBandera",
+                    slaStatus,
+                    priorityScore);
+            })
+            .OrderByDescending(item => item.PriorityScore)
+            .ThenByDescending(item => item.HoursWaiting)
+            .Take(20)
+            .ToList();
+
         return Ok(new ProfessorClinicalDashboardDto(
             pendingReviews,
             reviewedByProfessor.Count,
@@ -441,7 +557,8 @@ public class AcademicClinicalHistoriesController : ControllerBase
             commonErrors,
             errorsByStudent,
             errorsByGroup,
-            progress));
+            progress,
+            prioritizedReviews));
     }
 
     [HttpGet("comment-templates")]
@@ -743,7 +860,8 @@ public record ProfessorClinicalDashboardDto(
     IReadOnlyCollection<ProfessorCommonErrorDto> CommonErrors,
     IReadOnlyCollection<ProfessorErrorByStudentDto> ErrorsByStudent,
     IReadOnlyCollection<ProfessorErrorByGroupDto> ErrorsByGroup,
-    IReadOnlyCollection<StudentProgressDto> StudentProgress
+    IReadOnlyCollection<StudentProgressDto> StudentProgress,
+    IReadOnlyCollection<PrioritizedReviewDto> PrioritizedReviews
 );
 
 public record ProfessorCommonErrorDto(string Comment, int Count);
@@ -762,6 +880,18 @@ public record StudentProgressDto(
     int RejectedHistories,
     decimal? AverageGrade,
     decimal ProgressPercent);
+
+public record PrioritizedReviewDto(
+    Guid HistoryId,
+    Guid StudentId,
+    string StudentName,
+    string PatientName,
+    DateTime SubmittedAt,
+    double HoursWaiting,
+    int RecentRejectedCount,
+    string RiskLevel,
+    string SlaStatus,
+    decimal PriorityScore);
 
 public record UpsertAcademicCommentTemplateRequest(
     [property: JsonPropertyName("title")] string? Title,
@@ -782,4 +912,29 @@ public enum BatchReviewDecision
     Approve,
     Reject,
     RequestChanges
+}
+
+internal static class AcademicClinicalHistoryExtensions
+{
+    public static string PatientNameFromData(this AcademicClinicalHistory history)
+    {
+        var firstName = GetDataValue(history.Data, "personal", "firstName");
+        var lastName = GetDataValue(history.Data, "personal", "lastName");
+        var fullName = $"{firstName} {lastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? "Paciente no registrado" : fullName;
+    }
+
+    private static string GetDataValue(JsonObject? data, params string[] path)
+    {
+        JsonNode? current = data;
+        foreach (var segment in path)
+        {
+            if (current is not JsonObject currentObject || !currentObject.TryGetPropertyValue(segment, out current))
+            {
+                return string.Empty;
+            }
+        }
+
+        return (current?.ToString() ?? string.Empty).Trim();
+    }
 }

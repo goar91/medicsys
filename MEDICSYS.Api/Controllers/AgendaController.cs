@@ -18,12 +18,18 @@ public class AgendaController : ControllerBase
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<AgendaController> _logger;
+    private readonly AcademicScopeService _scope;
 
-    public AgendaController(AppDbContext db, UserManager<ApplicationUser> userManager, ILogger<AgendaController> logger)
+    public AgendaController(
+        AppDbContext db,
+        UserManager<ApplicationUser> userManager,
+        ILogger<AgendaController> logger,
+        AcademicScopeService scope)
     {
         _db = db;
         _userManager = userManager;
         _logger = logger;
+        _scope = scope;
     }
 
     [Authorize]
@@ -35,14 +41,36 @@ public class AgendaController : ControllerBase
         [FromQuery] int? pageSize)
     {
         var userId = GetUserId();
-        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+        var isProfessor = User.IsInRole(Roles.Professor);
+        var isOdontologo = User.IsInRole(Roles.Odontologo);
+        var isProvider = isProfessor || isOdontologo;
 
         var query = _db.Appointments
             .Include(x => x.Student)
             .Include(x => x.Professor)
             .AsNoTracking();
 
-        if (isProvider)
+        if (isProfessor)
+        {
+            if (professorId.HasValue && professorId.Value != userId)
+            {
+                return Forbid();
+            }
+
+            var supervisedStudentIds = (await _scope.GetSupervisedStudentIdsAsync(userId)).ToList();
+            if (studentId.HasValue && !supervisedStudentIds.Contains(studentId.Value))
+            {
+                return Forbid();
+            }
+
+            if (supervisedStudentIds.Count == 0)
+            {
+                return Ok(Array.Empty<AppointmentDto>());
+            }
+
+            query = query.Where(x => x.ProfessorId == userId && supervisedStudentIds.Contains(x.StudentId));
+        }
+        else if (isOdontologo)
         {
             professorId ??= userId;
             query = query.Where(x => x.ProfessorId == professorId.Value);
@@ -137,6 +165,11 @@ public class AgendaController : ControllerBase
             studentId = request.StudentId.Value;
         }
 
+        if (isProfessor && !await _scope.ProfessorSupervisesStudentAsync(professorId, studentId))
+        {
+            return BadRequest(new { message = "El alumno no está asignado al profesor." });
+        }
+
         // Validación para alumno
         if (!isProvider && studentId != userId)
         {
@@ -158,6 +191,19 @@ public class AgendaController : ControllerBase
         if (professor == null)
         {
             return BadRequest(new { message = $"Odontólogo con ID {professorId} no encontrado." });
+        }
+
+        if (!isProvider)
+        {
+            var professorUser = await _userManager.FindByIdAsync(professorId.ToString());
+            if (professorUser != null)
+            {
+                var isSelectedProfessor = await _userManager.IsInRoleAsync(professorUser, Roles.Professor);
+                if (isSelectedProfessor && !await _scope.ProfessorSupervisesStudentAsync(professorId, studentId))
+                {
+                    return BadRequest(new { message = "No tienes asignación activa con el profesor seleccionado." });
+                }
+            }
         }
 
         var appointment = new Appointment
@@ -190,7 +236,8 @@ public class AgendaController : ControllerBase
     public async Task<ActionResult<AvailabilityResponse>> GetAvailability([FromQuery] DateTime date, [FromQuery] Guid? professorId, [FromQuery] Guid? studentId)
     {
         var userId = GetUserId();
-        var isProvider = User.IsInRole(Roles.Professor) || User.IsInRole(Roles.Odontologo);
+        var isProfessor = User.IsInRole(Roles.Professor);
+        var isProvider = isProfessor || User.IsInRole(Roles.Odontologo);
 
         if (!isProvider)
         {
@@ -199,6 +246,19 @@ public class AgendaController : ControllerBase
         else
         {
             professorId ??= userId;
+        }
+
+        if (isProfessor)
+        {
+            if (professorId.HasValue && professorId.Value != userId)
+            {
+                return Forbid();
+            }
+
+            if (studentId.HasValue && !await _scope.ProfessorSupervisesStudentAsync(userId, studentId.Value))
+            {
+                return Forbid();
+            }
         }
 
         // Usar la fecha tal como se recibe (hora local del negocio)

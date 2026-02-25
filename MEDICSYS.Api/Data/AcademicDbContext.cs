@@ -25,6 +25,7 @@ public class AcademicDbContext : IdentityDbContext<ApplicationUser, IdentityRole
     public DbSet<AcademicIntegrationConnector> AcademicIntegrationConnectors => Set<AcademicIntegrationConnector>();
     public DbSet<AcademicIntegrationSyncLog> AcademicIntegrationSyncLogs => Set<AcademicIntegrationSyncLog>();
     public DbSet<AcademicStudentRiskFlag> AcademicStudentRiskFlags => Set<AcademicStudentRiskFlag>();
+    public DbSet<AcademicSupervisionAssignment> AcademicSupervisionAssignments => Set<AcademicSupervisionAssignment>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -309,6 +310,34 @@ public class AcademicDbContext : IdentityDbContext<ApplicationUser, IdentityRole
             entity.HasIndex(e => e.StudentId);
             entity.HasIndex(e => e.RiskLevel);
             entity.HasIndex(e => e.IsResolved);
+        });
+
+        // AcademicSupervisionAssignment
+        builder.Entity<AcademicSupervisionAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Notes).HasMaxLength(800);
+            entity.HasOne(e => e.Professor)
+                .WithMany()
+                .HasForeignKey(e => e.ProfessorId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Patient)
+                .WithMany()
+                .HasForeignKey(e => e.PatientId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => e.ProfessorId);
+            entity.HasIndex(e => e.StudentId);
+            entity.HasIndex(e => e.PatientId);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.ProfessorId, e.StudentId, e.PatientId });
         });
     }
 }

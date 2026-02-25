@@ -10,9 +10,7 @@ import {
   AcademicPatient,
   ProfessorClinicalDashboard,
   AcademicCommentTemplate,
-  CacesDashboard,
-  ComplianceDashboard,
-  AcademicAnalyticsDashboard
+  ProfessorPrioritizedReview
 } from '../../core/academic.service';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
 import { AuthService } from '../../core/auth.service';
@@ -42,9 +40,6 @@ export class ProfessorDashboardComponent implements OnInit {
   readonly patients = signal<AcademicPatient[]>([]);
   readonly dashboard = signal<ProfessorClinicalDashboard | null>(null);
   readonly templates = signal<AcademicCommentTemplate[]>([]);
-  readonly cacesDashboard = signal<CacesDashboard | null>(null);
-  readonly complianceDashboard = signal<ComplianceDashboard | null>(null);
-  readonly analyticsDashboard = signal<AcademicAnalyticsDashboard | null>(null);
   readonly loading = signal(true);
   readonly batching = signal(false);
   readonly filter = signal<'all' | 'Draft' | 'Submitted' | 'Approved' | 'Rejected'>('all');
@@ -58,14 +53,70 @@ export class ProfessorDashboardComponent implements OnInit {
 
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
   readonly selectedCount = computed(() => this.selectedHistoryIds().length);
+  readonly prioritizedReviewMap = computed(() => {
+    const map = new Map<string, ProfessorPrioritizedReview>();
+    const queue = this.dashboard()?.prioritizedReviews ?? [];
+    for (const item of queue) {
+      map.set(item.historyId, item);
+    }
+    return map;
+  });
+
+  readonly priorityQueue = computed<ProfessorPrioritizedReview[]>(() => {
+    const queue = this.dashboard()?.prioritizedReviews ?? [];
+    if (queue.length > 0) {
+      return queue;
+    }
+
+    const now = Date.now();
+    return this.histories()
+      .filter(history => history.status === 'Submitted')
+      .map(history => {
+        const submittedAt = history.submittedAt ?? history.updatedAt;
+        const submittedMs = new Date(submittedAt).getTime();
+        const waitingHours = Math.max(0, (now - submittedMs) / (1000 * 60 * 60));
+        const slaStatus: ProfessorPrioritizedReview['slaStatus'] =
+          waitingHours >= 72 ? 'Critico' : waitingHours >= 48 ? 'EnRiesgo' : 'Normal';
+
+        return {
+          historyId: history.id,
+          studentId: history.studentId,
+          studentName: history.studentName,
+          patientName: history.patientName,
+          submittedAt,
+          hoursWaiting: Number(waitingHours.toFixed(2)),
+          recentRejectedCount: 0,
+          riskLevel: 'SinBandera',
+          slaStatus,
+          priorityScore: Number((waitingHours * 0.2).toFixed(2))
+        };
+      })
+      .sort((a, b) => b.priorityScore - a.priorityScore || b.hoursWaiting - a.hoursWaiting)
+      .slice(0, 20);
+  });
 
   readonly filtered = computed(() => {
     const value = this.filter();
     const items = this.histories();
+    const ordered = [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     if (value === 'all') {
-      return items;
+      return ordered;
     }
-    return items.filter(item => item.status === value);
+
+    const filtered = ordered.filter(item => item.status === value);
+    if (value !== 'Submitted') {
+      return filtered;
+    }
+
+    const priorityMap = this.prioritizedReviewMap();
+    return [...filtered].sort((a, b) => {
+      const aPriority = priorityMap.get(a.id)?.priorityScore ?? 0;
+      const bPriority = priorityMap.get(b.id)?.priorityScore ?? 0;
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority;
+      }
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
   });
 
   readonly selectableIds = computed(() =>
@@ -135,35 +186,6 @@ export class ProfessorDashboardComponent implements OnInit {
     ];
   });
 
-  readonly enterpriseMetrics = computed(() => {
-    const caces = this.cacesDashboard();
-    const compliance = this.complianceDashboard();
-    const analytics = this.analyticsDashboard();
-
-    return [
-      {
-        label: 'Cumplimiento CACES',
-        value: `${(caces?.complianceRate ?? 0).toFixed(2)}%`,
-        subtitle: `${caces?.compliantCriteria ?? 0} criterios conformes`
-      },
-      {
-        label: 'LOPDP - Consentimientos',
-        value: compliance?.grantedConsents ?? 0,
-        subtitle: `${compliance?.pendingAnonymizationRequests ?? 0} solicitudes de anonimización pendientes`
-      },
-      {
-        label: 'Riesgo Académico Alto',
-        value: analytics?.highRiskStudents ?? 0,
-        subtitle: `${analytics?.totalStudents ?? 0} estudiantes analizados`
-      },
-      {
-        label: 'Aprobación Global',
-        value: `${(analytics?.approvalRate ?? 0).toFixed(2)}%`,
-        subtitle: `${analytics?.pendingHistories ?? 0} historias pendientes`
-      }
-    ];
-  });
-
   ngOnInit() {
     this.applyModuleFromRoute();
     this.load();
@@ -177,19 +199,13 @@ export class ProfessorDashboardComponent implements OnInit {
       appointments: this.academicService.getAppointments({ professorId: this.currentUserId() }).pipe(catchError(() => of([] as AcademicAppointment[]))),
       patients: this.academicService.getPatients().pipe(catchError(() => of([] as AcademicPatient[]))),
       dashboard: this.academicService.getProfessorClinicalDashboard().pipe(catchError(() => of(null))),
-      templates: this.academicService.getCommentTemplates().pipe(catchError(() => of([] as AcademicCommentTemplate[]))),
-      cacesDashboard: this.academicService.getCacesDashboard().pipe(catchError(() => of(null))),
-      complianceDashboard: this.academicService.getComplianceDashboard().pipe(catchError(() => of(null))),
-      analyticsDashboard: this.academicService.getAnalyticsDashboard().pipe(catchError(() => of(null)))
+      templates: this.academicService.getCommentTemplates().pipe(catchError(() => of([] as AcademicCommentTemplate[])))
     }).subscribe(result => {
       this.histories.set(result.histories);
       this.appointments.set(result.appointments);
       this.patients.set(result.patients);
       this.dashboard.set(result.dashboard);
       this.templates.set(result.templates);
-      this.cacesDashboard.set(result.cacesDashboard);
-      this.complianceDashboard.set(result.complianceDashboard);
-      this.analyticsDashboard.set(result.analyticsDashboard);
       this.selectedHistoryIds.set([]);
       this.loading.set(false);
     });
@@ -324,5 +340,15 @@ export class ProfessorDashboardComponent implements OnInit {
   private applyModuleFromRoute() {
     const module = this.route.snapshot.data['module'] as string | undefined;
     this.showPatients.set(module === 'patients');
+  }
+
+  slaLabel(value: ProfessorPrioritizedReview['slaStatus']) {
+    if (value === 'Critico') {
+      return 'Crítico >72h';
+    }
+    if (value === 'EnRiesgo') {
+      return 'Riesgo >48h';
+    }
+    return 'Dentro de SLA';
   }
 }
